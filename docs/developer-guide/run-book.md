@@ -1,4 +1,45 @@
-# Troubleshooting
+# Project Run Book
+
+## To Run Docusaurus Locally
+
+It is useful to run Docusaurus locally to preview the changes before pushing to remote repository.
+
+```bash
+cd website
+npm install
+npm run build
+npm run serve
+```
+
+## Platform IO Commands
+
+List Connected Devices
+
+```bash
+pio device list
+```
+
+Monitor Serial Output
+
+```bash
+pio device monitor
+```
+
+Unit Test
+
+```bash
+pio test -e native -v
+```
+
+Build Project with default environment
+
+```bash
+pio run
+```
+
+##
+
+## Troubleshooting
 
 ### Board Not Detected
 
@@ -31,3 +72,12 @@ pio run --target erase
 pio run --target upload
 pio run --target uploadfs
 ```
+
+## Related Documentation
+
+- [Development Setup](development-setup.md) - Initial setup and configuration
+- [GitHub Actions](github-actions.md) - CI/CD workflows and automated builds
+- [Testing](testing.md) - Testing procedures and debugging
+- [OTA System](ota-system.md) - Firmware update procedures
+- [User Troubleshooting Guide](../user-guide/troubleshooting.md) - User-facing troubleshooting
+

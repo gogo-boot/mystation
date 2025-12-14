@@ -95,6 +95,7 @@ information.
 - [**Development Setup**](development-setup.md) - Getting started with PlatformIO
 - [**Testing**](testing.md) - Native tests, mocks, debugging
 - [**Code Conventions**](code-conventions.md) - Style guide and patterns
+- [**Run Book**](run-book.md) - Operational procedures and troubleshooting
 
 ### 🔌 Hardware
 

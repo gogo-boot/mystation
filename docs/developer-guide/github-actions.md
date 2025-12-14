@@ -866,5 +866,15 @@ Both workflows ensure:
 
 ---
 
+## Related Documentation
+
+- [Development Setup](development-setup.md) - Local build instructions
+- [Configuration System](configuration-system.md) - How secrets are used
+- [OTA System](ota-system.md) - Firmware update mechanism
+- [Testing](testing.md) - Running tests locally
+- [Run Book](run-book.md) - Operational procedures and troubleshooting
+
+---
+
 **Questions or issues?** Check the troubleshooting section or open a GitHub issue.
 

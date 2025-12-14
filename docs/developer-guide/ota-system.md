@@ -162,3 +162,10 @@ const char* checkTime = config.otaCheckTime;
 - This feature only provides the UI and configuration storage
 - Future work should implement the actual firmware update logic based on these settings
 
+## Related Documentation
+
+- [GitHub Actions](github-actions.md) - CI/CD and automated builds
+- [Configuration System](configuration-system.md) - NVS storage and configuration
+- [Run Book](run-book.md) - Operational procedures and troubleshooting
+- [Development Setup](development-setup.md) - Local development environment
+

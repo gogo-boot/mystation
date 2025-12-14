@@ -113,3 +113,5 @@ After software setup:
 - [API Keys Setup](./api-keys.md) - Configure external services
 - [Quick Start Guide](./quick-start.md) - First run configuration
 - [Development Guide](./development.md) - Contributing to the project
+- [Run Book](./run-book.md) - Operational procedures and troubleshooting
+- [Testing](./testing.md) - Running unit tests and debugging
