@@ -32,6 +32,10 @@ You don't need to solder anything, just assemble the parts.
 
 - Install Platform IO
 - Git Clone this repository
+- Get and Set API Keys (see below)
+
+## Getting API Keys
+
 - Get API keys for:
     - Google Geolocation API : This API is used to get current location from Wifi access points.
         - Get API key from https://console.cloud.google.com/apis/credentials
@@ -40,8 +44,12 @@ You don't need to solder anything, just assemble the parts.
         - Get API key from https://opendata.rmv.de/site/start.html
     - Open Meteo Weather API : This API is used for getting weather data
         - No API key required for non-commercial use
+    - OpenStreetMap Nominatim : This API is used for getting location names from coordinates.
+        - Location names (free, no key)
 
-### API Keys Setup
+for detail, see [API Integration Guide](./api-integration.md)
+
+### Setup API Keys
 
 `include/secrets/general_secrets.h` file is excluded from git for security reasons.
 you need to create these files manually based on the provided examples `include/secrets/general_secrets.h.example`.
@@ -50,6 +58,7 @@ you need to create these files manually based on the provided examples `include/
 cp include/secrets/general_secrets.h.example include/secrets/general_secrets.h
 ```
 
+All API Kyes must be encrypted in `AES-128-CBC`.
 `ENCRYPTION_KEY` is used to encrypt/decrypt the API keys stored in the device.
 
 For detail on how to encrypt the API Keys, see:

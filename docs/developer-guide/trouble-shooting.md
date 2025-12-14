@@ -1,4 +1,4 @@
-# Troubleshooting Project Setup
+# Troubleshooting
 
 ### Board Not Detected
 
