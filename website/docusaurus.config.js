@@ -36,6 +36,13 @@ const config = {
         locales: ['en'],
     },
 
+    // Enable Mermaid diagrams
+    themes: ['@docusaurus/theme-mermaid'],
+
+    markdown: {
+        mermaid: true,
+    },
+
     presets: [
         [
             'classic',
