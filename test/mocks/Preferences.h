@@ -3,6 +3,7 @@
 #include <string>
 #include <map>
 #include <cstring>
+#include <vector>
 
 // Mock Preferences class for native testing
 class Preferences {
