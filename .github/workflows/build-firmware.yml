@@ -41,6 +41,10 @@ jobs:
                 run: |
                     pip install --upgrade platformio==${{ env.PLATFORMIO_CORE_VERSION }}
 
+            -   name: Unit test
+                run: |
+                    pio test -e native -v
+
             -   name: Create secrets files from environment variables
                 run: |
                     mkdir -p src/secrets
