@@ -468,10 +468,12 @@ int TimingManager::getCurrentMinutesSinceMidnight() {
 bool TimingManager::isTimeInRange(uint32_t currentMinutes, uint32_t startMinutes, uint32_t endMinutes) {
     if (startMinutes <= endMinutes) {
         // Same day range (e.g., 06:00 to 22:00)
-        return currentMinutes >= startMinutes && currentMinutes <= endMinutes;
+        // Use < instead of <= for end to exclude boundary
+        return currentMinutes >= startMinutes && currentMinutes < endMinutes;
     } else {
         // Overnight range (e.g., 22:30 to 05:30)
-        return currentMinutes >= startMinutes || currentMinutes <= endMinutes;
+        // currentMinutes >= 22:30 OR currentMinutes < 05:30 (not <=)
+        return currentMinutes >= startMinutes || currentMinutes < endMinutes;
     }
 }
 
