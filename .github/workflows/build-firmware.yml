@@ -40,6 +40,14 @@ jobs:
             -   name: Install PlatformIO
                 run: |
                     pip install --upgrade platformio==${{ env.PLATFORMIO_CORE_VERSION }}
+                    
+            -   name: Check GCC version  # Add this step
+                run: |
+                    gcc --version
+                    g++ --version
+                    echo "---"
+                    which gcc
+                    which g++
 
             -   name: Unit test
                 run: |
