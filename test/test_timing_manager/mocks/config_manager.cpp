@@ -43,7 +43,7 @@ ConfigManager& ConfigManager::getInstance() {
     return instance;
 }
 
-bool ConfigManager::loadFromNVS() {
+bool ConfigManager::loadFromNVS(bool force) {
     // Mock implementation
     return true;
 }
