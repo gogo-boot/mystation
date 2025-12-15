@@ -1,254 +1,129 @@
-# Software Setup
-
-## Development Environment
+# Project Set-Up Guide
 
 ### Prerequisites
-- **PlatformIO IDE** (VS Code extension) or PlatformIO Core
-- **Git** for version control
-- **ESP32-C3 USB drivers** (usually automatic)
 
-### Installation Steps
+- Software Requirements:
+    - **PlatformIO IDE** (VS Code extension) or CLion with PlatformIO plugin
+    - **Git** for version control
+- Hardware Requirements:
+    - **ESP32** Development Board
+        - It is tested with ESP32-C3 and ESP32-S3 series
+    - E-Paper Display : those are exact same. I guess, Seeed resell the Good Display one.
+        - GDEY075T7 : Good display 7.5" e-Paper Display (800x480)
+        - or Seeed Studio 7.5" Monochrome eInk (SKU 105990172)
+    - Display Hat / Driver Board
+        - Good Display DESPI-C02, 24 PIN 0,5 mm, 3.3V
+        - or Seeed Studio ePaper Breakout Board (SKU 105990172)
+    - Rechargeable Battery (Optional)
+        - For portable use
+        - LiPo or Li-Ion battery with appropriate voltage and capacity
+        - Strongly recommended to get it with BMS (Battery Management System) for safety
+    - Battery Charging Circuit (Optional)
 
-#### 1. Install PlatformIO
-```bash
-# Option A: VS Code Extension (Recommended)
-# Install "PlatformIO IDE" extension in VS Code
+### Recommended Hardware
 
-# Option B: Command Line
-pip install platformio
-```
+I recommend using the `TRMNL 7.5" (OG) DIY Kit (SKU 104991005)` from Seeed Studio
 
-#### 2. Clone Repository
-```bash
-git clone <your-repository-url>
-cd e-board
-```
+- Includes the e-Paper display,
+- Includes tESP32-S3 Plus
+- Includes tE-Paper Display
+- Includes tDisplay Hat
+- Includes rechargeable battery with BMS
+- It supports also charging Battery via USB-C. No need to buy charging circuit separately.
+- You can also measure the voltage of the battery and get current battery level.
+- You don't need to solder anything, just assemble the parts.
 
-#### 3. Install Dependencies
-```bash
-# PlatformIO will automatically install dependencies from platformio.ini
-pio lib install
-```
+## Software Setup
 
-## Project Structure
+- Install Platform IO
+- Git Clone this repository
+- Get and Set API Keys (see below)
 
-```
-e-board/
-├── platformio.ini          # PlatformIO configuration
-├── README.md               # Quick overview
-├── docs/                   # Detailed documentation
-├── data/                   # Web files (HTML, CSS, JS)
-│   └── config_my_station.html
-├── src/                    # Source code
-│   ├── main.cpp           # Main application
-│   ├── api/               # External API integrations
-│   │   ├── dwd_weather_api.cpp
-│   │   ├── google_api.cpp
-│   │   └── rmv_api.cpp
-│   ├── config/            # Configuration management
-│   │   ├── config_page.cpp
-│   │   ├── config_struct.h
-│   │   └── pins.h
-│   ├── secrets/           # API keys (not in git)
-│   │   ├── google_secrets.h.example
-│   │   └── rmv_secrets.h.example
-│   └── util/              # Utility functions
-│       ├── power.h
-│       ├── sleep_utils.cpp
-│       ├── util.cpp
-│       └── weather_print.cpp
-└── test/                  # Test data and scripts
-```
+## Getting API Keys
 
-## Configuration Files
+- Get API keys for:
+    - Google Geolocation API : This API is used to get current location from Wifi access points.
+        - Get API key from https://console.cloud.google.com/apis/credentials
+    - RMV Public Transport API : This API is used for getting departure/ arrival times for stations in the Rhein-Main
+      area.
+        - Get API key from https://opendata.rmv.de/site/start.html
+    - Open Meteo Weather API : This API is used for getting weather data
+        - No API key required for non-commercial use
+    - OpenStreetMap Nominatim : This API is used for getting location names from coordinates.
+        - Location names (free, no key)
 
-### 1. PlatformIO Configuration
-The `platformio.ini` file contains build settings:
+for detail, see [API Integration Guide](./api-integration.md)
 
-```ini
-[env:esp32-c3-devkitm-1]
-platform = espressif32
-board = esp32-c3-devkitm-1
-framework = arduino
-monitor_speed = 115200
-upload_speed = 921600
-lib_deps = 
-    tzapu/WiFiManager@^0.16.0
-    bblanchon/ArduinoJson@^7.0.4
-    # Add other dependencies as needed
-```
+### Setup API Keys
 
-### 2. API Keys Setup
-Copy example files and add your API keys:
+`include/secrets/general_secrets.h` file is excluded from git for security reasons.
+you need to create these files manually based on the provided examples `include/secrets/general_secrets.h.example`.
 
 ```bash
-# Copy example files
-cp src/secrets/google_secrets.h.example src/secrets/google_secrets.h
-cp src/secrets/rmv_secrets.h.example src/secrets/rmv_secrets.h
-
-# Edit with your API keys
-# See: docs/api-keys.md for obtaining keys
+cp include/secrets/general_secrets.h.example include/secrets/general_secrets.h
 ```
+
+All API Keys must be encrypted in `AES-128-CBC`.
+`ENCRYPTION_KEY` is used to encrypt/decrypt the API keys stored in the device.
+
+For detail on how to encrypt the API Keys, see:
+https://github.com/gogo-boot/aes-demo
+
+## Pin Configuration
+
+### Modifying Pin Configuration
+
+1. **Edit `include/config/pins.h`**
+2. **Update GPIO assignments**
 
 ## Building and Flashing
 
-### 1. Build Project
-```bash
-# Build firmware
-pio run
+following command example runs with default `esp32-s3-production` environments.
+you can change environment with `-e` option.
 
-# Build filesystem (for web files)
+### 1. Build Project
+
+```bash
+# Build filesystem (for web based configuration )
 pio run --target buildfs
 ```
 
+```bash
+# Build firmware
+pio run
+```
+
 ### 2. Upload Firmware
+
+```bash
+# The `data/` directory contains files uploaded to the ESP32's filesystem
+# Upload filesystem
+pio run --target uploadfs
+```
+
 ```bash
 # Upload firmware
 pio run --target upload
-
-# Upload filesystem
-pio run --target uploadfs
-
-# Upload both
-pio run --target upload && pio run --target uploadfs
 ```
 
 ### 3. Monitor Serial Output
+
 ```bash
 # Open serial monitor
 pio device monitor
+```
 
+```bash
 # Or with specific baud rate
 pio device monitor --baud 115200
 ```
 
-## IDE Configuration
-
-### VS Code Settings
-Recommended VS Code settings for this project:
-
-```json
-{
-    "files.associations": {
-        "*.ino": "cpp",
-        "*.h": "c"
-    },
-    "C_Cpp.intelliSenseEngine": "Tag Parser",
-    "platformio-ide.activateOnlyOnPlatformIOProject": true
-}
-```
-
-### Extensions
-Recommended VS Code extensions:
-- **PlatformIO IDE** - Essential for ESP32 development
-- **C/C++** - Code completion and IntelliSense
-- **GitLens** - Enhanced Git capabilities
-- **Bracket Pair Colorizer** - Code readability
-
-## Compilation Flags
-
-### Debug vs Release
-```ini
-# Debug build (default)
-build_flags = -DDEBUG_ESP_PORT=Serial -DDEBUG_ESP_CORE
-
-# Release build (optimized)
-build_flags = -O2 -DNDEBUG
-```
-
-### Custom Defines
-```ini
-build_flags = 
-    -DCONFIG_ARDUINOJSON_DECODE_NESTING_LIMIT=200
-    -DWIFI_SSID_MAX_LENGTH=32
-    -DESP_LOG_LEVEL=ESP_LOG_DEBUG
-```
-
-## Filesystem (LittleFS)
-
-### File Structure
-The `data/` directory contains files uploaded to the ESP32's filesystem:
-
-```
-data/
-└── config_my_station.html  # Web configuration interface
-```
-
-### Upload Web Files
-```bash
-# Upload filesystem
-pio run --target uploadfs
-
-# Or use PlatformIO GUI
-# Tasks → esp32-c3-devkitm-1 → Platform → Upload Filesystem Image
-```
-
-## Serial Debugging
-
-### Log Levels
-```cpp
-esp_log_level_set("*", ESP_LOG_DEBUG);  // All modules
-esp_log_level_set("WIFI", ESP_LOG_INFO); // Specific module
-```
-
-### Available Log Levels
-- `ESP_LOG_ERROR` - Critical errors only
-- `ESP_LOG_WARN` - Warnings and errors
-- `ESP_LOG_INFO` - General information
-- `ESP_LOG_DEBUG` - Detailed debugging
-- `ESP_LOG_VERBOSE` - Maximum detail
-
-## Common Build Issues
-
-### Missing Dependencies
-```bash
-# Clean and rebuild
-pio run --target clean
-pio lib install
-pio run
-```
-
-### Board Not Detected
-```bash
-# List available devices
-pio device list
-
-# Manual port specification
-pio run --target upload --upload-port /dev/ttyUSB0
-```
-
-### Filesystem Upload Fails
-```bash
-# Erase flash completely
-esptool.py --chip esp32c3 erase_flash
-
-# Re-upload firmware and filesystem
-pio run --target upload
-pio run --target uploadfs
-```
-
-## Version Control
-
-### Git Ignore
-Ensure your `.gitignore` includes:
-```gitignore
-# Secrets
-src/secrets/google_secrets.h
-src/secrets/rmv_secrets.h
-
-# Build artifacts
-.pio/
-.vscode/
-*.bin
-*.elf
-
-# OS files
-.DS_Store
-Thumbs.db
-```
-
 ## Next Steps
+
 After software setup:
+
 - [API Keys Setup](./api-keys.md) - Configure external services
 - [Quick Start Guide](./quick-start.md) - First run configuration
 - [Development Guide](./development.md) - Contributing to the project
+- [Run Book](./run-book.md) - Operational procedures and troubleshooting
+- [Testing](./testing.md) - Running unit tests and debugging

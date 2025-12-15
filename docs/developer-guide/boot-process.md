@@ -1,17 +1,17 @@
-# Boot Process
+# Lifecycle
 
-MyStation uses a sophisticated multi-phase boot process that adapts based on the device's configuration state. This
+MyStation uses a sophisticated multi-phase Lifecycle that adapts based on the device's configuration state. This
 ensures a smooth user experience from first boot through normal operation.
 
-## Boot Life Cycle
+## Life Cycle Diagram
 
 ```mermaid
 flowchart TD
-    Start([Wake Up]) -->|System Initialization Phase <br/>which prepares for other phases| OnInit
-    OnInit -->|Before Operational Phase <br/> which doesn't need Internet| OnStart
-    OnStart -->|Operational Phase <br/> which needs Internet| OnRunning
-    OnRunning -->|Prepare to Deep Sleep Phase| OnStop
-    OnStop -->|Deep Sleep Phase| OnShutDown
+    Start([Wake Up]) --> OnInit
+    OnInit --> OnStart
+    OnStart --> OnRunning
+    OnRunning --> OnStop
+    OnStop --> OnShutDown
     OnRunning -..-> loop
     loop["loop() serving configuration web portal"]
 ```
@@ -20,9 +20,9 @@ flowchart TD
 
 There are five main Life Cycle phases during the boot process.
 It usually goes through all phases in order.
-But, it can be skipped or getting into looped, based on the next lifecycle state.
-_loop_ indicates the ESP32 Arduiono loop() function, which is implement this project for serving the configuration
-http web portal.
+But, Some Phase can be skipped or getting into looped, based on the next lifecycle state.
+_loop_ indicates the ESP32 Arduiono loop() function,
+which is serving the configuration http web portal.
 
 **Key Actions**:
 
@@ -32,61 +32,115 @@ http web portal.
     - Check If factory Reset is desired
     - Initialize Display
     - Initialize Font
-    - Initialize Battery Monitoring
-    - Check Battery Level, if it is too low, show Battery Low Screen, jump to OnShutDown
+    - Initialize Battery Monitoring if the board supports
+    - Check Battery Level, if it is too low, show Battery Low Screen, jump to OnShutDown, if the board supports
     - Load configuration from NVS
-1. OnStart: Before Operational Phase which doesn't have Internet access
-    - Start configuration Phase 1 if needed : Wifi Manager Configuration
+1. OnStart: Before Operational Phase, configure network, buttons and time
+    - Start configuration Phase 1 if needed : Wifi Manager Configuration starts
     - Start Wifi connection. If it gets failed, show Wifi Error Screen, jump to OnStop
     - Set up Time if it needed
-    - Setup by pressing buttons changes display mode while running - To make
+    - Setup by pressing buttons changes display mode while running - To do
     - Set temporary display mode if needed - To Move
-1. OnRunning: Operational Phase which has Internet access
+1. OnRunning: Operational Phase which needs Internet access
     - Start configuration Phase 2 if needed : Application Configuration, jump to loop
-    - OTA Update Check by checking scheduled time with RTC clock time
+    - OTA Update Check if needed
     - Fetch Data from APIs and Update Display
 1. OnStop: Prepare to Deep Sleep Phase
     - Calculate next wake-up time
-    - clean up temporary states if needed - To make
-    - Setup by pressing buttons can be woken up
+    - clean up temporary states if needed - To do
+    - Setup awake buttons peripherals before ESP32 deep sleep
 1. OnShutDown: Deep Sleep Phase
     - Turn off peripherals
-    - Enter deep sleep mode
+    - Enter deep sleep
 
 ## Operation Modes
 
-### Display Mode Selection
+There are three Operation Modes. `Wifi Configuration Mode`, `Application Configuration Mode`, and `Running Mode`.
+The Operation Mode is determined by the current Configuration State.
 
-In Operation Mode, it determines which Display Mode must be applied now.
-If a Button is pushed by user to choose display mode, it precedence over Configuration State.
-If the Button is not pushed by user, it follows Configuration State.
-The Half-and-Half Display Mode is only applied when it is in active transport time range.
+If it has Wifi credentials and internet is accessable, it goes to Configuration Mode 2.
+If it has required Application settings, it goes to Running Mode.
 
-### Data fetching and Display Update
+### Wifi Configuration Mode
+
+Check if Wifi is configured. If not,
+It configures WiFi connection settings via WiFi Manager.
+
+### Application Configuration Mode
+
+Check if Application settings are configured. If not,
+It configures Application settings via Web Configuration Portal.
+
+***It needs internet access to get current location, nearby stations, getting city name, longitude and latitude***
+
+### Running Mode
+
+It fetches data from APIs and updates the display.
+
+## Display Mode
+
+While in Running Mode, it determines which Display Mode to apply.
+There are three Display Modes. `Weather Only`, `Transport Only`, and `Half-and-Half`.
+By `Half-and-Half` Mode, it also considers Transport Active Time Range settings to determine
+to show `Half-and-Half` or `Weather Only`.
+There are also `Temporary Mode` which is applied when user presses buttons which precedent the display mode.
+
+```mermaid
+flowchart TD
+    is_temp{{User Pushed Button?}} -->|no| get_config(Get Configured Display Mode)
+    is_temp ----->|yes| show_temp(Return User Choosed Mode \nand mark as Temporary Mode)
+    get_config --> is_halfNhalf{{Is Half-and-Half Mode?}}
+    is_halfNhalf --->|No| show_configured(Return Configured Display Mode)
+    is_halfNhalf -->|yes| is_transport_active{{Is in Transport Active Time range?}}
+    is_transport_active -->|no| show_weather(Return Weather Only Mode)
+    is_transport_active -->|yes| show_halfNhalf(Return Half-and-Half Mode)
+```
+
+### Weather Data Caching
 
 Weather Data is not actively changed very often. So it is cached in RTC Memory. if the cached data is expired,
 it will be fetched again from the API server. Cache Expire time is 60 minutes default.
+If user changes the display mode by pushing buttons, the weather data is not refreshed until the cache expires.
 However, Transport Data is actively changed. So it is always fetched from the API server on each update cycle.
 
-## Configuration State
+## ESP32 Deep Sleep time calculation process
 
-**Configuration Phase 1 → Phase 2**:
+Before entering deep sleep, it calculates the next wake-up time based on the configured update interval.
+There are multiple factors to consider when calculating the next wake-up time:
 
-- WiFi credentials saved
-- Save to NVS, set phase, restart
+- Current time
+- Current Display Mode
+- Is next wake-up time in Night Sleep Range
+- OTA Check Time
+- Configured update interval
+- Transport Active Time Range (if applicable)
+- Temporary display mode duration (if applicable)
+- Ensuring a minimum sleep duration to avoid rapid wake-sleep cycles
 
-**Configuration Phase 2 → Phase 3**:
+***`Night Sleep` indicatest the user configured `deep sleep` time range, Todo: avoid of misleading wording ESP32
+`deep sleep`***
 
-- Station and preferences configured
-- Save to NVS, set phase, restart
-
-**Phase 3 → Phase 3**:
-
-- Fetch data, update display, sleep
-
-## Deep Sleep and Wake-up
+```mermaid
+flowchart TD
+    is_temp{{Is Temporary Mode?}} -->|no| get_config(Get Configured Display Mode)
+    is_temp ----->|yes| show_temp(return 120 seconds)
+    get_config --> is_halfNhalf{{Is Half-and-Half Mode?}}
+    is_halfNhalf --->|No| show_configured(Return Configured Display Mode Interval)
+    is_halfNhalf -->|yes| is_transport_active{{Is in Transport Active Time range?}}
+    is_transport_active -->|no| show_weather(Return Weather Mode Refresh Interval)
+    is_transport_active -->|yes| show_halfNhalf(Return Transport Mode Interval)
+    show_configured --> is_in_night_sleep_range
+    show_weather --> is_in_night_sleep_range
+    show_halfNhalf --> is_in_night_sleep_range
+    is_in_night_sleep_range{{Is in Night Sleep Range}} -->|yes| want_ota_update{{Enabled OTA Update?}}
+    is_in_night_sleep_range -->|no| return(Return Calculated Next Wake-up Interval\n OTA Check Time Considered)
+    want_ota_update -->|yes| show_ota(Return time until OTA Check Time)
+    want_ota_update -->|no| wake_up(Return Night Sleep ends time)
+```
 
 ### Entering Deep Sleep
+
+before it gets into deep sleep, it enables wake-up sources and enters deep sleep mode.
 
 ```cpp
 void enterDeepSleepWithButtonWakeup(uint32_t seconds) {
@@ -103,8 +157,6 @@ void enterDeepSleepWithButtonWakeup(uint32_t seconds) {
     // 3. Enter deep sleep
     ESP_LOGI(TAG, "Entering deep sleep");
     esp_deep_sleep_start();
-
-    // Never reaches here (device resets on wake)
 }
 ```
 
@@ -115,6 +167,8 @@ void enterDeepSleepWithButtonWakeup(uint32_t seconds) {
 3. **Reset**: Manual reset button pressed
 
 ### After Wake-up
+
+It checks the wake-up reason and logs it.
 
 ```cpp
 void checkWakeupReason() {
@@ -136,42 +190,6 @@ void checkWakeupReason() {
     }
 }
 ```
-
-## RTC Memory
-
-Data that persists across deep sleep (in RTC RAM):
-
-```cpp
-// src/main.cpp
-RTC_DATA_ATTR unsigned long wakeupCount = 0;
-RTC_DATA_ATTR DisplayMode temporaryMode = DISPLAY_MODE_NONE;
-RTC_DATA_ATTR unsigned long temporaryModeStart = 0;
-```
-
-**Usage**:
-
-- Loop counter (debugging)
-- Temporary display mode (button press)
-- Mode start time (timeout tracking)
-
-## Debugging Boot Process
-
-### Enable Verbose Logging
-
-```cpp
-// In setup()
-esp_log_level_set("*", ESP_LOG_VERBOSE);
-esp_log_level_set("WIFI", ESP_LOG_DEBUG);
-esp_log_level_set("BOOT", ESP_LOG_DEBUG);
-```
-
-### Serial Monitor Output
-
-```bash
-pio device monitor --filter log2line
-```
-
-Note: in platformio.ini use buildflat `DPRODUCTION=0`, which will make a start delay for serial monitor connection.
 
 ## Related Documentation
 
