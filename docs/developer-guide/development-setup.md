@@ -69,6 +69,13 @@ All API Keys must be encrypted in `AES-128-CBC`.
 For detail on how to encrypt the API Keys, see:
 https://github.com/gogo-boot/aes-demo
 
+## Pin Configuration
+
+### Modifying Pin Configuration
+
+1. **Edit `include/config/pins.h`**
+2. **Update GPIO assignments**
+
 ## Building and Flashing
 
 following command example runs with default `esp32-s3-production` environments.

@@ -13,16 +13,16 @@ This section is for developers who want to:
 - ✨ Add new features
 - 🔌 Modify hardware configuration
 
-> 👤 **Are you a user?** See the [User Guide](../user-guide/index.md) instead.
+> 👤 **Are you not a developer?** See the [User Guide](../user-guide/index.md) instead.
 
 ## Project Overview
 
-MyStation is an ESP32-based e-paper display system that shows real-time German public transport departures and weather
+MyStation is an ESP32-based e-paper display system that shows real-time public transport departures and weather
 information.
 
 ### Key Technologies
 
-- **Platform**: ESP32-C3 / ESP32-S3 (Espressif SoC)
+- **Platform**: ESP32-C3 / ESP32-S3
 - **Framework**: Arduino framework via PlatformIO
 - **Display**: 7.5" e-paper (GDEY075T7, 800x480)
 - **Network**: WiFi 2.4 GHz (802.11 b/g/n)
@@ -37,46 +37,13 @@ information.
 3. **Display System** - Multiple modes, efficient e-paper rendering
 4. **Power Management** - Deep sleep, battery monitoring, scheduled wake
 5. **OTA Updates** - Secure firmware updates over WiFi
-6. **API Integration** - Google Geolocation, RMV Transit, DWD Weather
-
-## Architecture Overview
-
-```
-┌─────────────────────────────────────────────────────┐
-│                   User Interface                    │
-│  Web Config Page (SPIFFS) │ E-Paper Display         │
-└──────────────┬──────────────────────┬───────────────┘
-               │                      │
-┌──────────────┴──────────────────────┴───────────────┐
-│              Application Layer                      │
-│  BootFlowManager │ OTAManager │ ButtonManager       │
-└──────────────┬──────────────────────┬───────────────┘
-               │                      │
-┌──────────────┴──────────────────────┴───────────────┐
-│              Service Layer                          │
-│  ConfigManager │ WiFiManager │ DisplayManager       │
-└──────────────┬──────────────────────┬───────────────┘
-               │                      │
-┌──────────────┴──────────────────────┴───────────────┐
-│              Data Layer                             │
-│  RMV API │ DWD API │ Google API │ NVS Storage        │
-└──────────────┬──────────────────────┬───────────────┘
-               │                      │
-┌──────────────┴──────────────────────┴───────────────┐
-│              Hardware Layer                         │
-│  ESP32 │ SPI │ GPIO │ WiFi Radio │ Deep Sleep        │
-└─────────────────────────────────────────────────────┘
-```
+6. **API Integration** - Google Geolocation, RMV API, DWD Weather, OpenStreetMap Nominatim
 
 ## Quick Navigation
 
 ### 🏗️ Architecture & Design
 
-- [**System Architecture**](architecture.md) - High-level system design
 - [**Boot Process**](boot-process.md) - Detailed boot flow and phases
-- [**Refresh Process**](refresh-process.md) - Wake-up, update, and sleep cycle flow
-- [**Project Structure**](project-structure.md) - Directory organization and modules
-- [**Data Flow**](data-flow.md) - How data moves through the system
 
 ### ⚙️ Core Systems
 
@@ -135,55 +102,6 @@ information.
 | DWD Weather        | Weather forecasts     | None (open)         |
 | GitHub             | OTA updates           | Certificate pinning |
 
-## Development Workflow
-
-### 1. Setup Development Environment
-
-```bash
-# Install PlatformIO
-# See: https://platformio.org/install
-
-# Clone repository
-git clone <repository-url>
-cd mystation
-
-# Install dependencies (automatic with PlatformIO)
-pio run
-```
-
-### 2. Configure API Keys
-
-```cpp
-// include/secrets/secrets.h
-#define GOOGLE_GEOLOCATION_API_KEY "your-key-here"
-#define RMV_API_KEY "your-key-here"
-```
-
-### 3. Build and Upload
-
-```bash
-# Build firmware
-pio run
-
-# Upload to device
-pio run --target upload
-
-# Upload filesystem
-pio run --target uploadfs
-
-# Monitor serial output
-pio device monitor
-```
-
-### 4. Development Cycle
-
-1. **Make changes** to source code
-2. **Build** and check for errors
-3. **Upload** to device
-4. **Test** functionality
-5. **Monitor** serial output for debugging
-6. **Iterate**
-
 ## Key Concepts
 
 ### Configuration Phases
@@ -206,8 +124,6 @@ Wake Up → Connect WiFi → Fetch Data → Update Display → Deep Sleep
   └──────────────────────────────────────────────────────────┘
                     (Configured interval)
 ```
-
-See [Power Management](power-management.md) for implementation.
 
 ### Display Modes
 
@@ -255,32 +171,6 @@ See [Project Structure](project-structure.md) for detailed explanation.
 
 ## Common Development Tasks
 
-### Adding a New Feature
-
-1. **Plan the feature** - Design and requirements
-2. **Create branch** - `git checkout -b feature/my-feature`
-3. **Implement** - Write code
-4. **Test** - Verify functionality
-5. **Document** - Update docs
-6. **Submit PR** - Code review
-
-### Debugging Issues
-
-1. **Check serial monitor** - Most issues show here
-2. **Verify configuration** - NVS values correct?
-3. **Test WiFi** - 2.4 GHz connection stable?
-4. **Check hardware** - Wiring, power supply
-5. **Review code** - Logic errors, typos
-6. **Use logs** - ESP_LOG levels (ERROR, WARN, INFO, DEBUG)
-
-### Modifying Pin Configuration
-
-1. **Edit `include/config/pins.h`**
-2. **Update GPIO assignments**
-3. **Rebuild and upload**
-4. **Verify connections**
-5. **Test functionality**
-
 See [Pin Configuration](pin-configuration.md) for details.
 
 ### Testing Changes
@@ -309,7 +199,8 @@ See [Testing](testing.md) for test framework details.
     - Functions: camelCase
     - Constants: UPPER_SNAKE_CASE
     - Variables: camelCase
-- **Comments**: Doxygen-style for public APIs
+
+**refer .clang-format file for full style guide**
 
 ### Git Workflow
 
@@ -352,10 +243,9 @@ See [Testing](testing.md) for test framework details.
 
 ### New to the Project?
 
-1. Read [System Architecture](architecture.md)
-2. Understand [Boot Process](boot-process.md)
-3. Review [Project Structure](project-structure.md)
-4. Set up [Development Environment](development-setup.md)
+1. Understand [Boot Process](boot-process.md)
+1. Review [Project Structure](project-structure.md)
+1. Set up [Development Environment](development-setup.md)
 
 ### Ready to Code?
 
