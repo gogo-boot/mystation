@@ -4,6 +4,7 @@
 
 [![PlatformIO](https://img.shields.io/badge/PlatformIO-Compatible-blue.svg)](https://platformio.org/)
 [![ESP32](https://img.shields.io/badge/ESP32-C3%20%7C%20S3-green.svg)](https://www.espressif.com/en/products/socs)
+[![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
 ## ✨ Features
 
@@ -167,7 +168,35 @@ Switch modes using physical buttons or web interface.
 
 ## 📄 License
 
-MIT License
+This project is licensed under the **GNU Lesser General Public License v3.0 (LGPL-3.0)**.
+
+### What this means:
+
+- ✅ **You can use this software** for personal or commercial purposes
+- ✅ **You can modify the code** to fit your needs
+- ✅ **You can distribute** the software and modifications
+- ⚠️ **If you modify this code**, you must release your modifications under LGPL-3.0
+- ⚠️ **If you distribute**, you must include the source code or provide access to it
+- ✅ **You can link** this library with proprietary software without making your entire application LGPL
+
+### Key Points:
+
+- Modifications to this code must remain open source (LGPL-3.0)
+- Applications using this library can remain proprietary
+- Commercial use is permitted
+- Patent grant and protection included
+
+See [LICENSE](LICENSE) for the full license text.
+
+### Third-Party Licenses
+
+This project uses the following open-source libraries:
+
+- **GxEPD2** - GPL-3.0 (E-paper display driver)
+- **ArduinoJson** - MIT
+- **WiFiManager** - MIT
+- **ESPAsyncWebServer** - LGPL-3.0
+- **U8g2** - BSD
 
 ---
 
