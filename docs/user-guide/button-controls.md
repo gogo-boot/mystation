@@ -109,14 +109,10 @@ See [Factory Reset Guide](factory-reset.md) for detailed instructions.
 
 ```
 ┌─────────────────────────────┐
-│ Weather Information         │
-│ Temperature, Icon, Forecast │
-│                             │
-├─────────────────────────────┤
-│ Departure Information       │
-│ Next trains/buses           │
-│                             │
-└─────────────────────────────┘
+│ Weather Info │ Departures │
+│ Temp, Icon,  │ Next trains │
+│ Forecast     │ buses, etc. │
+└──────────────┴──────────────┘
 ```
 
 **Best for**: Balanced information, daily use
@@ -193,4 +189,3 @@ It does not share any data with third parties beyond these API requests.
 
 **Note**: Button functionality is a convenience feature. Your MyStation works perfectly fine without buttons using the
 configured display mode and web interface for control.
-
