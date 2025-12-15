@@ -47,28 +47,26 @@ information.
 
 ### ⚙️ Core Systems
 
-- [**Configuration System**](configuration-system.md) - NVS storage, phases, data structures
+- [**Configuration Layers**](configuration-layers.md) - NVS storage, phases, data structures
 - [**Display System**](display-system.md) - E-paper rendering, modes, layouts
-- [**Power Management**](power-management.md) - Deep sleep, wake sources, battery
-- [**OTA System**](ota-system.md) - Firmware updates, scheduling, rollback
+- [**Power Management**](run-book.md) - Deep sleep, wake sources, battery (see Run Book)
+- [**OTA System**](run-book.md) - Firmware updates, scheduling, rollback (see Run Book)
 
 ### 📡 Integration & APIs
 
 - [**API Integration**](api-integration.md) - Google, RMV, DWD APIs
-- [**WiFi Management**](wifi-management.md) - Connection, fallback, mDNS
+- [**WiFi Management**](run-book.md) - Connection, fallback, mDNS (see Run Book)
 
 ### 🛠️ Development
 
 - [**Development Setup**](development-setup.md) - Getting started with PlatformIO
 - [**Testing**](testing.md) - Native tests, mocks, debugging
-- [**Code Conventions**](code-conventions.md) - Style guide and patterns
 - [**Run Book**](run-book.md) - Operational procedures and troubleshooting
 
 ### 🔌 Hardware
 
-- [**Pin Configuration**](pin-configuration.md) - GPIO mappings for ESP32-C3/S3
-- [**Memory Partitions**](memory-partitions.md) - Flash layout and usage
-- [**Hardware Specifications**](hardware-specs.md) - Board comparison and specs
+- [**Hardware Assembly**](../user-guide/hardware-assembly.md) - Assembly instructions
+- [**Quick Start**](../user-guide/quick-start.md) - Initial configuration
 
 ## Technology Stack
 
@@ -145,7 +143,7 @@ All settings stored in NVS (Non-Volatile Storage):
 - Update intervals
 - Sleep schedule
 
-See [Configuration System](configuration-system.md) for data structures.
+See [Configuration Layers](configuration-layers.md) for data structures.
 
 ## Code Organization
 
@@ -167,11 +165,7 @@ mystation/
 └── platformio.ini      # Build configuration
 ```
 
-See [Project Structure](project-structure.md) for detailed explanation.
-
 ## Common Development Tasks
-
-See [Pin Configuration](pin-configuration.md) for details.
 
 ### Testing Changes
 
@@ -223,8 +217,7 @@ See [Testing](testing.md) for test framework details.
 ### Documentation
 
 - 📖 [User Guide](../user-guide/index.md) - End-user documentation
-- 📚 [API Reference](../reference/configuration-keys.md) - Configuration keys
-- 📋 [Quick Reference](../reference/configuration-phases.md) - Phase guide
+- 📚 [Configuration Keys Quick Reference](../reference/configuration-keys-quick-reference.md) - Configuration keys
 
 ### External Resources
 
@@ -244,16 +237,14 @@ See [Testing](testing.md) for test framework details.
 ### New to the Project?
 
 1. Understand [Boot Process](boot-process.md)
-1. Review [Project Structure](project-structure.md)
 1. Set up [Development Environment](development-setup.md)
 
 ### Ready to Code?
 
 1. Check open issues for tasks
-2. Review [Code Conventions](code-conventions.md)
-3. Set up your development environment
-4. Start with small improvements
-5. Ask questions if stuck
+2. Set up your development environment
+3. Start with small improvements
+4. Ask questions if stuck
 
 ### Want to Contribute?
 
@@ -267,4 +258,3 @@ See [Testing](testing.md) for test framework details.
 ---
 
 **Questions?** Check the [Troubleshooting Guide](../user-guide/troubleshooting.md) or open an issue on GitHub.
-
