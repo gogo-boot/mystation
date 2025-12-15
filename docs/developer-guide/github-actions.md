@@ -15,19 +15,15 @@ graph TD
     B -->|Code Changes| C[Build Firmware Workflow]
     B -->|Docs Changes| D[Deploy Docs Workflow]
     B -->|Version Tag| E[Build + Release]
-
     C --> F[Compile Firmware]
     F --> G[Upload Artifacts]
-
     D --> H[Build Docusaurus]
     H --> I[Deploy to GitHub Pages]
-
     E --> F
     E --> J[Create GitHub Release]
-
-    style C fill:#ffe1e1
-    style D fill:#e1f5ff
-    style E fill:#e1ffe1
+    style C fill: #ffe1e1
+    style D fill: #e1f5ff
+    style E fill: #e1ffe1
 ```
 
 ---
@@ -48,16 +44,13 @@ flowchart LR
     A[Trigger Events] --> B{Event Type?}
     B -->|Pull Request to main| C[Build Only]
     B -->|Version Tag v*| D[Build + Release]
-
     C --> E[Compile Firmware]
     E --> F[Upload Artifacts]
-
     D --> E
     D --> G[Create GitHub Release]
     G --> H[Attach Binaries]
-
-    style C fill:#fff9e1
-    style D fill:#e1ffe1
+    style C fill: #fff9e1
+    style D fill: #e1ffe1
 ```
 
 **Trigger Conditions**:
@@ -212,20 +205,7 @@ mystation-firmware-{sha}/
 
 ### Configuration
 
-**PlatformIO Environment**: `esp32-c3-production`
-
-Key settings (from `platformio.ini`):
-
-```ini
-[env:esp32-c3-production]
-platform = espressif32@6.5.0
-board = esp32-c3-devkitc-02
-framework = arduino
-monitor_speed = 115200
-build_flags =
-    -DBOARD_ESP32_C3
-    -DCORE_DEBUG_LEVEL=0  # Production: no debug logs
-```
+**PlatformIO Default Environment**: `esp32-s3-production`
 
 ---
 
@@ -247,20 +227,17 @@ flowchart TD
     B -->|Push to docs**| D[Build Only]
     B -->|Pull Request| E[Build Only]
     B -->|Manual Trigger| F[Build + Deploy]
-
     C --> G[Build Docusaurus]
     D --> G
     E --> G
     F --> G
-
     G --> H{Should Deploy?}
     H -->|main or manual| I[Deploy to GitHub Pages]
     H -->|other branches| J[Upload Artifact Only]
-
-    style C fill:#e1ffe1
-    style D fill:#fff9e1
-    style E fill:#fff9e1
-    style F fill:#e1f5ff
+    style C fill: #e1ffe1
+    style D fill: #fff9e1
+    style E fill: #fff9e1
+    style F fill: #e1f5ff
 ```
 
 **Trigger Conditions**:
@@ -362,9 +339,9 @@ git push origin docs-new-feature
 
 ```yaml
 permissions:
-  contents: read      # Read repository
-  pages: write        # Write to GitHub Pages
-  id-token: write     # Verify identity
+    contents: read      # Read repository
+    pages: write        # Write to GitHub Pages
+    id-token: write     # Verify identity
 ```
 
 **Steps**:
@@ -383,8 +360,8 @@ permissions:
 
 ```yaml
 concurrency:
-  group: "pages"
-  cancel-in-progress: false
+    group: "pages"
+    cancel-in-progress: false
 ```
 
 **Purpose**: Prevents multiple deployments from running simultaneously.
@@ -418,9 +395,9 @@ Navigate to: **Settings → Secrets and variables → Actions → New repository
 
 | Secret Name      | Description                            | Example                            |
 |------------------|----------------------------------------|------------------------------------|
-| `GOOGLE_API_KEY` | Google Geolocation API key             | `AIzaSyC...`                       |
+| `GOOGLE_API_KEY` | Encrypted Google Geolocation API key   | `AIzaSyC...`                       |
 | `ENCRYPTION_KEY` | 32-character AES encryption key        | `your-32-char-encryption-key-here` |
-| `RMV_API_KEY`    | RMV public transport API key           | `your-rmv-api-key`                 |
+| `RMV_API_KEY`    | Encrypted RMV public transport API key | `your-rmv-api-key`                 |
 | `ACTION_TOKEN`   | GitHub Personal Access Token (classic) | `ghp_...`                          |
 
 **Creating ACTION_TOKEN**:
@@ -435,197 +412,6 @@ Navigate to: **Settings → Secrets and variables → Actions → New repository
 1. Go to **Settings → Pages**
 2. **Source**: GitHub Actions
 3. No additional configuration needed (workflow handles deployment)
-
-### First-Time Setup Checklist
-
-- [ ] Add all required secrets to repository
-- [ ] Enable GitHub Pages with "GitHub Actions" source
-- [ ] Push a commit to trigger initial build
-- [ ] Verify Actions tab shows green checkmarks
-- [ ] Check GitHub Pages URL is accessible
-
----
-
-## Monitoring and Debugging
-
-### Viewing Workflow Runs
-
-1. Go to **Actions** tab in GitHub repository
-2. Click on workflow name (e.g., "Build and Release ESP32 Firmware")
-3. Select a specific run to see details
-4. Click on job names to see logs
-
-### Common Issues
-
-#### Build Firmware Workflow
-
-**Problem**: Build fails with "secrets not found"
-
-```
-Error: GOOGLE_API_KEY not defined
-```
-
-**Solution**: Add missing secrets to repository settings.
-
----
-
-**Problem**: PlatformIO build error
-
-```
-Error: Could not find the package with 'espressif32' requirements
-```
-
-**Solution**:
-
-- Clear cache: Re-run workflow
-- Update PlatformIO version in workflow file
-
----
-
-**Problem**: Release creation fails
-
-```
-Error: Resource not accessible by integration
-```
-
-**Solution**:
-
-- Check `ACTION_TOKEN` is valid
-- Ensure token has `repo` scope
-- Verify token hasn't expired
-
-#### Deploy Docs Workflow
-
-**Problem**: Build succeeds but deploy skipped
-
-```
-Deploy job: Skipped
-```
-
-**Solution**:
-
-- Check you're on `main` branch
-- Or trigger manually via workflow_dispatch
-
----
-
-**Problem**: npm install fails
-
-```
-Error: ECONNRESET
-```
-
-**Solution**: Re-run workflow (network issue)
-
----
-
-**Problem**: Docusaurus build errors
-
-```
-Error: Broken link on page /docs/user-guide/index
-```
-
-**Solution**:
-
-- Fix broken markdown links
-- Check file paths are correct
-- Ensure all referenced files exist
-
-### Debugging Tips
-
-**Enable verbose logging**:
-
-```yaml
-- name: Build firmware
-  run: pio run -e esp32-c3-production -v
-  # Add -v flag for verbose output
-```
-
-**Add debug steps**:
-
-```yaml
-- name: Debug - List files
-  run: |
-    ls -R .pio/build/
-    cat build_info.txt
-```
-
-**Download artifacts locally**:
-
-1. Go to workflow run
-2. Scroll to "Artifacts" section
-3. Click to download
-4. Inspect files locally
-
----
-
-## Workflow Optimization
-
-### Caching Strategy
-
-Both workflows use caching to speed up builds:
-
-**Firmware Workflow**:
-
-```yaml
-- uses: actions/cache@v4
-  with:
-    path: |
-      ~/.cache/pip
-      ~/.platformio/.cache
-      ~/.platformio/packages
-    key: ${{ runner.os }}-pio
-```
-
-**Benefits**:
-
-- PlatformIO packages cached (~500MB)
-- Reduces build time from ~5 minutes to ~2 minutes
-- Saves bandwidth
-
-**Docs Workflow**:
-
-```yaml
-# npm automatically caches via setup-node@v6
-- uses: actions/setup-node@v6
-  with:
-    node-version: '22'
-    cache: 'npm'  # Auto-cache node_modules
-```
-
-**Benefits**:
-
-- npm packages cached
-- Reduces build time from ~3 minutes to ~1 minute
-
-### Matrix Builds
-
-Firmware workflow uses matrix strategy:
-
-```yaml
-strategy:
-  matrix:
-    environment: [esp32-c3-production]
-```
-
-**To add more boards**:
-
-```yaml
-strategy:
-  matrix:
-    environment:
-      - esp32-c3-production
-      - esp32-s3-production
-```
-
-This builds multiple firmware variants in parallel.
-
-### Build Time Comparison
-
-| Workflow       | Without Cache | With Cache |
-|----------------|---------------|------------|
-| Build Firmware | ~5 min        | ~2 min     |
-| Deploy Docs    | ~3 min        | ~1 min     |
 
 ---
 
@@ -673,120 +459,6 @@ git push origin v1.0.0
 
 ---
 
-## Advanced Configuration
-
-### Customizing Build Environments
-
-**Add new PlatformIO environment**:
-
-1. Edit `platformio.ini`:
-   ```ini
-   [env:esp32-s3-production]
-   platform = espressif32@6.5.0
-   board = esp32-s3-devkitc-1
-   framework = arduino
-   build_flags = -DBOARD_ESP32_S3
-   ```
-
-2. Update workflow matrix:
-   ```yaml
-   matrix:
-     environment:
-       - esp32-c3-production
-       - esp32-s3-production
-   ```
-
-3. Push changes → Workflow builds both variants
-
-### Conditional Steps
-
-**Example**: Only run tests on PR:
-
-```yaml
-- name: Run tests
-  if: github.event_name == 'pull_request'
-  run: pio test
-```
-
-**Example**: Deploy to different environments:
-
-```yaml
-- name: Deploy to staging
-  if: github.ref == 'refs/heads/develop'
-  run: ./deploy-staging.sh
-
-- name: Deploy to production
-  if: github.ref == 'refs/heads/main'
-  run: ./deploy-production.sh
-```
-
----
-
-## Notifications
-
-### Adding Slack Notifications
-
-Add to workflow:
-
-```yaml
-- name: Notify Slack
-  if: always()  # Run even if previous steps fail
-  uses: slackapi/slack-github-action@v1
-  with:
-    payload: |
-      {
-        "text": "Build ${{ job.status }}: ${{ github.ref_name }}"
-      }
-  env:
-    SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-```
-
-### Email Notifications
-
-GitHub automatically sends email on workflow failures if:
-
-- You're watching the repository
-- Email notifications are enabled in settings
-
----
-
-## Security Best Practices
-
-### Secrets Management
-
-✅ **DO**:
-
-- Use repository secrets for sensitive data
-- Rotate API keys periodically
-- Use environment-specific secrets
-- Limit secret access to necessary workflows
-
-❌ **DON'T**:
-
-- Hardcode secrets in workflow files
-- Print secrets in logs (`echo ${{ secrets.API_KEY }}`)
-- Commit secrets to repository
-- Share secrets between unrelated projects
-
-### Permissions
-
-Workflows use principle of least privilege:
-
-```yaml
-permissions:
-  contents: read    # Only read access by default
-  pages: write      # Only when needed for Pages
-```
-
-### Dependency Security
-
-- Use specific action versions (`@v4` not `@main`)
-- Regularly update action versions
-- Review action source code before use
-- Use official actions when possible
-
----
-
 ## Cost and Usage Limits
 
 ### GitHub Actions Limits
@@ -799,7 +471,7 @@ permissions:
 **Private Repositories**:
 
 - 2,000 minutes/month (Free tier)
-- 500 MB storage
+- 500 MB storage for artifacts
 
 ### Optimization Tips
 
@@ -807,37 +479,6 @@ permissions:
 2. **Clean up old artifacts** - Set appropriate retention days
 3. **Cancel redundant runs** - Push force updates cancel old runs
 4. **Use matrix builds** - Parallel execution is free
-
----
-
-## Troubleshooting Checklist
-
-### Before Opening an Issue
-
-- [ ] Check workflow logs in Actions tab
-- [ ] Verify all required secrets are set
-- [ ] Confirm branch/tag naming matches triggers
-- [ ] Check for typos in workflow YAML
-- [ ] Review recent changes to workflow files
-- [ ] Test locally with same commands
-- [ ] Check GitHub Status (status.github.com)
-
-### Getting Help
-
-1. **Check workflow logs** - Most errors are in the logs
-2. **Review this guide** - Common issues documented
-3. **Search GitHub Issues** - Similar problems may exist
-4. **Ask in Discussions** - Community can help
-5. **Open Issue** - Provide logs and reproduction steps
-
----
-
-## Related Documentation
-
-- [PlatformIO Build System](development-setup.md) - Local build instructions
-- [Configuration System](configuration-system.md) - How secrets are used
-- [OTA Updates](ota-system.md) - Firmware update mechanism
-- [Testing](testing.md) - Running tests locally
 
 ---
 
@@ -873,8 +514,4 @@ Both workflows ensure:
 - [OTA System](ota-system.md) - Firmware update mechanism
 - [Testing](testing.md) - Running tests locally
 - [Run Book](run-book.md) - Operational procedures and troubleshooting
-
----
-
-**Questions or issues?** Check the troubleshooting section or open a GitHub issue.
 
