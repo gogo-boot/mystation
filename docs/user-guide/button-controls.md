@@ -109,9 +109,9 @@ See [Factory Reset Guide](factory-reset.md) for detailed instructions.
 
 ```
 ┌─────────────────────────────┐
-│ Weather Info │ Departures │
-│ Temp, Icon,  │ Next trains │
-│ Forecast     │ buses, etc. │
+│ Weather Info │ Departures   │
+│ Temp, Icon,  │ Next trains  │
+│ Forecast     │ buses, etc.  │
 └──────────────┴──────────────┘
 ```
 
@@ -150,33 +150,6 @@ See [Factory Reset Guide](factory-reset.md) for detailed instructions.
 ```
 
 **Best for**: Commuters, catching transport
-
-## Use case of Mystation
-
-- just want to do 1 hour outdoor activities, when it is the best slot just for 1 hour?
-- do i need an umbrella today?
-- when is the next train to work?
-- Kid wants to know if it's sunny outside before going out to play?
-- Kid can decide their own if they need a jacket, umbrella before going to school?
-- Do i need a sunglasses or sunblock today?
-- My phone is dead, need to know if i can go outside without checking weather app?
-
-## Power Consumption
-
-It depends on your refresh intervals and usage patterns. It varies based on user pattern.
-30 Updates per day can last 3 months on a full charge.
-
-## Security and Privacy
-
-Mystation doesn't have microphone or camera.
-It does store your WiFi credentials securely in encrypted storage on the device.
-It gets automatically its Geo Location via Wifi Networks.
-The found Geo Location is not exact geo location, It is brief geolocation.
-The Geolocation is only used to configure device easily to avoid type in longitude and latitude manually.
-
-It connects to your WiFi to fetch weather and transport data repeatly based on your configured intervals.
-Eventually, it connects to internet to check for OTA updates.
-It does not share any data with third parties beyond these API requests.
 
 ## Related Documentation
 
