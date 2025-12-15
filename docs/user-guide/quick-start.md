@@ -132,6 +132,4 @@ for your location. It's designed to be:
 
 - 🚀 [Quick Start Guide](quick-start.md) - First-time setup
 - 🔧 [Troubleshooting](troubleshooting.md) - Common issues and solutions
-- 🔄 [Factory Reset](factory-reset.md) - Reset to defaults
-- 📖 [Full Documentation](../index.md) - Complete documentation index
-
+- 📖 [Full Documentation](index.md) - Complete documentation index

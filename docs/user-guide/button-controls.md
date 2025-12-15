@@ -99,8 +99,6 @@ Display shows:
 
 **Press and hold Button 1 during power-on** for 5 seconds
 
-See [Factory Reset Guide](factory-reset.md) for detailed instructions.
-
 ## Display Modes Explained
 
 ### Mode 1: Half & Half (Button 1)
@@ -154,8 +152,7 @@ See [Factory Reset Guide](factory-reset.md) for detailed instructions.
 ## Related Documentation
 
 - 🏠 [User Guide Home](index.md)
-- 🔧 [Hardware Assembly](hardware-assembly.md) - Button wiring instructions
-- 🔄 [Factory Reset](factory-reset.md) - Using Button 1 for reset
+- 🔧 [Hardware Assembly](index.md) - Button wiring instructions
 - 📋 [Troubleshooting](troubleshooting.md) - Button issues and solutions
 
 ---

@@ -77,11 +77,6 @@ See [Button Controls](button-controls.md) for detailed usage.
 - **[Understanding the Display](understanding-display.md)** - What information is shown and where
 - **[Button Controls](button-controls.md)** - Using the physical buttons
 
-### Maintenance & Support
-
-- **[Factory Reset](factory-reset.md)** - I want to change configuration, Change Wifi, Moved home, Reset to default
-  settings
-
 ## Important Notes
 
 ### WiFi Requirements
@@ -143,18 +138,16 @@ It does not share any data with third parties beyond these API requests.
 
 - 🚀 [Quick Start Guide](quick-start.md) - First-time setup
 - 🔧 [Troubleshooting](troubleshooting.md) - Common issues and solutions
-- 🔄 [Factory Reset](factory-reset.md) - Reset to defaults
-- 📖 [Full Documentation](../index.md) - Complete documentation index
+- 📖 [Full Documentation](index.md) - Complete documentation index
 
 ## Quick Links
 
 ### First Time Setup
 
 1. [Quick Start Guide](quick-start.md) - Complete setup walkthrough
-2. [WiFi Configuration](quick-start.md#step-3-wifi-configuration-3-minutes) - Connect to your network
-3. [Station Configuration](quick-start.md#step-4-station-configuration-5-minutes) - Select your transport stop
+2. [WiFi Configuration](quick-start.md#step-1-wifi-configuration-1-minutes) - Connect to your network
+3. [Station Configuration](quick-start.md#configure-your-transport-stop) - Select your transport stop
 
 ---
 
 **Ready to get started?** Head to the [Quick Start Guide](quick-start.md)!
-

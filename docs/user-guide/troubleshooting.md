@@ -94,9 +94,6 @@ This guide helps you solve common issues with your MyStation e-paper departure b
     - Router might have DNS problems
     - Check serial monitor for DNS resolution errors
 
-    - RMV API key
-    - See [Configuration](station-configuration.md)
-
 ### mDNS Not Working (Can't Access mystation.local)
 
 **Symptoms:**
@@ -365,8 +362,7 @@ This guide helps you solve common issues with your MyStation e-paper departure b
 ### Check Documentation
 
 - 📖 [User Guide](index.md) - Complete user documentation
-- 🔧 [Developer Guide](../developer-guide/index.md) - Technical details
-- 📚 [Configuration Reference](../reference/configuration-keys-quick-reference.md) - All settings explained
+- 📚 [Understanding Display](understanding-display.md) - Display modes and troubleshooting
 
 ### Report Issues
 
@@ -381,4 +377,3 @@ If you found a bug:
 
 **Remember**: Most issues are related to WiFi (2.4 GHz only!), wiring, or configuration. Start with the basics and work
 through systematically.
-

@@ -275,7 +275,6 @@ It will automatically:
 **Factory reset:**
 
 - Hold Button 1 for 5 seconds during power-on
-- See [Factory Reset](factory-reset.md) for details
 
 ## Troubleshooting
 
@@ -354,5 +353,3 @@ For more information, see:
 - [Understanding the Display](understanding-display.md)
 - [Button Controls](button-controls.md)
 - [Troubleshooting](troubleshooting.md)
-- [Factory Reset](factory-reset.md)
-
