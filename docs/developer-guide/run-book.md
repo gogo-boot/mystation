@@ -31,6 +31,12 @@ Unit Test
 pio test -e native -v
 ```
 
+or
+
+```bash
+sh ./run_test.sh
+```
+
 Build Project with default environment
 
 ```bash
