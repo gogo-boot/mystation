@@ -20,7 +20,7 @@ const sidebars = {
             label: '👋 Getting Started',
             items: [
                 'user-guide/index',
-                'user-guide/quick-start-simplified',
+                'user-guide/quick-start',
             ],
         },
         {
@@ -35,17 +35,7 @@ const sidebars = {
             type: 'category',
             label: '🔧 Maintenance & Support',
             items: [
-                'user-guide/factory-reset',
                 'user-guide/troubleshooting',
-            ],
-        },
-        {
-            type: 'category',
-            label: '🔨 Advanced (DIY)',
-            collapsed: true,
-            items: [
-                'user-guide/hardware-assembly',
-                'hardware-setup',
             ],
         },
     ],
@@ -58,7 +48,6 @@ const sidebars = {
             items: [
                 'developer-guide/index',
                 'developer-guide/boot-process',
-                'developer-guide/refresh-process',
                 'developer-guide/configuration-layers',
             ],
         },
@@ -66,10 +55,7 @@ const sidebars = {
             type: 'category',
             label: '⚙️ Core Systems',
             items: [
-                'developer-guide/configuration-system',
-                'developer-guide/data-flow',
                 'developer-guide/display-system',
-                'developer-guide/ota-system',
             ],
         },
         {
@@ -84,16 +70,18 @@ const sidebars = {
             label: '🛠️ Development',
             items: [
                 'developer-guide/development-setup',
-                'developer-guide/github-actions',
                 'developer-guide/testing',
                 'developer-guide/testing-mocks',
                 'developer-guide/testing-rtc',
+                'developer-guide/github-actions',
+                'developer-guide/run-book',
             ],
         },
         {
             type: 'category',
-            label: '🔌 Hardware Reference',
+            label: '🔌 Hardware',
             items: [
+                'developer-guide/hardware-assembly',
                 'hardware-setup',
             ],
         },
