@@ -100,9 +100,24 @@ The ESP32-S3 requires **8 connections** to the e-paper display:
 
 Once your hardware is assembled and tested:
 
-1. 📖 [Install Firmware](quick-start.md#step-2-install-firmware-5-minutes)
-2. ⚙️ [Configure WiFi and Station](quick-start.md#step-3-wifi-configuration-3-minutes)
-3. 📱 [Start Using MyStation](quick-start.md#step-5-verify-operation-2-minutes)
+1. 📖 [Development Setup](development-setup.md) - Set up your development environment and build firmware
+2. 🧪 [Testing](testing.md) - Test your hardware with native tests
+3. 🚀 [Run Book](run-book.md) - Upload firmware and monitor your device
 
-Need help? Check the [Troubleshooting Guide](troubleshooting.md) for common issues and solutions.
+## Related Documentation
+
+- 🏠 [Developer Guide Home](index.md) - Main developer documentation
+- 🔧 [Development Setup](development-setup.md) - Install tools and build firmware
+- 📋 [Configuration Layers](configuration-layers.md) - Understanding configuration system
+- 🎨 [Display System](display-system.md) - E-paper display architecture
+- 🔄 [Boot Process](boot-process.md) - Device boot flow and phases
+- 📡 [API Integration](api-integration.md) - Setting up API keys
+- 🧪 [Testing](testing.md) - Testing procedures and mocks
+- 📚 [Run Book](run-book.md) - Operational procedures and commands
+- ⚙️ [GitHub Actions](github-actions.md) - CI/CD workflows
+
+---
+
+**Need help?** Check the [Run Book](run-book.md) for common commands and troubleshooting procedures.
+
 

@@ -65,8 +65,7 @@ information.
 
 ### 🔌 Hardware
 
-- [**Hardware Assembly**](../user-guide/hardware-assembly.md) - Assembly instructions
-- [**Quick Start**](../user-guide/quick-start.md) - Initial configuration
+- [**Hardware Assembly**](hardware-assembly.md) - Pin connections and wiring diagrams
 
 ## Technology Stack
 
