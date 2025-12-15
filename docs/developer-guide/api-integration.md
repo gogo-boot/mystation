@@ -1,7 +1,10 @@
-# API Keys Setup
+# API Integration
 
-This project requires API keys from external services and uses several free APIs. All keys are stored locally and never
-transmitted to third parties.
+This project requires several APIs. some of API is free to use without API keys
+Some of API is free, but need an API Key.
+All keys are stored locally and never transmitted to third parties.
+If you scale up with large amount of API request, you need a commercial usage aggrement with
+API Provider to get large volume request available API Keys.
 
 ## Required API Keys
 
@@ -12,9 +15,21 @@ transmitted to third parties.
 - **Open-Meteo Weather API**: Weather data via DWD (free, no key)
 - **OpenStreetMap Nominatim**: Location names (free, no key)
 
+### 1. Basic Setup for API Keys Encryption
+
+All API Keys must be encrypted in `AES-128-CBC`.
+`ENCRYPTION_KEY` is used to encrypt/decrypt the API keys stored in the device.
+
+For detail on how to encrypt the API Keys, see:
+https://github.com/gogo-boot/aes-demo
+
+```bash
+cp include/secrets/general_secrets.h.example include/secrets/general_secrets.h
+```
+
 ### 1. Google Geolocation API
 
-**Purpose**: Automatic location detection for finding nearby transport stops.
+**Purpose**: Automatic approximate longitude latitude location detection.
 
 #### Setup Steps:
 
@@ -23,11 +38,12 @@ transmitted to third parties.
 3. Enable the **Geolocation API**
 4. Create credentials (API Key)
 5. Restrict the API key to Geolocation API only (recommended)
+6. Encrypt the API Key with Encryption Key
 
 #### Configuration:
 
 ```cpp
-// src/secrets/google_secrets.h
+// include/secrets/general_secrets.h
 #pragma once
 
 #define GOOGLE_API_KEY "your_google_api_key_here"
@@ -42,7 +58,10 @@ transmitted to third parties.
 
 ### 2. RMV Transport API
 
-**Purpose**: Real-time public transport departure information for German regional transport.
+**Purpose**:
+
+1. Getting nearby Stations by geo coordinate information
+1. Real-time public transport departure information
 
 #### Setup Steps:
 
@@ -50,15 +69,15 @@ transmitted to third parties.
 2. Register for an account
 3. Request API access for HAFAS API
 4. Obtain your API key
+5. Encrypt the API Key with Encryption Key
 
 #### Configuration:
 
 ```cpp
-// src/secrets/rmv_secrets.h
+// include/secrets/general_secrets.h
 #pragma once
 
 #define RMV_API_KEY "your_rmv_api_key_here"
-#define RMV_BASE_URL "https://www.rmv.de/hapi/"
 ```
 
 #### Coverage:
@@ -71,7 +90,7 @@ transmitted to third parties.
 
 ### 3. Open-Meteo Weather API
 
-**Purpose**: Weather information using DWD (German Weather Service) data.
+**Purpose**: Weather information using DWD (German Weather Service) data by longitude and latitude
 
 #### Setup:
 
@@ -81,10 +100,10 @@ transmitted to third parties.
 
 Already configured in `src/api/dwd_weather_api.cpp`:
 
-```cpp
-// No secrets file needed
-#define OPEN_METEO_BASE_URL "https://api.open-meteo.com/v1/dwd-icon"
-```
+#### Setup Steps:
+
+- visit https://open-meteo.com/
+- read docs and test several online API calls
 
 #### Coverage:
 
@@ -104,26 +123,19 @@ Already configured in `src/api/dwd_weather_api.cpp`:
 
 ### 4. OpenStreetMap Nominatim API
 
-**Purpose**: Reverse geocoding to convert coordinates to human-readable location names.
+**Purpose**: It is used by application configuration
+
+1. Getting City/Town Name from geocoding coordinates while application configuration
+1. Getting longitude/latitude from City/Town Name while application configuration
 
 #### Setup:
 
+Visit https://nominatim.org/ and read documentation.
 **No API key required** - Nominatim is free and open source.
 
 #### Configuration:
 
 Already configured in the location detection code:
-
-```cpp
-// No secrets file needed
-#define NOMINATIM_BASE_URL "https://nominatim.openstreetmap.org/reverse"
-```
-
-#### Usage:
-
-- Converts latitude/longitude to city/location names
-- Used during initial setup to display location to user
-- Provides context for weather and transport data
 
 #### Coverage:
 

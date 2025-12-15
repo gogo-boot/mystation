@@ -1,4 +1,4 @@
-# Configuration System Architecture
+# Configuration Architecture
 
 ## Why Multiple Configuration Layers?
 
@@ -9,19 +9,25 @@ Understanding why this complexity exists is crucial for maintaining and extendin
 
 ```mermaid
 graph TD
-    A[User Interface Layer] -->|User Input| B[Web/JavaScript Layer]
-    B -->|HTTP POST JSON| C[C++ Application Layer]
-    C -->|Serialize| D[NVS Storage Layer]
-    D -->|Persist| E[Flash Memory]
-    E -->|Boot/Wake| D
-    D -->|Deserialize| C
-    C -->|Template Variables| A
+    A(User Interface Layer) -->|User Input| B(Web/JavaScript Layer)
+    B -->|HTTP POST JSON| C(Application Layer)
+    C --> D(RTC Storage Layer)
+    D -->|Persist| E(NVS Storage Layer)
+    E -->|Load| D
+    D --> C
+    C -->|Replace Template Variables| A
     style A fill: #e1f5ff
     style B fill: #fff4e1
     style C fill: #ffe1f5
     style D fill: #e1ffe1
     style E fill: #f0f0f0
 ```
+
+_RTC Storage Layer_ refers to RTC_DATA_ATTR variables for fast access after deep sleep.
+RTC_DATA_ATTR variables are preverved across deep sleep cycles but lost on full power loss or pushing reset button.
+
+_NVS Storage Layer_ refers to ESP32's Non-Volatile Storage for persistent configuration.
+After Power loss/pushing reset button, data in NVS remains intact.
 
 ### Layer 1: HTML/UI Layer (User Interface)
 
@@ -222,33 +228,6 @@ sequenceDiagram
 
 ---
 
-## Why Not a Single Layer?
-
-### ❌ Anti-Pattern: Direct HTML to NVS
-
-**What if we skipped the intermediate layers?**
-
-```html
-<!-- BAD: HTML directly to NVS -->
-<input type="number" nvs-key="weatherInt" value="60">
-<script>
-    // Directly save to NVS via some API
-    NVS.put(element.getAttribute('nvs-key'), element.value);
-</script>
-```
-
-**Problems**:
-
-1. **No Type Safety**: Everything is a string
-2. **No Validation**: Can save invalid values
-3. **No Defaults**: What if NVS is empty?
-4. **No Business Logic**: Can't apply complex rules
-5. **Tight Coupling**: HTML tied to NVS key names
-6. **Hard to Test**: Can't unit test without hardware
-7. **No Migration**: Can't change storage format
-
----
-
 ## Key Naming Mapping Strategy
 
 ### The Transformation Path
@@ -289,55 +268,6 @@ graph LR
 
 ## Special Cases
 
-### 1. Arrays and Lists (Transport Filters)
-
-**Problem**: NVS doesn't support arrays directly
-
-**Solution**: Store count + individual items
-
-```cpp
-// Save array
-preferences.putInt("filterCount", filterCount);
-for (int i = 0; i < filterCount; i++) {
-    String key = "filter" + String(i);
-    preferences.putString(key.c_str(), filters[i].c_str());
-}
-
-// Load array
-int count = preferences.getInt("filterCount", 0);
-for (int i = 0; i < count && i < MAX_FILTERS; i++) {
-    String key = "filter" + String(i);
-    preferences.getString(key.c_str(), buffer, sizeof(buffer));
-    filters[i] = String(buffer);
-}
-```
-
-**Why**: NVS is key-value, not a database
-
----
-
-### 2. Encrypted WiFi Credentials
-
-**Problem**: WiFi passwords should be encrypted
-
-**Solution**: Separate NVS namespace with encryption
-
-```cpp
-// Regular config
-Preferences preferences;
-preferences.begin("config", false);  // Not encrypted
-
-// WiFi credentials
-Preferences wifiPrefs;
-wifiPrefs.begin("wifi", false);  // Could enable encryption
-wifiPrefs.putString("ssid", ssid);
-wifiPrefs.putString("password", password);
-```
-
-**Why**: Security best practice, compliance
-
----
-
 ### 3. RTC Memory (Ultra-Fast Access)
 
 **Problem**: Some data needed immediately after deep sleep wake
@@ -356,83 +286,6 @@ RTC_DATA_ATTR DisplayMode temporaryMode = DISPLAY_MODE_NONE;
 - No flash wear from frequent writes
 
 **Trade-off**: Lost on full power loss (not just deep sleep)
-
----
-
-## Configuration Migration
-
-### Version Evolution
-
-```mermaid
-graph TD
-    A[Boot] --> B{Check Config Version}
-    B -->|v1 . 0| C[Load v1.0 Format]
-    B -->|v2 . 0| D[Load v2.0 Format]
-    B -->|Unknown| E[Use Defaults]
-    C --> F[Migrate to v2.0]
-    F --> G[Save v2.0 Format]
-    D --> G
-    E --> G
-    G --> H[Normal Operation]
-```
-
-**Example Migration**:
-
-```cpp
-void migrateConfig() {
-    int version = preferences.getInt("cfgVersion", 1);
-
-    if (version == 1) {
-        // v1 used "wInt" key, v2 uses "weatherInt"
-        int oldValue = preferences.getInt("wInt", 60);
-        preferences.putInt("weatherInt", oldValue);
-        preferences.remove("wInt");
-
-        preferences.putInt("cfgVersion", 2);
-    }
-}
-```
-
----
-
-## Best Practices
-
-### Adding New Configuration Fields
-
-**Checklist**:
-
-1. ✅ Add to C++ struct with default value
-2. ✅ Add NVS save/load with abbreviated key
-3. ✅ Add HTML form element with kebab-case ID
-4. ✅ Add template replacement in config_page.cpp
-5. ✅ Add JavaScript variable in camelCase
-6. ✅ Add to JSON save handler
-7. ✅ Add validation (min/max, regex, etc.)
-8. ✅ Update documentation
-9. ✅ Consider migration from old config
-
-### Validation Strategy
-
-**Defense in Depth**: Validate at multiple layers
-
-```cpp
-// Layer 1: HTML (basic)
-<input type="number" min="1" max="60" required>
-
-// Layer 2: JavaScript (UX)
-if (weatherInterval < 1 || weatherInterval > 60) {
-    alert("Weather interval must be 1-60 minutes");
-    return;
-}
-
-// Layer 3: C++ (security/safety)
-if (config.weatherInterval < 1 || config.weatherInterval > 60) {
-    config.weatherInterval = 60;  // Force safe default
-    ESP_LOGW(TAG, "Invalid weather interval, using default");
-}
-```
-
-**Why**: Each layer can fail or be bypassed
 
 ---
 
@@ -462,64 +315,6 @@ void setup() {
 // BAD: Load every time
 void loop() {
     int interval = preferences.getInt("weatherInt", 60);  // Don't do this!
-}
-```
-
-### Memory Usage
-
-| Layer      | Size       | Location |
-|------------|------------|----------|
-| NVS Keys   | ~300 bytes | Flash    |
-| NVS Values | ~500 bytes | Flash    |
-| C++ Struct | ~800 bytes | RAM      |
-| RTC Data   | ~100 bytes | RTC RAM  |
-
-**Total**: ~1.7 KB (negligible on ESP32)
-
----
-
-## Debugging Configuration Issues
-
-### Layer-by-Layer Debugging
-
-```mermaid
-graph TD
-    A[Config Not Saving?] --> B{Check JavaScript Console}
-    B -->|Error| C[Fix JS validation]
-    B -->|OK| D{Check Network Tab}
-    D -->|404/500| E[Fix server endpoint]
-    D -->|200 OK| F{Check Serial Monitor}
-    F -->|JSON Parse Error| G[Fix JSON format]
-    F -->|NVS Error| H[Check NVS partition]
-    F -->|Success| I{Check NVS Directly}
-    I -->|Value Missing| J[Fix save logic]
-    I -->|Value Wrong| K[Fix conversion]
-    I -->|Value Correct| L[Check load logic]
-```
-
-### Tools
-
-**JavaScript**:
-
-```javascript
-console.log('Config to save:', config);  // Before POST
-```
-
-**C++ Serial**:
-
-```cpp
-ESP_LOGI(TAG, "Received JSON: %s", jsonString.c_str());
-ESP_LOGI(TAG, "Saved weatherInt: %d", config.weatherInterval);
-```
-
-**NVS Direct Inspection**:
-
-```cpp
-void dumpNVS() {
-    preferences.begin("config", true);  // Read-only
-    int value = preferences.getInt("weatherInt", -1);
-    ESP_LOGI(TAG, "NVS weatherInt = %d", value);
-    preferences.end();
 }
 ```
 

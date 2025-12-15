@@ -58,7 +58,7 @@ you need to create these files manually based on the provided examples `include/
 cp include/secrets/general_secrets.h.example include/secrets/general_secrets.h
 ```
 
-All API Kyes must be encrypted in `AES-128-CBC`.
+All API Keys must be encrypted in `AES-128-CBC`.
 `ENCRYPTION_KEY` is used to encrypt/decrypt the API keys stored in the device.
 
 For detail on how to encrypt the API Keys, see:
