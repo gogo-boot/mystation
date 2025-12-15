@@ -22,11 +22,16 @@
 
 ### Recommended Hardware
 
-I recommend using the `TRMNL 7.5" (OG) DIY Kit (SKU 104991005)` from Seeed Studio, which includes the e-Paper display,
-ESP32-S3 Plus, E-Paper Display, Display Hat, and a rechargeable battery with BMS.
-It supports also charging Battery via USB-C. No need to buy charging circuit separately.
-You can also measure the voltage of the battery and get current battery level.
-You don't need to solder anything, just assemble the parts.
+I recommend using the `TRMNL 7.5" (OG) DIY Kit (SKU 104991005)` from Seeed Studio
+
+- Includes the e-Paper display,
+- Includes tESP32-S3 Plus
+- Includes tE-Paper Display
+- Includes tDisplay Hat
+- Includes rechargeable battery with BMS
+- It supports also charging Battery via USB-C. No need to buy charging circuit separately.
+- You can also measure the voltage of the battery and get current battery level.
+- You don't need to solder anything, just assemble the parts.
 
 ## Software Setup
 
