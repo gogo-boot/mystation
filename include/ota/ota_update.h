@@ -15,7 +15,8 @@ extern const char server_cert_pem_end[] asm("_binary_cert_github_pem_end");
 
 // Function declarations
 esp_err_t _http_event_handler(esp_http_client_event_t* evt);
-void check_update_task(void* pvParameter);
+
+void check_ota_update();
 
 // Release information structure
 struct ReleaseInfo {
@@ -25,4 +26,4 @@ struct ReleaseInfo {
 };
 
 // New function declaration
-bool getLatestReleaseFromGitHub(const char* owner, const char* repo, ReleaseInfo& releaseInfo);
+bool getLatestReleaseFromGitHub(ReleaseInfo& releaseInfo);

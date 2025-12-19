@@ -8,7 +8,6 @@
 #include <HTTPClient.h>
 #include <StreamUtils.h>
 #include "build_config.h"
-
 #include "ota/version_helper.h"
 
 static const char* TAG = "OTA_UPDATE";
@@ -44,79 +43,29 @@ esp_err_t _http_event_handler(esp_http_client_event_t* evt) {
     return ESP_OK;
 }
 
-
-// Check update task
-// downloads every 30sec the json file with the latest firmware
-void check_update_task(void* pvParameter) {
-    while (1) {
-        // Connect to WiFi in station mode
-        MyWiFiManager::reconnectWiFi();
-        // Check if WiFi is connected before attempting HTTP request
-        if (WiFi.status() != WL_CONNECTED) {
-            ESP_LOGW(TAG, "WiFi not connected, skipping OTA check");
-            vTaskDelay(30000 / portTICK_PERIOD_MS);
-            continue;
-        }
-
-        printf("Looking for a new firmware...\n");
-
-        // configure the esp_http_client
-        esp_http_client_config_t config = {
-            .url = UPDATE_JSON_URL,
-            .cert_pem = server_cert_pem_start,
-            // .cert_len = server_cert_pem_end - server_cert_pem_start,
-            .timeout_ms = 15000,
-            .event_handler = _http_event_handler,
-        };
-        esp_http_client_handle_t client = esp_http_client_init(&config);
-
-        // downloading the json file
-        esp_err_t err = esp_http_client_perform(client);
-        if (err == ESP_OK) {
-            // parse the json file
-            cJSON* json = cJSON_Parse(rcv_buffer);
-            if (json == NULL) printf("downloaded file is not a valid json, aborting...\n");
-            else {
-                cJSON* version = cJSON_GetObjectItemCaseSensitive(json, "version");
-                cJSON* file = cJSON_GetObjectItemCaseSensitive(json, "file");
-
-                // check the version
-                if (!cJSON_IsNumber(version)) printf("unable to read new version, aborting...\n");
-                else {
-                    double new_version = version->valuedouble;
-                    if (new_version > 0.2) {
-                        printf("current firmware version (%.1f) is lower than the available one (%.1f), upgrading...\n",
-                               FIRMWARE_VERSION, new_version);
-                        if (cJSON_IsString(file) && (file->valuestring != NULL)) {
-                            printf("downloading and installing new firmware (%s)...\n", file->valuestring);
-                            esp_http_client_config_t ota_client_config = {
-                                .url = file->valuestring,
-                                .cert_pem = server_cert_pem_start,
-                                // .cert_len = server_cert_pem_end - server_cert_pem_start,
-                                // .timeout_ms = 15000,
-                                .event_handler = _http_event_handler,
-                            };
-                            esp_err_t ret = esp_https_ota(&ota_client_config);
-                            if (ret == ESP_OK) {
-                                printf("OTA OK, restarting...\n");
-                                esp_restart();
-                            } else {
-                                printf("OTA failed...\n");
-                            }
-                        } else printf("unable to read the new file name, aborting...\n");
-                    } else
-                        printf(
-                            "current firmware version (%.1f) is greater or equal to the available one (%.1f), nothing to do...\n",
-                            FIRMWARE_VERSION, new_version);
-                }
+void check_ota_update() {
+    ReleaseInfo release;
+    if (getLatestReleaseFromGitHub(release)) {
+        SemanticVersion current = SemanticVersion::parse(FIRMWARE_VERSION);
+        if (release.version.isNewerThan(current)) {
+            ESP_LOGI(TAG, "Update available: %s -> %s",
+                     current.toString().c_str(),
+                     release.version.toString().c_str());
+            esp_http_client_config_t ota_client_config = {
+                .url = release.firmwareUrl.c_str(),
+                .cert_pem = server_cert_pem_start,
+                // .cert_len = server_cert_pem_end - server_cert_pem_start,
+                // .timeout_ms = 15000,
+                .event_handler = _http_event_handler,
+            };
+            esp_err_t ret = esp_https_ota(&ota_client_config);
+            if (ret == ESP_OK) {
+                printf("OTA OK, restarting...\n");
+                esp_restart();
+            } else {
+                printf("OTA failed...\n");
             }
-        } else printf("unable to download the json file, aborting...\n");
-
-        // cleanup
-        esp_http_client_cleanup(client);
-
-        printf("\n");
-        vTaskDelay(30000 / portTICK_PERIOD_MS);
+        }
     }
 }
 
@@ -131,8 +80,8 @@ namespace {
     }
 }
 
-bool getLatestReleaseFromGitHub(const char* owner, const char* repo, ReleaseInfo& releaseInfo) {
-    ESP_LOGI(TAG, "Fetching latest release for %s/%s", owner, repo);
+bool getLatestReleaseFromGitHub(ReleaseInfo& releaseInfo) {
+    ESP_LOGI(TAG, "Fetching latest release ");
 
     HTTPClient http;
 
