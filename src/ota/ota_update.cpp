@@ -4,6 +4,8 @@
 #include "cJSON.h"
 #include "util/wifi_manager.h"
 #include <esp_https_ota.h>
+#include "build_config.h"
+#include "ota/version_helper.h"
 
 static const char* TAG = "OTA_UPDATE";
 

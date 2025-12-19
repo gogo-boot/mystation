@@ -1,7 +1,3 @@
-// include/ota/version_helper.h
-#ifndef VERSION_HELPER_H
-#define VERSION_HELPER_H
-
 #include <string>
 
 struct SemanticVersion {
@@ -21,5 +17,3 @@ struct SemanticVersion {
     // Convert to string
     std::string toString() const;
 };
-
-#endif // VERSION_HELPER_H
