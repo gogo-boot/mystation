@@ -405,8 +405,8 @@ This architecture has served MyStation well and should be maintained as the proj
 
 ## Related Documentation
 
-- [Configuration Keys Reference](../../reference/configuration-keys-quick-reference.md)
-- [Configuration Data Flow](../configuration-data-flow.md)
+- [Configuration Keys Reference](../reference/configuration-keys-quick-reference.md)
 - [Boot Process](boot-process.md)
 - [Development Setup](development-setup.md)
+- [Display System](display-system.md)
 

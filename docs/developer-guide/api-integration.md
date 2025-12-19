@@ -202,5 +202,6 @@ NRW API implementation will be followed up in future releases.
 
 After setting up API keys:
 
-- [Quick Start Guide](./quick-start.md) - Initial device configuration
-- [Configuration Guide](./configuration.md) - Detailed setup options
+- [Development Setup](development-setup.md) - Set up your development environment
+- [Configuration Layers](configuration-layers.md) - Understanding configuration system
+- [Run Book](run-book.md) - Operational procedures and commands

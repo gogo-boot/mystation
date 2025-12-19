@@ -94,7 +94,6 @@ const sidebars = {
             label: '📋 Quick Reference',
             items: [
                 'reference/configuration-keys-quick-reference',
-                'reference/configuration-phase-quick-reference',
             ],
         },
     ],
