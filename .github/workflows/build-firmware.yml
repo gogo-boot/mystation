@@ -40,7 +40,7 @@ jobs:
             -   name: Install PlatformIO
                 run: |
                     pip install --upgrade platformio==${{ env.PLATFORMIO_CORE_VERSION }}
-                    
+
             -   name: Check GCC version  # Add this step
                 run: |
                     gcc --version
@@ -229,7 +229,7 @@ jobs:
                         Full documentation available at: https://yourusername.github.io/gogo-boot/
 
                         ## 🐛 Issues
-                        Report issues at: https://github.com/gogo-boot/e-board/issues
+                        Report issues at: https://github.com/gogo-boot/mystation/issues
                     draft: false
                     prerelease: false
                 env:

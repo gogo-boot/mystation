@@ -12,7 +12,7 @@ String getCityFromLatLon(float lat, float lon) {
         String(lon, 6) + "&zoom=10&addressdetails=1";
     HTTPClient http;
     http.begin(url);
-    http.addHeader("User-Agent", "ESP32-e-board/1.0");
+    http.addHeader("User-Agent", "ESP32-mystation/1.0");
     int httpCode = http.GET();
     String city = "";
     if (httpCode > 0) {

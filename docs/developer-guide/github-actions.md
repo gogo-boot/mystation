@@ -375,7 +375,7 @@ concurrency:
 After successful deployment, documentation is available at:
 
 ```
-https://gogo-boot.github.io/e-board/
+https://gogo-boot.github.io/mystation/
 ```
 
 **Structure**:

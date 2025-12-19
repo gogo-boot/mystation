@@ -149,9 +149,3 @@ ESP32-C3 Super Mini          E-Paper Display
 - Check for shorts or incorrect wiring
 - Verify deep sleep functionality
 
-## Next Steps
-
-After hardware setup, proceed to:
-
-- [Software Setup](developer-guide/development-setup.md) - Development environment
-- [Quick Start Guide](user-guide/quick-start-simplified.md) - Initial configuration

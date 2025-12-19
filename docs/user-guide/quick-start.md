@@ -109,13 +109,6 @@ Hold button 1 longer than 5 seconds. It will start over the configuration proces
 
 For more help, see the [Troubleshooting Guide](troubleshooting.md).
 
-## Next Steps
-
-- 📖 [Understanding the Display](understanding-display.md) - Learn what information is shown
-- 🔧 [Troubleshooting](troubleshooting.md) - Common issues and solutions
-
-Congratulations! Your MyStation is now running! 🎉
-
 ## What is MyStation?
 
 MyStation is a battery-powered e-paper display that shows real-time public transport departures and weather information
@@ -127,9 +120,3 @@ for your location. It's designed to be:
 - 📱 **Easy to Configure** - Simple web interface for setup and customization
 - 🔒 **Privacy-Focused** - All data processing happens locally on your device
 - 📡 **WiFi Connected** - Automatic updates over 2.4 GHz WiFi networks
-
-## Need Help?
-
-- 🚀 [Quick Start Guide](quick-start.md) - First-time setup
-- 🔧 [Troubleshooting](troubleshooting.md) - Common issues and solutions
-- 📖 [Full Documentation](index.md) - Complete documentation index

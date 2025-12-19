@@ -401,12 +401,3 @@ Deep Sleep Wake: RTC (fast) → C++ → Display
 
 This architecture has served MyStation well and should be maintained as the project evolves.
 
----
-
-## Related Documentation
-
-- [Configuration Keys Reference](../reference/configuration-keys-quick-reference.md)
-- [Boot Process](boot-process.md)
-- [Development Setup](development-setup.md)
-- [Display System](display-system.md)
-

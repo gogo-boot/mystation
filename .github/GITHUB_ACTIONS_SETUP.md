@@ -65,7 +65,7 @@ git push origin v1.0.0
 
 | Workflow | Trigger | Purpose |
 |----------|---------|---------|
-| `test-build.yml` | Every commit to e-board/ | Quick compile test |
+| `test-build.yml` | Every commit to mystation/ | Quick compile test |
 | `ci-cd.yml` | Main branch + tags | Full build & deploy |
 | `deploy-docs.yml` | Docs changes | Documentation only |
 
@@ -105,11 +105,11 @@ Add these to your main README.md:
 
 ## 🎉 **Benefits**
 
-✅ **Automated Testing** - Catch compile errors immediately  
-✅ **Consistent Builds** - Same environment every time  
-✅ **Easy Releases** - Just tag and push  
-✅ **User-Friendly** - Ready-to-flash packages  
-✅ **Documentation** - Always up-to-date  
-✅ **Professional** - Industry-standard CI/CD  
+✅ **Automated Testing** - Catch compile errors immediately
+✅ **Consistent Builds** - Same environment every time
+✅ **Easy Releases** - Just tag and push
+✅ **User-Friendly** - Ready-to-flash packages
+✅ **Documentation** - Always up-to-date
+✅ **Professional** - Industry-standard CI/CD
 
 Your ESP32 project is now professionally automated! 🚀

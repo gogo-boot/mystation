@@ -16,12 +16,12 @@ const config = {
     url: 'https://gogo-boot.github.io',
     // Set the /<baseUrl>/ pathname under which your site is served
     // For GitHub pages deployment, it is often '/<projectName>/'
-    baseUrl: '/e-board/',
+    baseUrl: '/mystation/',
 
     // GitHub pages deployment config.
     // If you aren't using GitHub pages, you don't need these.
     organizationName: 'gogo-boot', // Usually your GitHub org/user name.
-    projectName: 'e-board', // Usually your repo name.
+    projectName: 'mystation', // Usually your repo name.
     deploymentBranch: 'gh-pages',
     trailingSlash: false,
 
@@ -55,7 +55,7 @@ const config = {
                     // Please change this to your repo.
                     // Remove this to remove the "edit this page" links.
                     editUrl:
-                        'https://github.com/gogo-boot/e-board/tree/main/',
+                        'https://github.com/gogo-boot/mystation/tree/main/',
                 },
                 blog: false,
                 theme: {
@@ -96,7 +96,7 @@ const config = {
                         label: 'Reference',
                     },
                     {
-                        href: 'https://github.com/gogo-boot/e-board',
+                        href: 'https://github.com/gogo-boot/mystation',
                         label: 'GitHub',
                         position: 'right',
                     },
@@ -113,10 +113,6 @@ const config = {
                                 to: '/docs/user-guide/quick-start',
                             },
                             {
-                                label: 'Hardware Assembly',
-                                to: '/docs/user-guide/hardware-assembly',
-                            },
-                            {
                                 label: 'Troubleshooting',
                                 to: '/docs/user-guide/troubleshooting',
                             },
@@ -125,10 +121,6 @@ const config = {
                     {
                         title: 'Developer',
                         items: [
-                            {
-                                label: 'Architecture',
-                                to: '/docs/developer-guide/index',
-                            },
                             {
                                 label: 'Boot Process',
                                 to: '/docs/developer-guide/boot-process',
@@ -144,7 +136,7 @@ const config = {
                         items: [
                             {
                                 label: 'GitHub',
-                                href: 'https://github.com/gogo-boot/e-board',
+                                href: 'https://github.com/gogo-boot/mystation',
                             },
                         ],
                     },

@@ -78,11 +78,3 @@ pio run --target erase
 pio run --target upload
 pio run --target uploadfs
 ```
-
-## Related Documentation
-
-- [Development Setup](development-setup.md) - Initial setup and configuration
-- [GitHub Actions](github-actions.md) - CI/CD workflows and automated builds
-- [Testing](testing.md) - Testing procedures and debugging
-- [API Integration](api-integration.md) - API setup and configuration
-

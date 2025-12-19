@@ -253,20 +253,6 @@ Healthy operation shows:
 - **Monitor SPI signals**: Use oscilloscope if available
 - **Test with simple display**: Draw basic shapes/text
 
-## Next Steps
-
-### After Basic Setup
-
-- [Configuration Guide](developer-guide/configuration-system.md) - Advanced options
-- [Troubleshooting](user-guide/troubleshooting.md) - Detailed problem solving
-- [User Guide](user-guide/quick-start-simplified.md) - Simplified setup guide
-
-### Customization
-
-- [API Integration](developer-guide/api-integration.md) - External APIs
-- [Development Guide](developer-guide/development-setup.md) - Extend functionality
-- [OTA System](developer-guide/ota-system.md) - Remote firmware updates
-
 ## Support
 
 ### Getting Help

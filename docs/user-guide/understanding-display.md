@@ -473,12 +473,6 @@ To maximize battery life while keeping useful information:
     - Place device near router (but still visible)
     - Weak signal uses more power
 
-## Related Documentation
-
-- 🏠 [User Guide Home](index.md)
-- 🔘 [Button Controls](button-controls.md)
-- 🔧 [Troubleshooting](troubleshooting.md)
-
 ---
 
 **Remember**: The e-paper display retains its image even when powered off. This is normal e-paper behavior and helps
