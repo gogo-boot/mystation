@@ -1,6 +1,6 @@
 # MyStation Documentation
 
-Welcome to the MyStation E-Board documentation! This guide will help you get started, use, and understand your public
+Welcome to the MyStation documentation! This guide will help you get started, use, and understand your public
 transport departure board.
 
 ## 📖 Documentation Sections
@@ -48,9 +48,9 @@ If you want to understand the code, contribute, or modify MyStation:
 
 ### Common Tasks
 
-- **[First Time Setup](user-guide/quick-start.md#step-1-power-on-your-device-1-minute)** - WiFi and station
+- **[First Time Setup](user-guide/quick-start.md)** - WiFi and station
   configuration
-- **[Change WiFi Network](user-guide/quick-start.md#step-3-configure-your-wifi-3-minutes)** - Reconfigure WiFi
+- **[Change WiFi Network](user-guide/quick-start.md)** - Reconfigure WiFi
 - **[Understanding Display](user-guide/understanding-display.md)** - Read the screen
 
 ### Developer Tasks

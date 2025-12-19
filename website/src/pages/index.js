@@ -49,7 +49,7 @@ export default function Home() {
                             </p>
                         </div>
                         <div className="col col--4">
-                            <h3>⚡ ESP32-C3 Powered</h3>
+                            <h3>⚡ ESP32-C3 / ESP32-S3 Powered</h3>
                             <p>
                                 Low power consumption with deep sleep support, perfect for
                                 battery-powered deployments.

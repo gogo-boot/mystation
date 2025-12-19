@@ -6,7 +6,7 @@
 
 // OTA Configuration
 #define FIRMWARE_VERSION    0.1
-#define UPDATE_JSON_URL     "https://raw.githubusercontent.com/gogo-boot/e-board/refs/heads/61-firmware-ota-update/test/ota/example.json"
+#define UPDATE_JSON_URL     "https://raw.githubusercontent.com/gogo-boot/mystation/refs/heads/61-firmware-ota-update/test/ota/example.json"
 
 // External variables
 extern char rcv_buffer[200];

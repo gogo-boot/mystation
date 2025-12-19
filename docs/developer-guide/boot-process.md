@@ -190,13 +190,3 @@ void checkWakeupReason() {
     }
 }
 ```
-
-## Related Documentation
-
-- [Architecture](architecture.md) - System overview
-- [Configuration System](configuration-system.md) - NVS and config details
-- [Power Management](power-management.md) - Deep sleep implementation
-- [WiFi Management](wifi-management.md) - WiFi connection handling
-
----
-
