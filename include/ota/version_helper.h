@@ -1,3 +1,5 @@
+#pragma once
+
 #include <string>
 
 struct SemanticVersion {
@@ -5,8 +7,7 @@ struct SemanticVersion {
     int minor;
     int patch;
 
-    SemanticVersion(int maj = 0, int min = 0, int pat = 0)
-        : major(maj), minor(min), patch(pat) {}
+    SemanticVersion(int maj = 0, int min = 0, int pat = 0) : major(maj), minor(min), patch(pat) {}
 
     // Parse "v0.3.0" or "0.3.0" format
     static SemanticVersion parse(const char* version_str);
@@ -17,3 +18,4 @@ struct SemanticVersion {
     // Convert to string
     std::string toString() const;
 };
+

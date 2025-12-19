@@ -1,4 +1,3 @@
-// src/ota/version_helper.cpp
 #include "ota/version_helper.h"
 #include <cstring>
 #include <cstdio>
