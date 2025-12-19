@@ -122,8 +122,8 @@ pio device monitor --baud 115200
 
 After software setup:
 
-- [API Keys Setup](./api-keys.md) - Configure external services
-- [Quick Start Guide](./quick-start.md) - First run configuration
-- [Development Guide](./development.md) - Contributing to the project
-- [Run Book](./run-book.md) - Operational procedures and troubleshooting
-- [Testing](./testing.md) - Running unit tests and debugging
+- [API Integration](api-integration.md) - Configure external services and API keys
+- [Hardware Assembly](hardware-assembly.md) - Connect your hardware
+- [Run Book](run-book.md) - Operational procedures and troubleshooting
+- [Testing](testing.md) - Running unit tests and debugging
+- [GitHub Actions](github-actions.md) - CI/CD workflows

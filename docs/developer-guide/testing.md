@@ -190,5 +190,5 @@ To add tests for a new module:
 - [Development Setup](development-setup.md) - Setting up your development environment
 - [GitHub Actions](github-actions.md) - CI/CD workflows and automated testing
 - [Run Book](run-book.md) - Operational procedures and troubleshooting
-- [Code Conventions](code-conventions.md) - Coding standards and best practices
+- [Development Setup](development-setup.md) - Setting up your environment
 

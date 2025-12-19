@@ -12,10 +12,8 @@ If you want to build, set up, and use MyStation:
 **[👋 User Guide](user-guide/index.md)** - Complete guide for end users
 
 - [Quick Start](user-guide/quick-start.md) - Get running in 15 minutes
-- [Hardware Assembly](user-guide/hardware-assembly.md) - Physical setup and wiring
 - [Understanding the Display](user-guide/understanding-display.md) - What information is shown
-- [Button Controls](user-guide/button-controls.md) - Using physical buttons (ESP32-S3)
-- [Factory Reset](user-guide/factory-reset.md) - Reset to defaults
+- [Button Controls](user-guide/button-controls.md) - Using physical buttons
 - [Troubleshooting](user-guide/troubleshooting.md) - Common issues and solutions
 
 ### For Developers
@@ -26,20 +24,19 @@ If you want to understand the code, contribute, or modify MyStation:
 
 - [Architecture Overview](developer-guide/index.md) - System design
 - [Boot Process](developer-guide/boot-process.md) - Detailed boot flow
-- [Refresh Process](developer-guide/refresh-process.md) - Wake-up, update, and sleep cycle
-- [Configuration System](developer-guide/configuration-system.md) - How settings are stored
+- [Configuration Layers](developer-guide/configuration-layers.md) - How settings are stored
 - [Display System](developer-guide/display-system.md) - E-paper rendering
 - [API Integration](developer-guide/api-integration.md) - External API usage
-- [Hardware Setup](hardware-setup.md) - Pin configuration and specs
+- [Hardware Assembly](developer-guide/hardware-assembly.md) - Pin configuration and wiring
 - [Development Setup](developer-guide/development-setup.md) - PlatformIO environment
 - [Testing](developer-guide/testing.md) - Unit tests and mocks
+- [Run Book](developer-guide/run-book.md) - Operational procedures
 
 ### Quick Reference
 
 **[📋 Reference Guides](reference/)** - Quick lookup
 
 - [Configuration Keys](reference/configuration-keys-quick-reference.md) - All settings
-- [Configuration Phases](reference/configuration-phase-quick-reference.md) - Boot phases
 
 ## 🚀 Quick Links
 
@@ -51,16 +48,16 @@ If you want to understand the code, contribute, or modify MyStation:
 
 ### Common Tasks
 
-- **[First Time Setup](user-guide/quick-start.md#step-3-wifi-configuration-3-minutes)** - WiFi and station configuration
-- **[Change WiFi Network](user-guide/quick-start.md#need-to-reconfigure)** - Reconfigure WiFi
-- **[Factory Reset](user-guide/factory-reset.md)** - Reset all settings
+- **[First Time Setup](user-guide/quick-start.md#step-1-power-on-your-device-1-minute)** - WiFi and station
+  configuration
+- **[Change WiFi Network](user-guide/quick-start.md#step-3-configure-your-wifi-3-minutes)** - Reconfigure WiFi
 - **[Understanding Display](user-guide/understanding-display.md)** - Read the screen
 
 ### Developer Tasks
 
 - **[Development Environment](developer-guide/development-setup.md)** - Set up PlatformIO
 - **[Boot Process](developer-guide/boot-process.md)** - How the system starts
-- **[Pin Configuration](hardware-setup.md)** - GPIO assignments
+- **[Hardware Assembly](developer-guide/hardware-assembly.md)** - GPIO assignments and wiring
 - **[API Integration](developer-guide/api-integration.md)** - Add API keys
 
 ## 📦 What's Included
@@ -89,7 +86,7 @@ MyStation is a complete e-paper display system:
 - Physical buttons (ESP32-S3 only)
 - Enclosure
 
-**See:** [Hardware Assembly](user-guide/hardware-assembly.md) for wiring details
+**See:** [Hardware Assembly](developer-guide/hardware-assembly.md) for wiring details
 
 ## ⚠️ Important Notes
 
@@ -114,28 +111,26 @@ docs/
 ├── user-guide/          # End-user documentation
 │   ├── index.md        # User guide overview
 │   ├── quick-start.md  # Getting started
-│   ├── hardware-assembly.md
 │   ├── understanding-display.md
 │   ├── button-controls.md
-│   ├── factory-reset.md
 │   └── troubleshooting.md
 │
 ├── developer-guide/     # Developer documentation
 │   ├── index.md        # Developer overview
-│   └── boot-process.md # Boot flow details
+│   ├── boot-process.md # Boot flow details
+│   ├── configuration-layers.md
+│   ├── display-system.md
+│   ├── api-integration.md
+│   ├── hardware-assembly.md
+│   ├── development-setup.md
+│   ├── testing.md
+│   ├── testing-mocks.md
+│   ├── testing-rtc.md
+│   ├── github-actions.md
+│   └── run-book.md
 │
-├── reference/           # Quick reference
-│   ├── configuration-keys-quick-reference.md
-│   └── configuration-phase-quick-reference.md
-│
-├── archive/             # Historical documents
-│   └── [old implementation notes]
-│
-└── [core documentation files]
-    ├── configuration.md
-    ├── display-layout-overview.md
-    ├── api-keys.md
-    └── hardware-setup.md
+└── reference/           # Quick reference
+    └── configuration-keys-quick-reference.md
 ```
 
 ## 🎯 Getting Started
@@ -150,7 +145,7 @@ docs/
 
 1. Read [Developer Guide](developer-guide/index.md)
 2. Understand [Boot Process](developer-guide/boot-process.md)
-3. Set up [Development Environment](software-setup.md)
+3. Set up [Development Environment](developer-guide/development-setup.md)
 4. Review [Architecture](developer-guide/index.md)
 
 ## 🆘 Getting Help
@@ -169,7 +164,7 @@ Most issues are covered in the [Troubleshooting Guide](user-guide/troubleshootin
 1. **Check WiFi**: Must be 2.4 GHz network
 2. **Check wiring**: Verify pin connections
 3. **Check serial monitor**: Error messages show here
-4. **Try factory reset**: [Factory Reset Guide](user-guide/factory-reset.md)
+4. **Try factory reset**: Hold Button 1 for 5 seconds during power-on
 
 ### Still Stuck?
 

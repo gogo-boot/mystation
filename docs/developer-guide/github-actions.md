@@ -510,8 +510,7 @@ Both workflows ensure:
 ## Related Documentation
 
 - [Development Setup](development-setup.md) - Local build instructions
-- [Configuration System](configuration-system.md) - How secrets are used
-- [OTA System](ota-system.md) - Firmware update mechanism
+- [Configuration Layers](configuration-layers.md) - How configuration works
 - [Testing](testing.md) - Running tests locally
 - [Run Book](run-book.md) - Operational procedures and troubleshooting
 

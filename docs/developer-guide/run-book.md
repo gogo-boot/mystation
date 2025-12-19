@@ -84,6 +84,5 @@ pio run --target uploadfs
 - [Development Setup](development-setup.md) - Initial setup and configuration
 - [GitHub Actions](github-actions.md) - CI/CD workflows and automated builds
 - [Testing](testing.md) - Testing procedures and debugging
-- [OTA System](ota-system.md) - Firmware update procedures
-- [User Troubleshooting Guide](../user-guide/troubleshooting.md) - User-facing troubleshooting
+- [API Integration](api-integration.md) - API setup and configuration
 
