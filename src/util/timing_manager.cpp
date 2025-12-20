@@ -30,6 +30,12 @@ uint32_t TimingManager::calculateNextWeatherUpdate(uint32_t currentTimeSeconds) 
 
     uint32_t nextUpdate = (lastUpdate == 0) ? currentTimeSeconds : lastUpdate + intervalSeconds;
 
+    // If update is overdue (in the past), return current time for immediate update
+    if (nextUpdate < currentTimeSeconds) {
+        ESP_LOGI(TAG, "Weather update overdue - next update: NOW (was scheduled for: %u)", nextUpdate);
+        nextUpdate = currentTimeSeconds;
+    }
+
     ESP_LOGI(TAG, "Weather interval: %u hours (%u seconds), Next weather update: %u",
              config.weatherInterval, intervalSeconds, nextUpdate);
 
@@ -42,6 +48,12 @@ uint32_t TimingManager::calculateNextTransportUpdate(uint32_t currentTimeSeconds
     uint32_t intervalSeconds = config.transportInterval * 60; // minutes to seconds
 
     uint32_t nextUpdate = (lastUpdate == 0) ? currentTimeSeconds + intervalSeconds : lastUpdate + intervalSeconds;
+
+    // If update is overdue (in the past), return current time for immediate update
+    if (nextUpdate < currentTimeSeconds) {
+        ESP_LOGI(TAG, "Transport update overdue - next update: NOW (was scheduled for: %u)", nextUpdate);
+        nextUpdate = currentTimeSeconds;
+    }
 
     ESP_LOGI(TAG, "Departure interval: %u minutes (%u seconds), Next departure update: %u",
              config.transportInterval, intervalSeconds, nextUpdate);
@@ -307,8 +319,13 @@ uint64_t TimingManager::getNextSleepDurationSeconds() {
         ESP_LOGI(TAG, "OTA check is the nearest update at: %u", nextOTACheck);
     }
 
-    // Step 3: Adjust for sleep period (OTA bypasses sleep)
-    nextUpdate = adjustForDeepSleepPeriod(nextUpdate, isOTAUpdate);
+    // Step 3: Adjust for sleep period (skip if update is overdue/NOW, OTA bypasses sleep)
+    bool isOverdue = (nextUpdate <= currentTimeSeconds);
+    if (!isOverdue) {
+        nextUpdate = adjustForDeepSleepPeriod(nextUpdate, isOTAUpdate);
+    } else {
+        ESP_LOGI(TAG, "Update is overdue - bypassing sleep period adjustment");
+    }
 
     // Step 4: Calculate final sleep duration with minimum threshold
     uint64_t sleepDurationSeconds;
