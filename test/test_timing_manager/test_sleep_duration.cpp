@@ -290,10 +290,11 @@ void test_friday_to_saturday_deepsleep() {
     TimingManager::setLastWeatherUpdate((uint32_t)fridayNight);
 
     uint64_t sleepDuration = TimingManager::getNextSleepDurationSeconds();
-    printf("Sleep until Saturday 7 AM (transport inactive hours): %llu seconds (~%llu min)\n",
+    printf("Sleep until Saturday 3:00 AM for OTA (not 7 AM): %llu seconds (~%llu min)\n",
            sleepDuration, sleepDuration / 60);
 
-    TEST_ASSERT_EQUAL(3600 * 9, sleepDuration);
+    // Should wake at 03:00 for OTA check (5 hours), not 07:00 weekend sleep end
+    TEST_ASSERT_EQUAL(3600 * 5, sleepDuration);
 }
 
 // Sunday night to Monday morning deep sleep test
@@ -307,10 +308,11 @@ void test_sunday_to_monday_deepsleep() {
     TimingManager::setLastWeatherUpdate((uint32_t)sundayNight);
 
     uint64_t sleepDuration = TimingManager::getNextSleepDurationSeconds();
-    printf("Sleep until Monday 5:30 AM (transport inactive hours): %llu seconds (~%llu min)\n",
+    printf("Sleep until Monday 3:00 AM for OTA (not 5:30 AM): %llu seconds (~%llu min)\n",
            sleepDuration, sleepDuration / 60);
 
-    TEST_ASSERT_EQUAL(3600 * 7, sleepDuration);
+    // Should wake at 03:00 for OTA check (4.5 hours), not 05:30 weekday sleep end
+    TEST_ASSERT_EQUAL(3600 * 4.5L, sleepDuration);
 }
 
 // If weather is never updated, transport just updated, during transport inactive hours
@@ -387,11 +389,11 @@ void test_sleep_duration_half_half_deep_sleep() {
     TimingManager::setLastWeatherUpdate((uint32_t)evening); // Updated at 22:00 PM
 
     uint64_t sleepDuration = TimingManager::getNextSleepDurationSeconds();
-    printf("Sleep duration at 22:00 AM : %llu seconds (~%llu min)\n",
+    printf("Sleep duration at 22:00 PM : %llu seconds (~%llu min)\n",
            sleepDuration, sleepDuration / 60);
 
-    // Should sleep until 05:30 next day
-    TEST_ASSERT_EQUAL(3600 * 7.5L, sleepDuration);
+    // Should wake at 03:00 for OTA check (5 hours), not 05:30 sleep end
+    TEST_ASSERT_EQUAL(3600 * 5, sleepDuration);
 }
 
 // ============================================================================
