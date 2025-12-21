@@ -56,7 +56,6 @@ const sidebars = {
             label: '⚙️ Core Systems',
             items: [
                 'developer-guide/display-system',
-                'developer-guide/ota-update',
             ],
         },
         {
@@ -74,7 +73,6 @@ const sidebars = {
                 'developer-guide/testing',
                 'developer-guide/testing-mocks',
                 'developer-guide/testing-rtc',
-                'developer-guide/github-actions',
                 'developer-guide/run-book',
             ],
         },
@@ -84,6 +82,18 @@ const sidebars = {
             items: [
                 'developer-guide/hardware-assembly',
                 'hardware-setup',
+            ],
+        },
+    ],
+
+    // Quick Reference Sidebar - For quick lookups
+    maintainerSidebar: [
+        {
+            type: 'category',
+            label: '📋 Maintainer Guide',
+            items: [
+                'maintainer-guide/ota-update',
+                'maintainer-guide/github-actions',
             ],
         },
     ],
