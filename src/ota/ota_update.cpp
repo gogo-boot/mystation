@@ -54,9 +54,13 @@ void check_ota_update() {
             esp_http_client_config_t ota_client_config = {
                 .url = release.firmwareUrl.c_str(),
                 .cert_pem = server_cert_pem_start,
-                // .cert_len = server_cert_pem_end - server_cert_pem_start,
+                .cert_len = (size_t)(server_cert_pem_end - server_cert_pem_start),
                 // .timeout_ms = 15000,
+                .max_redirection_count = 5,
                 .event_handler = _http_event_handler,
+                .buffer_size = 2048,
+                .buffer_size_tx = 2048,
+                .keep_alive_enable = true,
             };
             esp_err_t ret = esp_https_ota(&ota_client_config);
             if (ret == ESP_OK) {

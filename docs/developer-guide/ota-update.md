@@ -58,3 +58,61 @@ comparison. The version strings should be in the format of `MAJOR.MINOR.PATCH`, 
 
 If the latest version obtained from the GitHub release is greater than the current firmware version, it indicates newer
 firmware available. and executes the OTA update process.
+
+## Certificates
+
+To download the firmware binary from GitHub securely over HTTPS, the device needs to trust the CA certificates used by
+The `firmware.bin` file is hosted on GitHub's release assets domain, which uses SSL/TLS certificates issued by trusted
+Certificate, it will be redirected to `release-assets.githubusercontent.com`.
+So it needs 2 CA certificates to verify the server certificates of both domains.
+
+### Quick Understading of Certificates.
+
+```text
+Root CA (self-signed) ← What you need
+↓
+Intermediate CA
+↓
+Server Certificate (github.com)
+```
+
+In certificates chin, the Root CA is not included in the server certificate chain sent by the server.
+You need to find out the `Issuer`
+
+```bash
+# Get ALL certificates in the chain
+openssl s_client -showcerts -connect github.com:443 </dev/null 2>/dev/null | \
+  awk '/BEGIN CERTIFICATE/,/END CERTIFICATE/' > cert/github_chain.pem
+# Issuer: C=US, O=DigiCert Inc, OU=www.digicert.com, CN=DigiCert Global Root G2
+# The CN=DigiCert Global Root G2 tells you which root CA to download.
+
+```
+
+### Download Root CA Certificates
+
+```bash
+curl -s https://cacerts.digicert.com/DigiCertGlobalRootG2.crt.pem -o digicert_g2.pem && echo "Downloaded DigiCert Global Root G2"                                                                                                       16:12:47
+curl -s https://cacerts.digicert.com/DigiCertGlobalRootCA.crt.pem -o digicert_global_root.pem && echo "Downloaded DigiCert Global Root CA"
+cat digicert_g2.pem digicert_global_root.pem > cert/github_bundle.pem && echo "Created bundle with both DigiCert root CAs"
+```
+
+### Pem file verification
+
+Test if it can verify the server certificates using the downloaded CA certificates:
+
+View Certificates info:
+
+```bash
+openssl x509 -in cert/github_root_ca.pem -noout -issuer -subject
+```
+
+Test connection using the CA file:
+
+```bash
+openssl s_client -connect api.github.com:443 -CAfile cert/github_bundle.pem </dev/null 2>&1 | grep "Verify return code"
+
+openssl s_client -connect release-assets.githubusercontent.com:443 -CAfile cert/github_root_browser.pem </dev/null 2>&1 | grep "Verify return code"
+Verify return code: 0 (ok)
+    Verify return code: 0 (ok)
+
+```
