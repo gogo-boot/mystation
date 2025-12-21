@@ -90,7 +90,7 @@ const config = {
                         label: 'Developer Guide',
                     },
                     {
-                        type: 'maintainerSidebar',
+                        type: 'docSidebar',
                         sidebarId: 'maintainerSidebar',
                         position: 'left',
                         label: 'Maintainer Guide',
