@@ -43,7 +43,7 @@ void CommonFooter::drawFooter(int16_t x, int16_t y, int16_t h, uint8_t elements)
         TextUtils::printTextAtWithMargin(currentX, footerY, buildTime);
         currentX += TextUtils::getTextWidth(String(buildTime)) + 5; // Move right with spacing
 
-        String version = "Version: " + String(VERSION);
+        String version = "Version: " + String(FIRMWARE_VERSION);
         TextUtils::printTextAtWithMargin(currentX, footerY, version);
         currentX += TextUtils::getTextWidth(String(version)) + 5; // Move right with spacing
 

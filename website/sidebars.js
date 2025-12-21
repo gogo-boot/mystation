@@ -56,6 +56,7 @@ const sidebars = {
             label: '⚙️ Core Systems',
             items: [
                 'developer-guide/display-system',
+                'developer-guide/ota-update',
             ],
         },
         {

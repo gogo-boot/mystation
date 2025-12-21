@@ -30,6 +30,12 @@ uint32_t TimingManager::calculateNextWeatherUpdate(uint32_t currentTimeSeconds) 
 
     uint32_t nextUpdate = (lastUpdate == 0) ? currentTimeSeconds : lastUpdate + intervalSeconds;
 
+    // If update is overdue (in the past), return current time for immediate update
+    if (nextUpdate < currentTimeSeconds) {
+        ESP_LOGI(TAG, "Weather update overdue - next update: NOW (was scheduled for: %u)", nextUpdate);
+        nextUpdate = currentTimeSeconds;
+    }
+
     ESP_LOGI(TAG, "Weather interval: %u hours (%u seconds), Next weather update: %u",
              config.weatherInterval, intervalSeconds, nextUpdate);
 
@@ -42,6 +48,12 @@ uint32_t TimingManager::calculateNextTransportUpdate(uint32_t currentTimeSeconds
     uint32_t intervalSeconds = config.transportInterval * 60; // minutes to seconds
 
     uint32_t nextUpdate = (lastUpdate == 0) ? currentTimeSeconds + intervalSeconds : lastUpdate + intervalSeconds;
+
+    // If update is overdue (in the past), return current time for immediate update
+    if (nextUpdate < currentTimeSeconds) {
+        ESP_LOGI(TAG, "Transport update overdue - next update: NOW (was scheduled for: %u)", nextUpdate);
+        nextUpdate = currentTimeSeconds;
+    }
 
     ESP_LOGI(TAG, "Departure interval: %u minutes (%u seconds), Next departure update: %u",
              config.transportInterval, intervalSeconds, nextUpdate);
@@ -269,29 +281,30 @@ uint64_t TimingManager::getNextSleepDurationSeconds() {
     // Step 1: Calculate next update times for each type
     // it returns 0 if that update type is not needed
     uint32_t nextOTACheck = calculateNextOTACheckTime(currentTimeSeconds);
-    uint32_t nextUpdate = 0;
+    uint32_t nextWeatherOrTransport = 0;
 
     switch (displayMode) {
     case DISPLAY_MODE_HALF_AND_HALF:
         ESP_LOGI(TAG, "Display mode: HALF AND HALF");
-        nextUpdate = min(calculateNextWeatherUpdate(currentTimeSeconds),
-                         calculateNextTransportUpdate(currentTimeSeconds));
-        if (!isTransportActiveAtTime(nextUpdate)) {
-            nextUpdate = calculateNextWeatherUpdate(currentTimeSeconds);
-            ESP_LOGI(TAG, "Next update is transport outside active hours - using weather update at %u", nextUpdate);
+        nextWeatherOrTransport = min(calculateNextWeatherUpdate(currentTimeSeconds),
+                                     calculateNextTransportUpdate(currentTimeSeconds));
+        if (!isTransportActiveAtTime(nextWeatherOrTransport)) {
+            nextWeatherOrTransport = calculateNextWeatherUpdate(currentTimeSeconds);
+            ESP_LOGI(TAG, "Next update is transport outside active hours - using weather update at %u",
+                     nextWeatherOrTransport);
         }
         break;
     case DISPLAY_MODE_WEATHER_ONLY:
         ESP_LOGI(TAG, "Display mode: WEATHER ONLY");
-        nextUpdate = calculateNextWeatherUpdate(currentTimeSeconds);
+        nextWeatherOrTransport = calculateNextWeatherUpdate(currentTimeSeconds);
         break;
     case DISPLAY_MODE_TRANSPORT_ONLY:
         ESP_LOGI(TAG, "Display mode: TRANSPORT ONLY");
-        nextUpdate = calculateNextTransportUpdate(currentTimeSeconds);
-        if (!isTransportActiveAtTime(nextUpdate)) {
-            nextUpdate = calculateNextActiveTransportTime(currentTimeSeconds);
+        nextWeatherOrTransport = calculateNextTransportUpdate(currentTimeSeconds);
+        if (!isTransportActiveAtTime(nextWeatherOrTransport)) {
+            nextWeatherOrTransport = calculateNextActiveTransportTime(currentTimeSeconds);
             ESP_LOGI(TAG, "Next transport update outside active hours - sleeping until active period at %u",
-                     nextUpdate);
+                     nextWeatherOrTransport);
         }
         break;
     default:
@@ -299,16 +312,41 @@ uint64_t TimingManager::getNextSleepDurationSeconds() {
         break;
     }
 
-    // Step 2: Compare with OTA check time and use the nearest update
-    bool isOTAUpdate = false;
-    if (nextOTACheck > 0 && (nextUpdate == 0 || nextOTACheck <= nextUpdate)) {
-        nextUpdate = nextOTACheck;
-        isOTAUpdate = true;
-        ESP_LOGI(TAG, "OTA check is the nearest update at: %u", nextOTACheck);
+    // Step 2: Adjust weather/transport update for sleep period (if not overdue)
+    bool isWeatherTransportOverdue = (nextWeatherOrTransport <= currentTimeSeconds);
+    if (!isWeatherTransportOverdue && nextWeatherOrTransport > 0) {
+        nextWeatherOrTransport = adjustForDeepSleepPeriod(nextWeatherOrTransport, false);
+    } else if (isWeatherTransportOverdue) {
+        ESP_LOGI(TAG, "Weather/Transport update is overdue - bypassing sleep period adjustment");
     }
 
-    // Step 3: Adjust for sleep period (OTA bypasses sleep)
-    nextUpdate = adjustForDeepSleepPeriod(nextUpdate, isOTAUpdate);
+    // Step 3: Handle OTA check separately (OTA always bypasses sleep)
+    uint32_t nextOTAWakeup = 0;
+    if (nextOTACheck > currentTimeSeconds) {
+        // OTA checks bypass sleep period restrictions
+        nextOTAWakeup = nextOTACheck;
+        ESP_LOGI(TAG, "OTA check scheduled at: %u (bypasses sleep period)", nextOTACheck);
+    }
+
+    // Step 4: Choose the earliest wake-up time between weather/transport and OTA
+    uint32_t nextUpdate = 0;
+    if (nextWeatherOrTransport > 0 && nextOTAWakeup > 0) {
+        if (nextOTAWakeup < nextWeatherOrTransport) {
+            nextUpdate = nextOTAWakeup;
+            ESP_LOGI(TAG, "Next wake-up: OTA check at %u (earlier than weather/transport at %u)",
+                     nextOTAWakeup, nextWeatherOrTransport);
+        } else {
+            nextUpdate = nextWeatherOrTransport;
+            ESP_LOGI(TAG, "Next wake-up: Weather/Transport at %u (earlier than OTA at %u)",
+                     nextWeatherOrTransport, nextOTAWakeup);
+        }
+    } else if (nextOTAWakeup > 0) {
+        nextUpdate = nextOTAWakeup;
+        ESP_LOGI(TAG, "Next wake-up: OTA check at %u (only scheduled event)", nextOTAWakeup);
+    } else if (nextWeatherOrTransport > 0) {
+        nextUpdate = nextWeatherOrTransport;
+        ESP_LOGI(TAG, "Next wake-up: Weather/Transport at %u (only scheduled event)", nextWeatherOrTransport);
+    }
 
     // Step 4: Calculate final sleep duration with minimum threshold
     uint64_t sleepDurationSeconds;

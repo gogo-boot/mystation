@@ -50,7 +50,7 @@ information.
 - [**Configuration Layers**](configuration-layers.md) - NVS storage, phases, data structures
 - [**Display System**](display-system.md) - E-paper rendering, modes, layouts
 - [**Power Management**](run-book.md) - Deep sleep, wake sources, battery (see Run Book)
-- [**OTA System**](run-book.md) - Firmware updates, scheduling, rollback (see Run Book)
+- [**OTA System**](ota-update.md) - Firmware updates, scheduling, rollback (see Run Book)
 
 ### 📡 Integration & APIs
 

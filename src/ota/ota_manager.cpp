@@ -54,7 +54,7 @@ namespace OTAManager {
     void checkAndApplyUpdate() {
         if (shouldCheckForUpdate()) {
             ESP_LOGI(TAG, "Starting OTA update check...");
-            check_update_task(nullptr);
+            check_ota_update();
 
             // Mark OTA check timestamp to prevent repeated checks
             time_t now;

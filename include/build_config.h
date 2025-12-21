@@ -66,7 +66,7 @@ enum class BoardType {
 #define BUILD_TIME 0
 #endif
 
-// Version (set via build flags from git tags)
-#ifndef VERSION
-#define VERSION "unknown"
+// FIRMWARE_VERSION (set via build flags from git tags)
+#ifndef FIRMWARE_VERSION
+#define FIRMWARE_VERSION "unknown"
 #endif
