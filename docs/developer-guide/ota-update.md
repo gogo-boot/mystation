@@ -113,3 +113,80 @@ Verify return code: 0 (ok)
     Verify return code: 0 (ok)
 
 ```
+
+## Partition Table
+
+The OTA update requires a partition table that supports OTA functionality. The partition table should define at least
+two app partitions for the firmware images and an OTA data partition to manage the OTA process.
+
+### Compile Log
+
+Current Application Size is around 1.4MB, so with 20% margin, the OTA partition size should be around 1.7MB.
+
+`Flash: [=====     ]  45.5% (used 1430241 bytes from 3145728 bytes)`
+
+### Partition Table
+
+There are pre-defined partition https://github.com/espressif/arduino-esp32/blob/master/tools/partitions/default.csv from
+ESP32. But, the application partition is too small for current application.
+
+## Partition Table Layout
+
+### partition/4MB-ota.csv
+
+It is used for ESP32 with 4MB flash size. very tight fit for current application size.
+
+```csv
+# Name,   Type, SubType, Offset,  Size, Flags
+nvs,      data, nvs,     0x9000,  0x5000,
+otadata,  data, ota,     0xe000,  0x2000,
+app0,     app,  ota_0,   0x10000, 0x180000,
+app1,     app,  ota_1,   0x190000,0x180000,
+spiffs,   data, spiffs,  0x310000,0x5000,
+coredump, data, coredump,0x315000,0xEB000,
+```
+
+Human-readable format:
+
+| Name     | Type | SubType  | Offset   | Size     | MiB  | Bytes     | Description                               |
+|----------|------|----------|----------|----------|------|-----------|-------------------------------------------|
+| nvs      | data | nvs      | 0x9000   | 0x5000   | 0.02 | 20,480    | Non-Volatile Storage (WiFi, config)       |
+| otadata  | data | ota      | 0xe000   | 0x2000   | 0.01 | 8,192     | OTA metadata (active partition tracking)  |
+| app0     | app  | ota_0    | 0x10000  | 0x180000 | 1.50 | 1,572,864 | Primary firmware slot (OTA partition 0)   |
+| app1     | app  | ota_1    | 0x190000 | 0x180000 | 1.50 | 1,572,864 | Secondary firmware slot (OTA partition 1) |
+| spiffs   | data | spiffs   | 0x310000 | 0x5000   | 0.02 | 20,480    | File system (web interface, certificates) |
+| coredump | data | coredump | 0x315000 | 0xEB000  | 0.92 | 962,560   | Core dump storage for crash debugging     |
+
+**Summary:**
+
+- **Total used**: 3.97 MiB (4,157,440 bytes)
+- **Current app size**: 1.36 MiB (1,430,241 bytes)
+- **Margin per OTA partition**: ~0.14 MiB (142,623 bytes) — **9% headroom**
+
+### partitions/default_16MB.csv
+
+ESP32S3 Plus has 16MB flash size. pre-defined partition is being used
+
+```csv
+# Name,   Type, SubType, Offset,  Size, Flags
+nvs,      data, nvs,     0x9000,  0x5000,
+otadata,  data, ota,     0xe000,  0x2000,
+app0,     app,  ota_0,   0x10000, 0x640000,
+app1,     app,  ota_1,   0x650000,0x640000,
+spiffs,   data, spiffs,  0xc90000,0x360000,
+coredump, data, coredump,0xFF0000,0x10000,
+```
+
+| Name     | Type | SubType  | Offset   | Size     | MiB  | Bytes     | Description                               |
+|----------|------|----------|----------|----------|------|-----------|-------------------------------------------|
+| nvs      | data | nvs      | 0x9000   | 0x5000   | 0.02 | 20,480    | Non-Volatile Storage (WiFi, config)       |
+| otadata  | data | ota      | 0xe000   | 0x2000   | 0.01 | 8,192     | OTA metadata (active partition tracking)  |
+| app0     | app  | ota_0    | 0x10000  | 0x640000 | 6.25 | 6,553,600 | Primary firmware slot (OTA partition 0)   |
+| app1     | app  | ota_1    | 0x650000 | 0x640000 | 6.25 | 6,553,600 | Secondary firmware slot (OTA partition 1) |
+| spiffs   | data | spiffs   | 0xc90000 | 0x360000 | 3.38 | 3,538,944 | File system (web interface, certificates) |
+| coredump | data | coredump | 0xFF0000 | 0x10000  | 0.06 | 65,536    | Core dump storage for crash debugging     |
+
+Summary:
+Total used: 15.97 MiB (16,740,352 bytes)
+Current app size: 1.36 MiB (1,430,241 bytes)
+Margin per OTA partition: ~4.89 MiB (5,123,359 bytes) — 78% headroom (very comfortable!)
