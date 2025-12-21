@@ -90,6 +90,12 @@ const config = {
                         label: 'Developer Guide',
                     },
                     {
+                        type: 'maintainerSidebar',
+                        sidebarId: 'maintainerSidebar',
+                        position: 'left',
+                        label: 'Maintainer Guide',
+                    },
+                    {
                         type: 'docSidebar',
                         sidebarId: 'referenceSidebar',
                         position: 'left',
