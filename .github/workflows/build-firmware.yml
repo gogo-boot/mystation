@@ -120,65 +120,12 @@ jobs:
                     cp artifacts/build_info.txt release/
                     cp artifacts/*.html release/
 
-                    # Create flashing instructions
-                    cat > release/FLASHING_INSTRUCTIONS.md << 'EOF'
-                    # MyStation E-Board Firmware Flashing Instructions
-
-                    ## Prerequisites
-                    - Install [Python](https://www.python.org/downloads/)
-                    - Install esptool: `pip install esptool`
-
-                    ## Method 1: Using esptool (Recommended)
-                    ```bash
-                    # Erase flash (optional but recommended)
-                    esptool.py --chip esp32c3 --port COM3 erase_flash
-
-                    # Flash firmware
-                    esptool.py --chip esp32c3 --port COM3 --baud 921600 write_flash \
-                      0x0000 bootloader.bin \
-                      0x8000 partitions.bin \
-                      0x10000 firmware.bin \
-                      0x290000 littlefs.bin
-                    ```
-
-                    ## Method 2: Using PlatformIO
-                    ```bash
-                    # Install PlatformIO
-                    pip install platformio
-
-                    # Flash firmware
-                    pio run -e esp32-c3-devkitc-02 --target upload
-
-                    # Flash filesystem
-                    pio run -e esp32-c3-devkitc-02 --target uploadfs
-                    ```
-
-                    ## Port Detection
-                    - **Windows**: Usually COM3, COM4, etc.
-                    - **Linux**: Usually /dev/ttyUSB0, /dev/ttyACM0
-                    - **macOS**: Usually /dev/cu.usbserial-* or /dev/cu.usbmodem-*
-
-                    ## Troubleshooting
-                    - Hold BOOT button while connecting USB to enter download mode
-                    - Try different baud rates: 115200, 460800, 921600
-                    - Check that CH340/CP2102 drivers are installed
-
-                    ## After Flashing
-                    1. Reset the device
-                    2. Connect to "MyStation-XXXX" WiFi network
-                    3. Open browser and go to http://192.168.4.1
-                    4. Configure your location and transport settings
-
-                    For detailed setup instructions, visit: https://yourusername.github.io/gogo-boot/
-                    EOF
-
                     # Create version info
                     cat > release/VERSION.txt << EOF
-                    MyStation E-Board Firmware
+                    MyStation Firmware
                     Version: ${{ github.ref_name }}
                     Build: ${{ github.sha }}
                     Date: $(date -u)
-                    Target: ESP32-C3
                     EOF
 
                     # Create ZIP package
@@ -197,40 +144,11 @@ jobs:
                         release/partitions.bin
                         release/build_info.txt
                         release/config_my_station.html
-                        release/FLASHING_INSTRUCTIONS.md
                         release/VERSION.txt
-                    name: MyStation E-Board ${{ github.ref_name }}
+                    name: MyStation ${{ github.ref_name }}
                     body: |
-                        # MyStation E-Board Firmware Release ${{ github.ref_name }}
-
-                        ## 🚀 What's New
-                        - ESP32-C3 optimized firmware
-                        - Web-based configuration interface
-                        - Real-time transport departures
-                        - Weather information display
-                        - Power-efficient deep sleep mode
-
-                        ## 📦 Files Included
-                        - `firmware.bin` - Main firmware binary
-                        - `littlefs.bin` - Filesystem with web interface
-                        - `mystation-firmware-${{ github.ref_name }}.zip` - Complete package
-                        - `FLASHING_INSTRUCTIONS.md` - Detailed flashing guide
-
-                        ## 🔧 Quick Flash Command
-                        ```bash
-                        esptool.py --chip esp32c3 --port COM3 --baud 921600 write_flash \
-                          0x0000 bootloader.bin \
-                          0x8000 partitions.bin \
-                          0x10000 firmware.bin \
-                          0x290000 littlefs.bin
-                        ```
-
-                        ## 📚 Documentation
-                        Full documentation available at: https://yourusername.github.io/gogo-boot/
-
-                        ## 🐛 Issues
-                        Report issues at: https://github.com/gogo-boot/mystation/issues
-                    draft: false
+                        # MyStation Firmware Release ${{ github.ref_name }}
+                    draft: true
                     prerelease: false
                 env:
                     GITHUB_TOKEN: ${{ secrets.ACTION_TOKEN }}
