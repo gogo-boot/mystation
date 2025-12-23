@@ -2,7 +2,7 @@
 #include "config/pins.h"
 #include <nvs_flash.h>
 
-bool FactoryReset::checkFactoryResetButton() {
+bool FactoryReset::checkResetButton() {
 #ifdef BOARD_ESP32_S3
     // Check if button is currently pressed
     if (digitalRead(Pins::BUTTON_FACTORY_RESET) == LOW) {
@@ -48,7 +48,7 @@ bool FactoryReset::checkFactoryResetButton() {
 }
 
 
-void FactoryReset::performFactoryReset() {
+void FactoryReset::performReset() {
     Serial.println("\n🔥 ================================");
     Serial.println("🔥 FACTORY RESET INITIATED!");
     Serial.println("🔥 ================================\n");

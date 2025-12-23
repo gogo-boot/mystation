@@ -20,9 +20,16 @@ namespace SystemInit {
     }
 
     void factoryResetIfDesired() {
-        if (FactoryReset::checkFactoryResetButton()) {
+        if (FactoryReset::checkResetButton()) {
             nvs_flash_init();
-            FactoryReset::performFactoryReset();
+            FactoryReset::performReset();
+        }
+    }
+
+    void applicationResetIfDesired() {
+        if (FactoryReset::checkResetButton()) {
+            nvs_flash_init();
+            FactoryReset::performReset();
         }
     }
 
