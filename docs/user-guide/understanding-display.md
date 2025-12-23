@@ -13,25 +13,11 @@ MyStation offers three display modes, each optimized for different needs:
 ## Display Mode 1: Half & Half (Default)
 
 ```
-┌───────────────────────────────────────┐
-│ Header Bar                            │
-│ Station Name          Last Update     │
-├───────────────────────────────────────┤
-│ WEATHER SECTION (Top Half)            │
-│  ┌─────────────────┐                  │
-│  │ Current Weather │ Temperature Graph│
-│  │ Icon: ☀️         │  24hr forecast   │
-│  │ 22°C (feels 24°)│                  │
-│  └─────────────────┘                  │
-├───────────────────────────────────────┤
-│ DEPARTURE SECTION (Bottom Half)       │
-│  🚂 RE 5  Frankfurt    Gl.3   now     │
-│  🚊 S6    Friedberg    Gl.4   2 min   │
-│  🚌 41    Bahnhof      C     5 min    │
-│  🚂 RE 30 Königstein   Gl.2   +3 min  │
-├───────────────────────────────────────┤
-│ Footer: Battery 85% | WiFi: Connected │
-└───────────────────────────────────────┘
+┌─────────────────────────────┐
+│ Weather Info │ Departures   │
+│ Temp, Icon,  │ Next trains  │
+│ Forecast     │ buses, etc.  │
+└──────────────┴──────────────┘
 ```
 
 ### Information Displayed
@@ -42,7 +28,7 @@ MyStation offers three display modes, each optimized for different needs:
 - "Feels like" temperature
 - Weather icon
 - Weather description
-- 24-hour temperature forecast graph
+- 12-hour temperature forecast graph
 
 **Bottom Section (Departures)**:
 
@@ -61,34 +47,14 @@ MyStation offers three display modes, each optimized for different needs:
 ## Display Mode 2: Weather Only
 
 ```
-┌───────────────────────────────────────┐
-│ Header Bar                            │
-│ Location Name         Last Update     │
-├───────────────────────────────────────┤
-│                                       │
-│          Current Conditions           │
-│                                       │
-│              ☀️                       │
-│           Sunny                       │
-│                                       │
-│          22°C                         │
-│      (Feels like 24°C)                │
-│                                       │
-├───────────────────────────────────────┤
-│     24-Hour Temperature Forecast      │
-│   Temp                                │
-│    25°├─╮                             │
-│    20°│  ╰─╮                          │
-│    15°│     ╰──╮                      │
-│    10°│        ╰────                  │
-│      └────────────────────────────    │
-│       Now 6h 12h 18h 24h              │
-├───────────────────────────────────────┤
-│  Additional Information               │
-│  🌅 Sunrise: 06:30  🌇 Sunset: 20:15  │
-│  💧 Humidity: 65%   🌬️ Wind: 12 km/h │
-│  ☔ Rain: 0%        ☁️ Clouds: 20%   │
-└───────────────────────────────────────┘
+┌─────────────────────────────┐
+│                             │
+│   Large Weather Display     │
+│   Temperature Graph         │
+│   Detailed Forecast         │
+│   Wind, Humidity, etc.      │
+│                             │
+└─────────────────────────────┘
 ```
 
 ### Information Displayed
@@ -99,7 +65,7 @@ MyStation offers three display modes, each optimized for different needs:
 - Weather description
 - Current temperature
 - "Feels like" temperature
-- Temperature graph (24-hour forecast)
+- Temperature graph (12-hour forecast)
 
 **Additional Details**:
 
@@ -118,32 +84,14 @@ MyStation offers three display modes, each optimized for different needs:
 ## Display Mode 3: Departures Only
 
 ```
-┌───────────────────────────────────────┐
-│ Header Bar                            │
-│ Frankfurt Hauptbahnhof Last Update    │
-├───────────────────────────────────────┤
-│                                       │
-│  🚂 RE 5      Frankfurt Süd    Gl.3   │
-│               → via Offenbach         │
-│               Departing: now          │
-│                                       │
-│  🚊 S6        Friedberg        Gl.4   │
-│               → via Bad Vilbel        │
-│               Departing: in 2 min     │
-│                                       │
-│  🚌 41        Bahnhof Nord      C     │
-│               → via Zentrum           │
-│               Departing: in 5 min     │
-│                                       │
-│  🚂 RE 30     Königstein       Gl.2   │
-│               → via Höchst            │
-│               Delayed: +3 min         │
-│                                       │
-│  🚊 S1        Wiesbaden        Gl.5   │
-│               → via Mainz             │
-│               Departing: in 12 min    │
-│                                       │
-└───────────────────────────────────────┘
+┌─────────────────────────────┐
+│                             │
+│   Departure List            │
+│   More departures visible   │
+│   Detailed timing info      │
+│   Platform numbers          │
+│                             │
+└─────────────────────────────┘
 ```
 
 ### Information Displayed
@@ -213,9 +161,9 @@ MyStation uses intuitive weather icons:
 
 ### Temperature Graph
 
-**24-Hour Forecast**:
+**12-Hour Forecast**:
 
-- X-axis: Time (now, +6h, +12h, +18h, +24h)
+- X-axis: Time (now, +3h, +6h, +9h, +12h)
 - Y-axis: Temperature in °C
 - Line shows temperature trend
 - Helps plan for temperature changes
@@ -348,7 +296,7 @@ MyStation uses intuitive weather icons:
 **Normal Behavior**:
 
 - ✅ Display "flickers" during refresh (black/white flash)
-- ✅ Takes 30-45 seconds to fully update
+- ✅ Takes 3-4 seconds to fully update
 - ✅ Image persists without power
 - ✅ Slight "ghosting" from previous image
 
@@ -361,120 +309,5 @@ MyStation uses intuitive weather icons:
 
 See [Troubleshooting](troubleshooting.md#display-issues) if you experience issues.
 
-## Customizing the Display
-
-### Change Display Mode
-
-**Via Web Interface**:
-
-1. Access `http://mystation.local`
-2. Navigate to Display Settings
-3. Select mode:
-    - Half & Half
-    - Weather Only
-    - Departures Only
-4. Click "Save Settings"
-5. Device will use new mode on next update
-
-**Via Buttons** (ESP32-S3 only):
-
-- Button 1: Half & Half (temporary)
-- Button 2: Weather Only (temporary)
-- Button 3: Departures Only (temporary)
-
-See [Button Controls](button-controls.md) for details.
-
-### Update Interval
-
-**Options**: 1-60 minutes
-
-**Recommendations**:
-
-- **1-3 minutes**: Very current data, short battery life
-- **5 minutes** (default): Good balance
-- **10-15 minutes**: Less frequent updates, longer battery life
-- **30-60 minutes**: Maximum battery life
-
-**Configure**:
-
-1. Access web interface
-2. Go to Settings
-3. Set "Update Interval"
-4. Save
-
-### Sleep Schedule
-
-**Purpose**: Save battery during quiet hours
-
-**Example**:
-
-- Sleep: 23:00 - 06:00
-- No updates overnight
-- Automatically resumes in morning
-
-**Configure**:
-
-1. Access web interface
-2. Enable "Sleep Schedule"
-3. Set start and end times
-4. Save
-
-## Tips for Best Experience
-
-### Optimal Viewing
-
-✅ **Good conditions**:
-
-- Indoor lighting
-- Outdoor shade
-- Indirect sunlight
-
-❌ **Difficult conditions**:
-
-- Direct bright sunlight (can wash out display)
-- Complete darkness (no backlight)
-- Extreme angles
-
-### Interpreting Data
-
-**Weather**:
-
-- Check update time - weather changes
-- "Feels like" more relevant than actual temp
-- Graph shows trends, not exact values
-- DWD data specific to Germany
-
-**Departures**:
-
-- Real-time data can have delays
-- Early morning/late night may show no departures
-- Delays shown are estimates
-- Platform changes possible
-
-### Battery Life Optimization
-
-To maximize battery life while keeping useful information:
-
-1. **Set reasonable update interval**
-    - 10 minutes: Still very current
-    - 15 minutes: Good for most uses
-    - 5 minutes only if you need real-time data
-
-2. **Use sleep schedule**
-    - No updates overnight saves 30-40% battery
-    - Most people don't need updates while sleeping
-
-3. **Choose efficient display mode**
-    - Weather Only: Fewer API calls
-    - Half & Half: Balanced
-    - Departures Only: More API calls (depends on config)
-
-4. **Strong WiFi signal**
-    - Place device near router (but still visible)
-    - Weak signal uses more power
 
 ---
-
-**Remember**: The e-paper display retains its image even when powered off. This is normal e-paper behavior and helps
-save battery!
-

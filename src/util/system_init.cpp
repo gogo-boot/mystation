@@ -8,6 +8,7 @@
 #include "build_config.h"
 #include "display/display_manager.h"
 #include "global_instances.h"
+#include "util/application_reset.h"
 
 static const char* TAG = "SYSTEM_INIT";
 
@@ -20,9 +21,16 @@ namespace SystemInit {
     }
 
     void factoryResetIfDesired() {
-        if (FactoryReset::checkFactoryResetButton()) {
+        if (FactoryReset::checkResetButton()) {
             nvs_flash_init();
-            FactoryReset::performFactoryReset();
+            FactoryReset::performReset();
+        }
+    }
+
+    void applicationResetIfDesired() {
+        if (AppicationReset::checkResetButton()) {
+            nvs_flash_init();
+            AppicationReset::performReset();
         }
     }
 

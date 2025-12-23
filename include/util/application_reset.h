@@ -2,10 +2,10 @@
 #include <Arduino.h>
 
 // Hold duration in milliseconds to trigger factory reset
-const unsigned long FACTORY_RESET_HOLD_DURATION_MS = 3000;
+const unsigned long APPLICATION_RESET_HOLD_DURATION_MS = 3000;
 
 
-class FactoryReset {
+class AppicationReset {
 public:
     static boolean checkResetButton();
 
