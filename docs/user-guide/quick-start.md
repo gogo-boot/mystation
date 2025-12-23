@@ -108,15 +108,3 @@ Hold button 1 longer than 5 seconds. It will start over the configuration proces
 - ✅ Ensure you're in an area covered by RMV (German public transport)
 
 For more help, see the [Troubleshooting Guide](troubleshooting.md).
-
-## What is MyStation?
-
-MyStation is a battery-powered e-paper display that shows real-time public transport departures and weather information
-for your location. It's designed to be:
-
-- 🚌 **Always Up-to-Date** - Displays real-time German public transport (RMV) departures
-- 🌤️ **Weather-Aware** - Shows current weather and forecasts from German Weather Service (DWD)
-- 🔋 **Ultra Low Power** - Runs for 2-14 days on a single battery charge with intelligent sleep modes
-- 📱 **Easy to Configure** - Simple web interface for setup and customization
-- 🔒 **Privacy-Focused** - All data processing happens locally on your device
-- 📡 **WiFi Connected** - Automatic updates over 2.4 GHz WiFi networks

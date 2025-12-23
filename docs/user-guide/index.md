@@ -28,7 +28,7 @@ for your location. It's designed to be:
 - Current weather conditions
 - Temperature and "feels like" temperature
 - Weather icons and descriptions
-- 24-hour forecast graphs
+- 12-hour forecast graphs
 
 ### Smart Power Management
 
