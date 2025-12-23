@@ -42,8 +42,8 @@ namespace BootFlowManager {
         MyWiFiManager::reconnectWiFi();
 
         if (MyWiFiManager::isConnected() && MyWiFiManager::hasInternetAccess()) {
-            DeviceModeManager::showPhaseInstructions(PHASE_APP_SETUP);
             DeviceModeManager::runConfigurationMode();
+            DeviceModeManager::showPhaseInstructions(PHASE_APP_SETUP);
         } else {
             // WiFi/Internet connection failed - revert to Phase 1
             ESP_LOGE(TAG, "WiFi validation failed - reverting to Phase 1");

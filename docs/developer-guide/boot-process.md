@@ -30,6 +30,7 @@ which is serving the configuration http web portal.
     - Initialize Serial Communication if needed
     - Print Wake-up Diagnostics
     - Check If factory Reset is desired
+    - Check If application Reset is desired
     - Initialize Display
     - Initialize Font
     - Initialize Battery Monitoring if the board supports
