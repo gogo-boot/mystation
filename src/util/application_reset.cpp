@@ -2,6 +2,8 @@
 #include "config/pins.h"
 #include <nvs_flash.h>
 
+#include "config/config_manager.h"
+
 bool AppicationReset::checkResetButton() {
 #ifdef BOARD_ESP32_S3
     // Check if button is currently pressed
@@ -53,8 +55,17 @@ void AppicationReset::performReset() {
     Serial.println("🔥 APPLICATION RESET INITIATED!");
     Serial.println("🔥 ================================\n");
 
-    Serial.println("🗑️  Erasing Application configuration...");
-    // Todo : remove weather location and transport preference
+    // Get ConfigManager instance
+    ConfigManager& configMgr = ConfigManager::getInstance();
+
+    RTCConfigData& config = ConfigManager::getConfig();
+
+    config.latitude = 0.0;
+    config.longitude = 0.0;
+    // Reset transport data
+    memset(config.selectedStopId, 0, sizeof(config.selectedStopId));
+
+    configMgr.saveToNVS();
 
     Serial.println("\n✨ Application reset complete!");
     Serial.println("   Counter will start from 0 again.");
