@@ -51,6 +51,7 @@ void ActivityManager::onInit() {
     DEBUG_ONLY(SystemInit::initSerialConnector(););
     printWakeupReason();
     SystemInit::factoryResetIfDesired();
+    SystemInit::applicationResetIfDesired();
     SystemInit::initDisplay();
     SystemInit::initFont();
     BatteryManager::init();;
