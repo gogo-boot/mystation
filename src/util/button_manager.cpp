@@ -73,6 +73,7 @@ int8_t ButtonManager::getWakeupButtonMode() {
 
     // Get which GPIO caused the wakeup
     uint64_t wakeup_pin_mask = esp_sleep_get_ext1_wakeup_status();
+    ESP_LOGI(TAG, "EXT1 wakeup from button: 0x%llx", wakeup_pin_mask);
 
     if (wakeup_pin_mask == 0) {
         ESP_LOGW(TAG, "EXT1 wakeup but no pin detected");
@@ -83,10 +84,12 @@ int8_t ButtonManager::getWakeupButtonMode() {
     if (wakeup_pin_mask & (1ULL << Pins::BUTTON_HALF_AND_HALF)) {
         ESP_LOGI(TAG, "Woken by BUTTON_HALF_AND_HALF (GPIO %d)", Pins::BUTTON_HALF_AND_HALF);
         return DISPLAY_MODE_HALF_AND_HALF;
-    } else if (wakeup_pin_mask & (1ULL << Pins::BUTTON_WEATHER_ONLY)) {
+    }
+    if (wakeup_pin_mask & (1ULL << Pins::BUTTON_WEATHER_ONLY)) {
         ESP_LOGI(TAG, "Woken by BUTTON_WEATHER_ONLY (GPIO %d)", Pins::BUTTON_WEATHER_ONLY);
         return DISPLAY_MODE_WEATHER_ONLY;
-    } else if (wakeup_pin_mask & (1ULL << Pins::BUTTON_DEPARTURE_ONLY)) {
+    }
+    if (wakeup_pin_mask & (1ULL << Pins::BUTTON_DEPARTURE_ONLY)) {
         ESP_LOGI(TAG, "Woken by BUTTON_DEPARTURE_ONLY (GPIO %d)", Pins::BUTTON_DEPARTURE_ONLY);
         return DISPLAY_MODE_TRANSPORT_ONLY;
     }
