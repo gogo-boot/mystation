@@ -74,6 +74,9 @@ namespace Pins {
     constexpr int BUTTON_HALF_AND_HALF = GPIO_BUTTON_1; // Weather + Departures mode
     constexpr int BUTTON_WEATHER_ONLY = GPIO_BUTTON_2; // Weather only mode
     constexpr int BUTTON_DEPARTURE_ONLY = GPIO_BUTTON_3; // Departures only mode
+
     constexpr int BUTTON_FACTORY_RESET = GPIO_BUTTON_1; // Long-press (5s) triggers factory reset
+    constexpr int BUTTON_APPLICATION_RESET = GPIO_BUTTON_2;
+    constexpr int BUTTON_APPLICATION_INFO = GPIO_BUTTON_3;
 #endif
 } // namespace Pins

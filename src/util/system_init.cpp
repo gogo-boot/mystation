@@ -8,7 +8,9 @@
 #include "build_config.h"
 #include "display/display_manager.h"
 #include "global_instances.h"
+#include "config/pins.h"
 #include "util/application_reset.h"
+#include "system/application_info.h"
 
 static const char* TAG = "SYSTEM_INIT";
 
@@ -33,6 +35,14 @@ namespace SystemInit {
             AppicationReset::performReset();
         }
     }
+
+
+    void showApplicationInfo() {
+        if (AppicationInfo::checkButtonHold(Pins::BUTTON_APPLICATION_INFO)) {
+            AppicationInfo::showApplicationInfo();
+        }
+    }
+
 
     void initDisplay() {
         // Info : initial Parameter can be used to preserve screen content for partial updates
