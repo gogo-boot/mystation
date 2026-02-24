@@ -55,12 +55,14 @@ void ActivityManager::onInit() {
     SystemInit::initDisplay();
     SystemInit::initFont();
     BatteryManager::init();;
+#if SHOW_BATTERY_STATUS
     if (BatteryManager::getBatteryVoltage() <= BATTERY_VOLTAGE_MIN) {
         DisplayManager::displayErrorIfBatteryLow();
         // Shutdown immediately if battery is low
         setNextActivityLifecycle(Lifecycle::ON_SHUTDOWN);
         return;
     }
+#endif
     SystemInit::loadNvsConfig();
 
     DEBUG_ONLY(ConfigManager::printConfiguration(false);)
