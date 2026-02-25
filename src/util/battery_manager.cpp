@@ -11,6 +11,7 @@ static const char* TAG = "BATTERY_MGR";
 
 
 void BatteryManager::init() {
+#if SHOW_BATTERY_STATUS
     if (SHOW_BATTERY_STATUS) {
         ESP_LOGI(TAG, "Initializing battery manager for TRMNL OG DIY Kit (ESP32-S3)");
 
@@ -26,16 +27,20 @@ void BatteryManager::init() {
     } else {
         ESP_LOGW(TAG, "Battery monitoring not available on this board");
     }
+#endif
 }
 
 bool BatteryManager::isAvailable() {
+#if SHOW_BATTERY_STATUS
     if (SHOW_BATTERY_STATUS) {
         return batteryInitialized;
     }
+#endif
     return false;
 }
 
 float BatteryManager::getBatteryVoltage() {
+#if SHOW_BATTERY_STATUS
     if (SHOW_BATTERY_STATUS) {
         if (!batteryInitialized) {
             ESP_LOGW(TAG, "Battery manager not initialized");
@@ -65,6 +70,7 @@ float BatteryManager::getBatteryVoltage() {
 
         return voltage;
     }
+#endif
     return -1.0f;
 }
 
