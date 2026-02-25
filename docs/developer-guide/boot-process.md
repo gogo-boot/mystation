@@ -31,6 +31,7 @@ which is serving the configuration http web portal.
     - Print Wake-up Diagnostics
     - Check If factory Reset is desired
     - Check If application Reset is desired
+    - Check If displaying application info desired
     - Initialize Display
     - Initialize Font
     - Initialize Battery Monitoring if the board supports

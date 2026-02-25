@@ -7,18 +7,17 @@ change the display mode for 2 minutes by pressing buttons, even when the device 
 
 ### Available Buttons
 
-| Button                          | Function                       | Display Mode                      |
-|---------------------------------|--------------------------------|-----------------------------------|
-| Button 1                        | Half & Half Temporary Mode     | Weather + Departures split screen |
-| Button 1 Long press (5 seconds) | Reset Configuration            | Application Configuration screen  |
-| Button 2                        | Weather Only Temporary Mode    | Full screen weather display       |
-| Button 3                        | Departures Only Temporary Mode | Full screen departure display     |
+| Button                                | Function                       | Display Mode                      |
+|---------------------------------------|--------------------------------|-----------------------------------|
+| Button 1                              | Half & Half Temporary Mode     | Weather + Departures split screen |
+| Button 1 Long press (5 seconds)       | Reset Configuration            | Application Configuration screen  |
+| Button 1 and 2 Long press (5 seconds) | Factory Reset                  | Initiate factory reset            |
+| Button 1 and 3 Long press (5 seconds) | Display Device Info            | Display Device Info               |
+| Button 2                              | Weather Only Temporary Mode    | Full screen weather display       |
+| Button 3                              | Departures Only Temporary Mode | Full screen departure display     |
 
 **Application Configuration screen** allows you to reconfigure your weather location and departure stations
-
-### Factory Reset
-
-Button 1 and Button 2 Long press (5 seconds) : Initiate factory reset
+**Display Info** display firmware version, current configuration, Device Unique ID, Microcontroler type
 
 ### Temporary Mode
 
