@@ -11,14 +11,14 @@ on:
         branches: [ main ]
 
 env:
-    PLATFORMIO_CORE_VERSION: "6.1.18"
+    PLATFORMIO_CORE_VERSION: "6.1.19"
 
 jobs:
     build:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                environment: [ esp32-s3-production ]
+                environment: [ esp32-s3-e1001-production ]
 
         steps:
             -   name: Checkout code

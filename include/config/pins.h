@@ -31,7 +31,26 @@ namespace Pins {
     constexpr gpio_num_t GPIO_BUTTON_2 = GPIO_NUM_1; // Available for button 2
     constexpr gpio_num_t GPIO_BUTTON_3 = GPIO_NUM_5; // Available for button 3
 
-#elif defined(BOARD_ESP32_S3)
+#elif defined(PCB_E1001)
+    // --- E-Paper Display Hardware Pins ---
+    constexpr gpio_num_t GPIO_EPD_BUSY = GPIO_NUM_13;
+    constexpr gpio_num_t GPIO_EPD_CS = GPIO_NUM_10;
+    constexpr gpio_num_t GPIO_EPD_SCK = GPIO_NUM_7;
+    constexpr gpio_num_t GPIO_EPD_SDI = GPIO_NUM_9;
+    constexpr gpio_num_t GPIO_EPD_RES = GPIO_NUM_12;
+    constexpr gpio_num_t GPIO_EPD_DC = GPIO_NUM_11;
+
+    // --- Battery Management Hardware Pins ---
+    // Reference: https://wiki.seeedstudio.com/ogdiy_kit_works_with_arduino/
+    constexpr gpio_num_t GPIO_BATTERY_ADC = GPIO_NUM_1; // Voltage sense (2:1 divider)
+    constexpr gpio_num_t GPIO_BATTERY_ADC_EN = GPIO_NUM_21; // ADC power control
+
+    // --- Button Hardware Pins ---
+    constexpr gpio_num_t GPIO_BUTTON_1 = GPIO_NUM_3; // Multi-function button
+    constexpr gpio_num_t GPIO_BUTTON_2 = GPIO_NUM_4;
+    constexpr gpio_num_t GPIO_BUTTON_3 = GPIO_NUM_5;
+
+#elif defined(PCB_EE04)
     // --- E-Paper Display Hardware Pins ---
     constexpr gpio_num_t GPIO_EPD_BUSY = GPIO_NUM_4;
     constexpr gpio_num_t GPIO_EPD_CS = GPIO_NUM_44;
@@ -84,7 +103,7 @@ namespace Pins {
     constexpr int EPD_RES = GPIO_EPD_RES;
     constexpr int EPD_DC = GPIO_EPD_DC;
 
-#ifdef BOARD_ESP32_S3
+#if defined(PCB_E1001) || defined(PCB_EE04)
     // --- Battery Management Functional Names ---
     constexpr int BATTERY_ADC = GPIO_BATTERY_ADC;
     constexpr int ADC_EN = GPIO_BATTERY_ADC_EN;
