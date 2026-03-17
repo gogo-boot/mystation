@@ -1,6 +1,7 @@
 #include "util/time_manager.h"
 #include "util/sleep_utils.h"
 #include "util/button_manager.h"
+#include "build_config.h"
 #include <WiFi.h>
 #include <esp_sleep.h>
 #include <time.h>
@@ -50,11 +51,10 @@ void enterDeepSleep(uint64_t sleepTimeSeconds) {
     // Configure timer wakeup
     esp_sleep_enable_timer_wakeup(sleepTimeSeconds * 1000000ULL); // Convert seconds to microseconds
 
-#ifdef BOARD_ESP32_S3
-    // Enable button wakeup (EXT1)
-    ButtonManager::enableButtonWakeup();
-#endif
-
+    if (HAS_BUTTON) {
+        // Enable button wakeup (EXT1)
+        ButtonManager::enableButtonWakeup();
+    }
     // Enter deep sleep
     esp_deep_sleep_start();
 }
