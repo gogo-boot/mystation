@@ -5,6 +5,7 @@
 #include "config/config_manager.h"
 #include <esp_log.h>
 #include <nvs_flash.h>
+#include <time.h>
 
 #include "display/display_manager.h"
 #include "global_instances.h"
@@ -14,6 +15,8 @@ static const char* TAG = "SYSTEM_INIT";
 // How long a button must be held to trigger any long-press action (ms)
 static constexpr unsigned long BUTTON_HOLD_DURATION_MS = 3000;
 
+// Flag: true if a long press was handled this boot — used to skip short-press wakeup handling
+static bool longPressHandled = false;
 
 namespace SystemInit {
     void initSerialConnector() {
@@ -22,7 +25,11 @@ namespace SystemInit {
         delay(1000);
     }
 
-    void handleButtonActions() {
+    bool wasLongPressHandled() {
+        return longPressHandled;
+    }
+
+    void handleButtonLongPressActions() {
         uint8_t held = ButtonMonitor::detectLongPress(BUTTON_HOLD_DURATION_MS);
 
         if (held == BUTTON_1_AND_2) {
@@ -36,12 +43,20 @@ namespace SystemInit {
             nvs_flash_init();
             AppicationReset::performReset();
         } else if (held == BUTTON_2_HELD) {
-            // Button 2 only → Application Info display mode
+            // Button 2 only → Application Info temporary display mode
+            // NOTE: Do NOT overwrite config.displayMode — that is the user's persistent
+            // configured mode. Only set the temporary overlay so that after 2 minutes
+            // the device correctly returns to the configured mode.
             Serial.println("ℹ️  Application info mode triggered by Button 2");
             RTCConfigData& config = ConfigManager::getConfig();
-            config.displayMode = DISPLAY_MODE_APPLICATION_INFO;
+            time_t now;
+            time(&now);
             config.inTemporaryMode = true;
             config.temporaryDisplayMode = DISPLAY_MODE_APPLICATION_INFO;
+            config.temporaryModeActivationTime = (uint32_t)now;
+            longPressHandled = true;
+            ESP_LOGI(TAG, "Temporary APPLICATION_INFO mode set, activation time: %u",
+                     config.temporaryModeActivationTime);
         } else if (held == BUTTON_3_HELD) {
             // Button 3 only → Reserved for future use
             Serial.println("🔵 Button 3 long press detected (reserved)");
