@@ -365,7 +365,7 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
         u8g2.setFont(u8g2_font_helvB18_tf);
         int16_t y = 38;
         u8g2.setCursor(margin, y);
-        u8g2.print("MyStation  –  Device Info");
+        u8g2.print("MyStation – Device Info");
         display.drawFastHLine(margin, y + 6, screenWidth - 2 * margin, GxEPD_BLACK);
 
         // ── LEFT COLUMN ────────────────────────────────────────────────────
@@ -439,7 +439,26 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
         u8g2.printf("Stop    : %s", cfg.selectedStopName);
         y += lhSmall;
         u8g2.setCursor(margin, y);
-        u8g2.printf("Active  : %s – %s", cfg.transportActiveStart, cfg.transportActiveEnd);
+        u8g2.printf("Active  : %s - %s", cfg.transportActiveStart, cfg.transportActiveEnd);
+        y += lhSmall;
+        u8g2.setCursor(margin, y);
+        // Build active vehicle filter string from bitmask
+        {
+            char filters[64] = "";
+            if (cfg.filterFlags & FILTER_R) strncat(filters, "R ", sizeof(filters) - strlen(filters) - 1);
+            if (cfg.filterFlags & FILTER_S) strncat(filters, "S ", sizeof(filters) - strlen(filters) - 1);
+            if (cfg.filterFlags & FILTER_U) strncat(filters, "U ", sizeof(filters) - strlen(filters) - 1);
+            if (cfg.filterFlags & FILTER_TRAM) strncat(filters, "Tram ", sizeof(filters) - strlen(filters) - 1);
+            if (cfg.filterFlags & FILTER_BUS) strncat(filters, "Bus ", sizeof(filters) - strlen(filters) - 1);
+            if (cfg.filterFlags & FILTER_HIGHFLOOR) strncat(filters, "HFloor ", sizeof(filters) - strlen(filters) - 1);
+            if (cfg.filterFlags & FILTER_FERRY) strncat(filters, "Ferry ", sizeof(filters) - strlen(filters) - 1);
+            if (cfg.filterFlags & FILTER_CALLBUS) strncat(filters, "CallBus ", sizeof(filters) - strlen(filters) - 1);
+            if (strlen(filters) == 0) strncpy(filters, "None", sizeof(filters) - 1);
+            // Trim trailing space
+            int flen = strlen(filters);
+            if (flen > 0 && filters[flen - 1] == ' ') filters[flen - 1] = '\0';
+            u8g2.printf("Filters : %s", filters);
+        }
 
         // ── RIGHT COLUMN ───────────────────────────────────────────────────
         int16_t ry = 38 + lhBig + 8; // Reset to same start as left col
@@ -464,12 +483,6 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
             u8g2.printf("Level   : %d%%", batteryPercent);
             ry += lhSmall;
             u8g2.setCursor(col2, ry);
-            // Simple ASCII bar  ▓▓▓▓▓░░░░░  (10 chars)
-            char bar[12];
-            int filled = batteryPercent / 10;
-            for (int i = 0; i < 10; i++) bar[i] = (i < filled) ? '#' : '-';
-            bar[10] = '\0';
-            u8g2.printf("[%s]", bar);
         } else {
             u8g2.print("Not available");
         }
@@ -510,10 +523,16 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
         u8g2.setFont(u8g2_font_helvB10_tf);
         ry += lhSmall;
         u8g2.setCursor(col2, ry);
-        u8g2.printf("Window  : %s – %s", cfg.sleepStart, cfg.sleepEnd);
+        u8g2.printf("Window  : %s - %s", cfg.sleepStart, cfg.sleepEnd);
         ry += lhSmall;
         u8g2.setCursor(col2, ry);
         u8g2.printf("Weekend : %s", cfg.weekendMode ? "Enabled" : "Disabled");
+        ry += lhSmall;
+        u8g2.setCursor(col2, ry);
+        u8g2.printf("WE Sleep: %s - %s", cfg.weekendSleepStart, cfg.weekendSleepEnd);
+        ry += lhSmall;
+        u8g2.setCursor(col2, ry);
+        u8g2.printf("WE Trans: %s - %s", cfg.weekendTransportStart, cfg.weekendTransportEnd);
 
         // OTA ─────────────────────────────────────────────────────────────
         u8g2.setFont(u8g2_font_helvB12_tf);
@@ -540,7 +559,7 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
             struct tm* t = localtime(&now);
             char buf[32];
             strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", t);
-            u8g2.printf("Generated: %s   |   http://%s", buf, cfg.ipAddress);
+            u8g2.printf("Generated: %s");
         }
     } while (display.nextPage());
 
