@@ -134,7 +134,7 @@ void DeviceModeManager::updateDepartureFull() {
     if (getDepartureFromRMV(stopIdToUse.c_str(), depart)) {
         printTransportInfo(depart);
         TimingManager::markTransportUpdated();
-         // Always display, even if empty
+        // Always display, even if empty
         if (depart.departureCount == 0) {
             ESP_LOGI(TAG, "No departures scheduled at this time");
         }
@@ -246,6 +246,11 @@ ConfigPhase DeviceModeManager::getCurrentPhase() {
         && config.latitude != 0.0
         && config.longitude != 0.0) {
         ESP_LOGI(TAG, "Configuration Phase: 3 (Complete - Half-and-Half Mode)");
+        return PHASE_COMPLETE;
+    }
+
+    if (config.displayMode == DISPLAY_MODE_APPLICATION_INFO) {
+        ESP_LOGI(TAG, "Configuration Phase: 3 (Complete - Application Info Mode)");
         return PHASE_COMPLETE;
     }
 

@@ -10,7 +10,7 @@ static const char* TAG = "BATTERY_MGR";
 void BatteryManager::init() {
 #if SHOW_BATTERY_STATUS
     if (SHOW_BATTERY_STATUS) {
-        ESP_LOGI(TAG, "Initializing battery manager for TRMNL OG DIY Kit (ESP32-S3)");
+        ESP_LOGI(TAG, "Initializing battery manager");
 
         // Configure ADC enable pin (power control for battery ADC circuit)
         pinMode(Pins::ADC_EN, OUTPUT);

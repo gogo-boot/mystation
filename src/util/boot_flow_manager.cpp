@@ -89,6 +89,11 @@ namespace BootFlowManager {
             DeviceModeManager::updateDepartureFull();
             break;
 
+        case DISPLAY_MODE_APPLICATION_INFO:
+            ESP_LOGI(TAG, "Starting Application Info mode");
+            DeviceModeManager::updateDepartureFull();
+            break;
+
         default:
             ESP_LOGW(TAG, "Unknown display mode %d, defaulting to half-and-half", displayMode);
             DeviceModeManager::showWeatherDeparture();

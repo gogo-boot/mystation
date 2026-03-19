@@ -40,6 +40,8 @@ namespace SystemInit {
             Serial.println("ℹ️  Application info mode triggered by Button 2");
             RTCConfigData& config = ConfigManager::getConfig();
             config.displayMode = DISPLAY_MODE_APPLICATION_INFO;
+            config.inTemporaryMode = true;
+            config.temporaryDisplayMode = DISPLAY_MODE_APPLICATION_INFO;
         } else if (held == BUTTON_3_HELD) {
             // Button 3 only → Reserved for future use
             Serial.println("🔵 Button 3 long press detected (reserved)");
