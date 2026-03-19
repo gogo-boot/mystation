@@ -1,16 +1,18 @@
 #include "util/system_init.h"
 #include "util/factory_reset.h"
+#include "util/application_reset.h"
+#include "util/button_monitor.h"
 #include "config/config_manager.h"
 #include <esp_log.h>
-#include <esp_sleep.h>
 #include <nvs_flash.h>
 
-#include "build_config.h"
 #include "display/display_manager.h"
 #include "global_instances.h"
-#include "util/application_reset.h"
 
 static const char* TAG = "SYSTEM_INIT";
+
+// How long a button must be held to trigger any long-press action (ms)
+static constexpr unsigned long BUTTON_HOLD_DURATION_MS = 3000;
 
 
 namespace SystemInit {
@@ -20,17 +22,29 @@ namespace SystemInit {
         delay(1000);
     }
 
-    void factoryResetIfDesired() {
-        if (FactoryReset::checkResetButton()) {
+    void handleButtonActions() {
+        uint8_t held = ButtonMonitor::detectLongPress(BUTTON_HOLD_DURATION_MS);
+
+        if (held == BUTTON_1_AND_2) {
+            // Button 1 + Button 2 held → Factory Reset
+            Serial.println("🔥 Factory reset triggered by Button 1 + Button 2");
             nvs_flash_init();
             FactoryReset::performReset();
-        }
-    }
-
-    void applicationResetIfDesired() {
-        if (AppicationReset::checkResetButton()) {
+        } else if (held == BUTTON_1_HELD) {
+            // Button 1 only → Application Reset
+            Serial.println("🔄 Application reset triggered by Button 1");
             nvs_flash_init();
             AppicationReset::performReset();
+        } else if (held == BUTTON_2_HELD) {
+            // Button 2 only → Application Info display mode
+            Serial.println("ℹ️  Application info mode triggered by Button 2");
+            RTCConfigData& config = ConfigManager::getConfig();
+            config.displayMode = DISPLAY_MODE_APPLICATION_INFO;
+            config.inTemporaryMode = true;
+            config.temporaryDisplayMode = DISPLAY_MODE_APPLICATION_INFO;
+        } else if (held == BUTTON_3_HELD) {
+            // Button 3 only → Reserved for future use
+            Serial.println("🔵 Button 3 long press detected (reserved)");
         }
     }
 

@@ -11,6 +11,7 @@ public:
     static void showWeatherDeparture();
     static void updateWeatherFull();
     static void updateDepartureFull();
+    static void showApplicationInfo();
 
     // Configuration phase management
     static ConfigPhase getCurrentPhase();

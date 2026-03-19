@@ -5,7 +5,6 @@
 
 // Complete RTC memory structure (survives deep sleep, lost on power loss)
 struct RTCConfigData {
-
     // Display configuration
     uint8_t displayMode; // 1 byte (0=half_and_half, 1=weather_only, 2=departure_only)
 
@@ -86,9 +85,10 @@ struct RTCConfigData {
 constexpr size_t MAX_TRANSPORT_FILTERS = 8;
 
 // Display mode constants
-#define DISPLAY_MODE_HALF_AND_HALF  0
-#define DISPLAY_MODE_WEATHER_ONLY   1
-#define DISPLAY_MODE_TRANSPORT_ONLY 2
+#define DISPLAY_MODE_HALF_AND_HALF    0
+#define DISPLAY_MODE_WEATHER_ONLY     1
+#define DISPLAY_MODE_TRANSPORT_ONLY   2
+#define DISPLAY_MODE_APPLICATION_INFO 3
 
 class ConfigManager {
 public:

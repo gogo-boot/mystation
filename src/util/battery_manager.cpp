@@ -1,19 +1,16 @@
 #include "util/battery_manager.h"
-
 #include "build_config.h"
 #include "config/pins.h"
-
-#ifdef BOARD_ESP32_S3
+#ifdef SHOW_BATTERY_STATUS
 #include <esp_adc_cal.h>
 #endif
 
 static const char* TAG = "BATTERY_MGR";
 
-
 void BatteryManager::init() {
 #if SHOW_BATTERY_STATUS
     if (SHOW_BATTERY_STATUS) {
-        ESP_LOGI(TAG, "Initializing battery manager for TRMNL OG DIY Kit (ESP32-S3)");
+        ESP_LOGI(TAG, "Initializing battery manager");
 
         // Configure ADC enable pin (power control for battery ADC circuit)
         pinMode(Pins::ADC_EN, OUTPUT);

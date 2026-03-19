@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include "display/display_manager.h"
 
+#include "build_config.h"
 #include "config/config_manager.h"
 #include "display/transport_display.h"
 #include "display/weather_general_half.h"
@@ -325,6 +326,225 @@ void DisplayManager::displayPhase2AppSetup() {
     } while (display.nextPage());
 
     ESP_LOGI(TAG, "Phase 2 app setup instructions displayed with QR code");
+}
+
+// ===== APPLICATION INFO MODE =====
+
+void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPercent) {
+    ESP_LOGI(TAG, "=== DISPLAYING APPLICATION INFO ===");
+
+    RTCConfigData& cfg = ConfigManager::getConfig();
+
+    // Determine board name string
+#if defined(PCB_E1001)
+    const char* boardName = "PCB E1001 (ESP32-S3)";
+#elif defined(PCB_EE04)
+    const char* boardName = "PCB EE04 (ESP32-S3)";
+#elif defined(BOARD_ESP32_C3)
+    const char* boardName = "ESP32-C3 SuperMini";
+#elif defined(BOARD_ESP32_C5)
+    const char* boardName = "Seeed XIAO ESP32-C5";
+#else
+    const char* boardName = "Unknown Board";
+#endif
+
+    display.setFullWindow();
+    display.firstPage();
+    do {
+        display.fillScreen(GxEPD_WHITE);
+
+        u8g2.setForegroundColor(GxEPD_BLACK);
+        u8g2.setBackgroundColor(GxEPD_WHITE);
+
+        const int16_t margin = 20;
+        const int16_t col2 = screenWidth / 2 + margin; // second column x
+        const int16_t lhSmall = 22; // line height for small font
+        const int16_t lhBig = 30; // line height for section headers
+
+        // ── Title bar ──────────────────────────────────────────────────────
+        u8g2.setFont(u8g2_font_helvB18_tf);
+        int16_t y = 38;
+        u8g2.setCursor(margin, y);
+        u8g2.print("MyStation  –  Device Info");
+        display.drawFastHLine(margin, y + 6, screenWidth - 2 * margin, GxEPD_BLACK);
+
+        // ── LEFT COLUMN ────────────────────────────────────────────────────
+        u8g2.setFont(u8g2_font_helvB12_tf);
+        y += lhBig + 8;
+        u8g2.setCursor(margin, y);
+        u8g2.print("Firmware");
+        display.drawFastHLine(margin, y + 3, screenWidth / 2 - margin * 2, GxEPD_BLACK);
+
+        u8g2.setFont(u8g2_font_helvB10_tf);
+        y += lhSmall;
+        u8g2.setCursor(margin, y);
+        u8g2.printf("Version : %s", FIRMWARE_VERSION);
+        y += lhSmall;
+        u8g2.setCursor(margin, y);
+        u8g2.printf("Board   : %s", boardName);
+        y += lhSmall;
+        u8g2.setCursor(margin, y);
+        {
+#if BUILD_TIME != 0
+            char buf[32];
+            time_t bt_t = BUILD_TIME;
+            struct tm* bt_tm = gmtime(&bt_t);
+            strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M", bt_tm);
+            u8g2.printf("Built   : %s", buf);
+#else
+            u8g2.print("Built   : debug build");
+#endif
+        }
+
+        // ── Network ────────────────────────────────────────────────────────
+        u8g2.setFont(u8g2_font_helvB12_tf);
+        y += lhBig;
+        u8g2.setCursor(margin, y);
+        u8g2.print("Network");
+        display.drawFastHLine(margin, y + 3, screenWidth / 2 - margin * 2, GxEPD_BLACK);
+
+        u8g2.setFont(u8g2_font_helvB10_tf);
+        y += lhSmall;
+        u8g2.setCursor(margin, y);
+        u8g2.printf("SSID    : %s", cfg.ssid);
+        y += lhSmall;
+        u8g2.setCursor(margin, y);
+        u8g2.printf("IP      : %s", cfg.ipAddress);
+
+        // ── Location ───────────────────────────────────────────────────────
+        u8g2.setFont(u8g2_font_helvB12_tf);
+        y += lhBig;
+        u8g2.setCursor(margin, y);
+        u8g2.print("Location");
+        display.drawFastHLine(margin, y + 3, screenWidth / 2 - margin * 2, GxEPD_BLACK);
+
+        u8g2.setFont(u8g2_font_helvB10_tf);
+        y += lhSmall;
+        u8g2.setCursor(margin, y);
+        u8g2.printf("City    : %s", cfg.cityName);
+        y += lhSmall;
+        u8g2.setCursor(margin, y);
+        u8g2.printf("Lat/Lon : %.5f / %.5f", cfg.latitude, cfg.longitude);
+
+        // ── Transport ──────────────────────────────────────────────────────
+        u8g2.setFont(u8g2_font_helvB12_tf);
+        y += lhBig;
+        u8g2.setCursor(margin, y);
+        u8g2.print("Transport");
+        display.drawFastHLine(margin, y + 3, screenWidth / 2 - margin * 2, GxEPD_BLACK);
+
+        u8g2.setFont(u8g2_font_helvB10_tf);
+        y += lhSmall;
+        u8g2.setCursor(margin, y);
+        u8g2.printf("Stop    : %s", cfg.selectedStopName);
+        y += lhSmall;
+        u8g2.setCursor(margin, y);
+        u8g2.printf("Active  : %s – %s", cfg.transportActiveStart, cfg.transportActiveEnd);
+
+        // ── RIGHT COLUMN ───────────────────────────────────────────────────
+        int16_t ry = 38 + lhBig + 8; // Reset to same start as left col
+
+        // Vertical divider
+        display.drawFastVLine(screenWidth / 2, 50, screenHeight - 65, GxEPD_BLACK);
+
+        // Battery ──────────────────────────────────────────────────────────
+        u8g2.setFont(u8g2_font_helvB12_tf);
+        u8g2.setCursor(col2, ry);
+        u8g2.print("Battery");
+        display.drawFastHLine(col2, ry + 3, screenWidth / 2 - margin * 2, GxEPD_BLACK);
+
+        u8g2.setFont(u8g2_font_helvB10_tf);
+        ry += lhSmall;
+        u8g2.setCursor(col2, ry);
+#if SHOW_BATTERY_STATUS
+        if (batteryVoltage > 0.0f) {
+            u8g2.printf("Voltage : %.2f V", batteryVoltage);
+            ry += lhSmall;
+            u8g2.setCursor(col2, ry);
+            u8g2.printf("Level   : %d%%", batteryPercent);
+            ry += lhSmall;
+            u8g2.setCursor(col2, ry);
+            // Simple ASCII bar  ▓▓▓▓▓░░░░░  (10 chars)
+            char bar[12];
+            int filled = batteryPercent / 10;
+            for (int i = 0; i < 10; i++) bar[i] = (i < filled) ? '#' : '-';
+            bar[10] = '\0';
+            u8g2.printf("[%s]", bar);
+        } else {
+            u8g2.print("Not available");
+        }
+#else
+        u8g2.print("Not supported");
+#endif
+
+        // Display mode ────────────────────────────────────────────────────
+        u8g2.setFont(u8g2_font_helvB12_tf);
+        ry += lhBig;
+        u8g2.setCursor(col2, ry);
+        u8g2.print("Display");
+        display.drawFastHLine(col2, ry + 3, screenWidth / 2 - margin * 2, GxEPD_BLACK);
+
+        u8g2.setFont(u8g2_font_helvB10_tf);
+        ry += lhSmall;
+        u8g2.setCursor(col2, ry);
+        const char* modeName = "Unknown";
+        switch (cfg.displayMode) {
+        case DISPLAY_MODE_HALF_AND_HALF: modeName = "Half & Half";
+            break;
+        case DISPLAY_MODE_WEATHER_ONLY: modeName = "Weather Only";
+            break;
+        case DISPLAY_MODE_TRANSPORT_ONLY: modeName = "Transport Only";
+            break;
+        case DISPLAY_MODE_APPLICATION_INFO: modeName = "Application Info";
+            break;
+        }
+        u8g2.printf("Mode    : %s", modeName);
+
+        // Sleep schedule ──────────────────────────────────────────────────
+        u8g2.setFont(u8g2_font_helvB12_tf);
+        ry += lhBig;
+        u8g2.setCursor(col2, ry);
+        u8g2.print("Sleep");
+        display.drawFastHLine(col2, ry + 3, screenWidth / 2 - margin * 2, GxEPD_BLACK);
+
+        u8g2.setFont(u8g2_font_helvB10_tf);
+        ry += lhSmall;
+        u8g2.setCursor(col2, ry);
+        u8g2.printf("Window  : %s – %s", cfg.sleepStart, cfg.sleepEnd);
+        ry += lhSmall;
+        u8g2.setCursor(col2, ry);
+        u8g2.printf("Weekend : %s", cfg.weekendMode ? "Enabled" : "Disabled");
+
+        // OTA ─────────────────────────────────────────────────────────────
+        u8g2.setFont(u8g2_font_helvB12_tf);
+        ry += lhBig;
+        u8g2.setCursor(col2, ry);
+        u8g2.print("OTA Update");
+        display.drawFastHLine(col2, ry + 3, screenWidth / 2 - margin * 2, GxEPD_BLACK);
+
+        u8g2.setFont(u8g2_font_helvB10_tf);
+        ry += lhSmall;
+        u8g2.setCursor(col2, ry);
+        u8g2.printf("Enabled : %s", cfg.otaEnabled ? "Yes" : "No");
+        ry += lhSmall;
+        u8g2.setCursor(col2, ry);
+        u8g2.printf("Time    : %s", cfg.otaCheckTime);
+
+        // ── Footer ─────────────────────────────────────────────────────────
+        display.drawFastHLine(margin, screenHeight - 20, screenWidth - 2 * margin, GxEPD_BLACK);
+        u8g2.setFont(u8g2_font_helvB10_tf);
+        u8g2.setCursor(margin, screenHeight - 6);
+        {
+            time_t now;
+            time(&now);
+            struct tm* t = localtime(&now);
+            char buf[32];
+            strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", t);
+            u8g2.printf("Generated: %s   |   http://%s", buf, cfg.ipAddress);
+        }
+    } while (display.nextPage());
+
+    ESP_LOGI(TAG, "Application info displayed");
 }
 
 // ===== ERROR DISPLAY METHODS =====

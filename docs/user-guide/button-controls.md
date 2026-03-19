@@ -7,18 +7,17 @@ change the display mode for 2 minutes by pressing buttons, even when the device 
 
 ### Available Buttons
 
-| Button                          | Function                       | Display Mode                      |
-|---------------------------------|--------------------------------|-----------------------------------|
-| Button 1                        | Half & Half Temporary Mode     | Weather + Departures split screen |
-| Button 1 Long press (5 seconds) | Reset Configuration            | Application Configuration screen  |
-| Button 2                        | Weather Only Temporary Mode    | Full screen weather display       |
-| Button 3                        | Departures Only Temporary Mode | Full screen departure display     |
-
-**Application Configuration screen** allows you to reconfigure your weather location and departure stations
-
-### Factory Reset
-
-Button 1 and Button 2 Long press (5 seconds) : Initiate factory reset
+| Button         | Long 5 seconds press | Function                                                                 |
+|----------------|----------------------|--------------------------------------------------------------------------|
+| Button 1       | N                    | display Weather + Departures split screen                                |
+| Button 2       | N                    | display full screen weather                                              |
+| Button 3       | N                    | display full screen departure                                            |
+| Button 1       | Y                    | allows you to reconfigure your weather location and departure stations   |
+| Button 2       | Y                    | display application version, current configuration and other information |
+| Button 3       | Y                    | N/A                                                                      |
+| Button 1 and 2 | Y                    | initiate factory reset                                                   |
+| Button 1 and 3 | Y                    | N/A                                                                      |
+| Button 2 and 3 | Y                    | N/A                                                                      |
 
 ### Temporary Mode
 

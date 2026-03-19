@@ -30,6 +30,10 @@ public:
     static void displayPhase1WifiSetup(); // Phase 1: WiFi configuration
     static void displayPhase2AppSetup(); // Phase 2: Application configuration
 
+    // === Application Info Mode ===
+    // Display device status: firmware version, board, config, WiFi, battery
+    static void displayApplicationInfo(float batteryVoltage, int batteryPercent);
+
     // ==
     static void displayErrorIfWifiConnectionError();
     static void displayErrorIfBatteryLow();
