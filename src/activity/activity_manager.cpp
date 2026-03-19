@@ -50,7 +50,7 @@ void ActivityManager::onInit() {
     setCurrentActivityLifecycle(Lifecycle::ON_INIT);
     DEBUG_ONLY(SystemInit::initSerialConnector(););
     printWakeupReason();
-    SystemInit::handleButtonActions();
+    SystemInit::handleButtonLongPressActions();
     SystemInit::initDisplay();
     SystemInit::initFont();
     BatteryManager::init();;
@@ -91,7 +91,7 @@ void ActivityManager::onStart() {
     // Set up Time if it needed
     DeviceModeManager::setupConnectivityAndTime();
 
-    // Set temporary display mode if needed
+    // Set temporary display mode (from short-press EXT1 wakeup or long-press synthetic mode)
     ButtonManager::handleWakeupMode();
 
     setNextActivityLifecycle(Lifecycle::ON_RUNNING);

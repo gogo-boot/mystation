@@ -2,7 +2,7 @@
 
 namespace SystemInit {
     void initSerialConnector();
-    void handleButtonActions();
+    void handleButtonLongPressActions();
     void initDisplay();
     void initFont();
     void loadNvsConfig();

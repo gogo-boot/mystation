@@ -13,6 +13,10 @@ public:
     // Initialize button GPIO pins
     static void setWakupableButtons();
 
+    // Set a synthetic button mode to be consumed by handleWakeupMode().
+    // Used by long-press detection to inject a mode as if a button woke the device.
+    static void setSyntheticButtonMode(int8_t mode);
+
     // Check which button caused EXT1 wakeup from deep sleep
     // Returns the display mode corresponding to the button, or -1 if no button
     static int8_t getWakeupButtonMode();

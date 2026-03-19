@@ -6,6 +6,14 @@
 
 static const char* TAG = "BUTTON";
 
+// Synthetic button mode injected by long-press detection (-1 = none)
+static int8_t syntheticButtonMode = -1;
+
+void ButtonManager::setSyntheticButtonMode(int8_t mode) {
+    syntheticButtonMode = mode;
+    ESP_LOGI(TAG, "Synthetic button mode set: %d", mode);
+}
+
 void ButtonManager::setWakupableButtons() {
     if (HAS_BUTTON) {
         ESP_LOGI(TAG, "Initializing button manager...");
@@ -133,12 +141,17 @@ void ButtonManager::handleWakeupMode() {
     if (HAS_BUTTON) {
         RTCConfigData& config = ConfigManager::getConfig();
 
-        // Get current time for timestamp calculations
         time_t currentTime;
         time(&currentTime);
 
-        // Check if device was woken by button press (temporary display mode)
-        int8_t buttonMode = getWakeupButtonMode();
+        // Consume synthetic mode injected by long-press detection (if any)
+        int8_t buttonMode = syntheticButtonMode;
+        if (buttonMode >= 0) {
+            ESP_LOGI(TAG, "Consuming synthetic button mode: %d", buttonMode);
+            syntheticButtonMode = -1; // consume it
+        } else {
+            buttonMode = getWakeupButtonMode();
+        }
 
         if (buttonMode >= 0) {
             // Button press detected

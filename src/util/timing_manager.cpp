@@ -307,6 +307,11 @@ uint64_t TimingManager::getNextSleepDurationSeconds() {
                      nextWeatherOrTransport);
         }
         break;
+    case DISPLAY_MODE_APPLICATION_INFO:
+        // Application info mode has no data updates — temp mode block above handles sleep.
+        // This is a safety-net fallback: sleep 30 seconds minimum.
+        ESP_LOGI(TAG, "Display mode: APPLICATION INFO (fallback - temp mode should have been caught above)");
+        return 60;
     default:
         ESP_LOGI(TAG, "Unknown display mode: %d ", displayMode);
         break;
@@ -470,6 +475,12 @@ bool TimingManager::isTimeForWeatherUpdate() {
 
 uint8_t TimingManager::getEffectiveDisplayMode() {
     RTCConfigData& config = ConfigManager::getConfig();
+
+    // Temporary mode overrides configured display mode
+    if (config.inTemporaryMode) {
+        ESP_LOGI(TAG, "getEffectiveDisplayMode: using temporary mode %d", config.temporaryDisplayMode);
+        return config.temporaryDisplayMode;
+    }
 
     switch (config.displayMode) {
     case DISPLAY_MODE_TRANSPORT_ONLY:
