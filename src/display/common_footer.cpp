@@ -33,20 +33,10 @@ void CommonFooter::drawFooter(int16_t x, int16_t y, int16_t h, uint8_t elements)
     // Draw battery status if requested
     if (elements & FOOTER_BATTERY && SHOW_BATTERY_STATUS) {
         drawBatteryStatus(currentX, footerY);
+        drawBatteryText(currentX, footerY);
     }
 
     DEBUG_ONLY(
-        if (SHOW_BATTERY_STATUS) {
-        drawBatteryText(currentX, footerY);
-        }
-        String buildTime = "Build Time: " + String(BUILD_TIME);
-        TextUtils::printTextAtWithMargin(currentX, footerY, buildTime);
-        currentX += TextUtils::getTextWidth(String(buildTime)) + 5; // Move right with spacing
-
-        String version = "Version: " + String(FIRMWARE_VERSION);
-        TextUtils::printTextAtWithMargin(currentX, footerY, version);
-        currentX += TextUtils::getTextWidth(String(version)) + 5; // Move right with spacing
-
         String sleepTime = "Sleep Time: " + String(TimingManager::getNextSleepDurationSeconds()) + "s";;
         TextUtils::printTextAtWithMargin(currentX, footerY, sleepTime);
     );
@@ -116,12 +106,11 @@ void CommonFooter::drawBatteryStatus(int16_t& currentX, int16_t y) {
 
 void CommonFooter::drawBatteryText(int16_t& currentX, int16_t y) {
     // Log battery info for debugging
-    float voltage = BatteryManager::getBatteryVoltage();
     int percentage = BatteryManager::getBatteryPercentage();
 
-    ESP_LOGD(TAG, "Battery: %.2fV (%d%%)", voltage, percentage);
+    ESP_LOGD(TAG, "Battery: %d%%", percentage);
     char batteryText[32];
-    sprintf(batteryText, "Battery: %.2fV (%d%%)", voltage, percentage);
+    sprintf(batteryText, "%d%%", percentage);
     TextUtils::printTextAtWithMargin(currentX, y, String(batteryText));
     currentX += TextUtils::getTextWidth(String(batteryText)) + 5; // Move right with spaci
 }
