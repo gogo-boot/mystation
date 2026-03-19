@@ -55,9 +55,18 @@ namespace BootFlowManager {
     static uint8_t determineDisplayMode(int8_t buttonMode) {
         RTCConfigData& config = ConfigManager::getConfig();
 
-        // Button mode takes precedence over configured mode
+        // Button mode (temporary) takes precedence over configured mode
         if (buttonMode >= 0) {
             return buttonMode;
+        }
+
+        // APPLICATION_INFO is only valid as a temporary mode (triggered by long-press).
+        // If it leaked into config.displayMode (e.g. from a previous buggy firmware),
+        // sanitize it back to WEATHER_ONLY and persist the fix.
+        if (config.displayMode == DISPLAY_MODE_APPLICATION_INFO) {
+            ESP_LOGW(TAG, "config.displayMode is APPLICATION_INFO — invalid as persistent mode, resetting to WEATHER_ONLY");
+            config.displayMode = DISPLAY_MODE_WEATHER_ONLY;
+            ConfigManager::getInstance().saveToNVS();
         }
 
         int8_t displayMode = config.displayMode;

@@ -91,12 +91,8 @@ void ActivityManager::onStart() {
     // Set up Time if it needed
     DeviceModeManager::setupConnectivityAndTime();
 
-    // Set temporary display mode from short button wakeup.
-    // Skip if a long press already set the temporary mode this boot,
-    // otherwise handleWakeupMode would overwrite it with the short-press mode.
-    if (!SystemInit::wasLongPressHandled()) {
-        ButtonManager::handleWakeupMode();
-    }
+    // Set temporary display mode (from short-press EXT1 wakeup or long-press synthetic mode)
+    ButtonManager::handleWakeupMode();
 
     setNextActivityLifecycle(Lifecycle::ON_RUNNING);
 }
