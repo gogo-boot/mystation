@@ -1,52 +1,6 @@
 #include "build_config.h"
 #include "util/factory_reset.h"
-#include "config/pins.h"
 #include <nvs_flash.h>
-
-bool FactoryReset::checkResetButton() {
-    if (HAS_BUTTON) {
-        // Check if button is currently pressed
-        if (digitalRead(Pins::GPIO_BUTTON_1) == LOW && digitalRead(Pins::GPIO_BUTTON_2) == LOW) {
-            Serial.println("🔵 Reset button detected!");
-            Serial.println("   Hold button for 5 seconds to factory reset...");
-
-            unsigned long startTime = millis();
-
-            // Monitor button for 3 seconds
-            while (millis() - startTime < FACTORY_RESET_HOLD_DURATION_MS) {
-                // Check if button was released
-                if (digitalRead(Pins::GPIO_BUTTON_1) == HIGH || digitalRead(Pins::GPIO_BUTTON_2) == HIGH) {
-                    unsigned long heldDuration = millis() - startTime;
-                    Serial.printf("🟢 Button released after %.1f seconds\n", heldDuration / 1000.0);
-                    Serial.println("   (Not long enough for factory reset)\n");
-                    return false;
-                }
-
-                // Show progress every second
-                unsigned long elapsed = millis() - startTime;
-                static unsigned long lastProgressTime = 0;
-                if (elapsed - lastProgressTime >= 1000) {
-                    unsigned long secondsRemaining = (FACTORY_RESET_HOLD_DURATION_MS - elapsed) / 1000;
-                    if (secondsRemaining > 0) {
-                        Serial.printf("⏱️  Holding... %lu seconds remaining\n", secondsRemaining);
-                    }
-                    lastProgressTime = elapsed;
-                }
-
-                delay(50); // Small delay for debouncing
-            }
-
-            // Button was held for full 5 seconds
-            Serial.println("✅ Button held for 5 seconds!");
-            return true;
-        }
-
-        return false;
-    } else {
-        // Factory reset button not available on other boards
-        return false;
-    }
-}
 
 
 void FactoryReset::performReset() {
