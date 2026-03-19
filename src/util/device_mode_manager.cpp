@@ -12,6 +12,7 @@
 #include "config/config_page_data.h"
 #include "config/config_struct.h"
 #include "display/display_manager.h"
+#include "util/battery_manager.h"
 #include "util/transport_print.h"
 #include "global_instances.h"
 
@@ -77,6 +78,15 @@ void DeviceModeManager::runConfigurationMode() {
     ESP_LOGI(TAG, "Access configuration at: %s or http://mystation.local",
              config.ipAddress);
     ESP_LOGI(TAG, "Web server will handle configuration until user saves settings");
+}
+
+void DeviceModeManager::showApplicationInfo() {
+    ESP_LOGI(TAG, "Showing application info screen");
+
+    float voltage = BatteryManager::getBatteryVoltage();
+    int percent = BatteryManager::getBatteryPercentage();
+
+    DisplayManager::displayApplicationInfo(voltage, percent);
 }
 
 void DeviceModeManager::showWeatherDeparture() {
@@ -230,6 +240,11 @@ ConfigPhase DeviceModeManager::getCurrentPhase() {
     if (strlen(config.ssid) == 0) {
         ESP_LOGI(TAG, "Configuration Phase: 1 (WiFi Setup)");
         return PHASE_WIFI_SETUP;
+    }
+
+    if (config.displayMode == DISPLAY_MODE_APPLICATION_INFO) {
+        ESP_LOGI(TAG, "Configuration Phase: 3 (Complete - Application Info Mode)");
+        return PHASE_COMPLETE;
     }
 
     if (config.displayMode == DISPLAY_MODE_WEATHER_ONLY && config.latitude != 0.0 && config.longitude != 0.0) {

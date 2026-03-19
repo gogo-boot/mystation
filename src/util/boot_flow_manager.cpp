@@ -91,7 +91,7 @@ namespace BootFlowManager {
 
         case DISPLAY_MODE_APPLICATION_INFO:
             ESP_LOGI(TAG, "Starting Application Info mode");
-            DeviceModeManager::updateDepartureFull();
+            DeviceModeManager::showApplicationInfo();
             break;
 
         default:
