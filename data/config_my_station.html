@@ -455,6 +455,9 @@
             🚌 ÖPNV: <span id="transport-calls">0</span> Updates •
             💤 Sleep: <span id="sleep-hours">0</span>h
           </div>
+          <div style="margin-top: 0.4em; font-size: 0.9em; font-weight: 500;">
+            🔋 Geschätzte Akkulaufzeit: <span id="battery-days-estimate">–</span>
+          </div>
         </div>
       </div>
       <div class="help-text" id="battery-recommendation">
@@ -938,6 +941,37 @@
       } else {
         batteryInfo.style.background = '#fab1a0';
         recommendation.textContent = '🔴 Hoch! Sehr häufige Updates - kurze Batterielebensdauer erwartet.';
+      }
+
+      // --- Akkulaufzeit-Schätzung (basiert auf Tests: 8400 Aktualisierungen pro Ladung) ---
+      var TOTAL_REFRESHES_PER_CHARGE = 8400;
+      var estimateEl = document.getElementById('battery-days-estimate');
+      if (totalCallsPerDay > 0) {
+        var estimatedDays = Math.round(TOTAL_REFRESHES_PER_CHARGE / totalCallsPerDay);
+        var durationLabel = '';
+        if (estimatedDays >= 60) {
+          var months = Math.floor(estimatedDays / 30);
+          durationLabel = 'ca. ' + estimatedDays + ' Tage (' + months + ' Monate)';
+        } else if (estimatedDays >= 14) {
+          var weeks = Math.floor(estimatedDays / 7);
+          durationLabel = 'ca. ' + estimatedDays + ' Tage (' + weeks + ' Wochen)';
+        } else {
+          durationLabel = 'ca. ' + estimatedDays + ' Tage';
+        }
+        // Color coding
+        if (estimatedDays >= 90) {
+          estimateEl.style.color = '#1a7f37';
+        } else if (estimatedDays >= 60) {
+          estimateEl.style.color = '#856404';
+        } else if (estimatedDays >= 30) {
+          estimateEl.style.color = '#c75000';
+        } else {
+          estimateEl.style.color = '#cc0000';
+        }
+        estimateEl.textContent = durationLabel;
+      } else {
+        estimateEl.textContent = '–';
+        estimateEl.style.color = '#666';
       }
     }
 
