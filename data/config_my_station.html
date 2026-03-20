@@ -79,9 +79,10 @@
       margin-left: -100px;
       opacity: 0;
       transition: opacity 0.3s;
-      font-size: 0.8em;
+      font-size: 1.0em;
     }
-    .tooltip:hover .tooltiptext {
+    .tooltip:hover .tooltiptext,
+    .tooltip.active .tooltiptext {
       visibility: visible;
       opacity: 1;
     }
@@ -997,6 +998,18 @@
       document.addEventListener('DOMContentLoaded', function () {
           updateDisplayModePreview();
       });
+
+    // --- iOS tooltip fix (touchstart toggle) ---
+    document.addEventListener('touchstart', function(e) {
+      var tooltip = e.target.closest('.tooltip');
+      document.querySelectorAll('.tooltip.active').forEach(function(t) {
+        if (t !== tooltip) t.classList.remove('active');
+      });
+      if (tooltip) {
+        tooltip.classList.toggle('active');
+        e.preventDefault(); // prevent ghost click
+      }
+    }, { passive: false });
   </script>
 </body>
 </html>
