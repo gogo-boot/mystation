@@ -875,6 +875,7 @@
         return r.json();
       }).then(function(resp) {
         alert('Konfiguration gespeichert!');
+        window.close();
       }).catch(function(e) {
         alert('Fehler beim Speichern: ' + e.message);
       });
