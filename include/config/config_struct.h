@@ -42,6 +42,6 @@ struct ConfigOption {
 
     // OTA firmware update configuration
     bool otaEnabled = true; // Enable automatic OTA firmware updates (default: enabled)
-    String otaCheckTime = "03:00"; // Time to check for OTA updates daily (default: 3:00 AM)
+    String otaCheckTime = ""; // Time to check for OTA updates daily (randomized on first boot between 01:00–04:59)
 };
 
