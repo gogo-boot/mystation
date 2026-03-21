@@ -8,6 +8,7 @@ struct DepartureData;
 class DeviceModeManager {
 public:
     static void runConfigurationMode();
+    static void startWebServer();
     static void showWeatherDeparture();
     static void updateWeatherFull();
     static void updateDepartureFull();

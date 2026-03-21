@@ -65,7 +65,11 @@ void DeviceModeManager::runConfigurationMode() {
     // Get nearby stops for configuration interface
     getNearbyStops(pageData.getLatitude(), pageData.getLongitude());
 
-    // Start web server for configuration
+    ESP_LOGI(TAG, "Configuration data ready. Web server will be started after display update.");
+}
+
+void DeviceModeManager::startWebServer() {
+    // Start web server for configuration - called AFTER display has been updated
     setupWebServer(server);
 
     // Start mDNS responder
@@ -77,7 +81,6 @@ void DeviceModeManager::runConfigurationMode() {
     ESP_LOGI(TAG, "Configuration web server started");
     ESP_LOGI(TAG, "Access configuration at: %s or http://mystation.local",
              config.ipAddress);
-    ESP_LOGI(TAG, "Web server will handle configuration until user saves settings");
 }
 
 void DeviceModeManager::showApplicationInfo() {
