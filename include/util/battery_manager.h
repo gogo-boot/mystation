@@ -16,7 +16,7 @@
  */
 
 // Battery voltage thresholds (for LiPo batteries)
-static const float BATTERY_VOLTAGE_MAX = 4.120f; // Fully charged
+static const float BATTERY_VOLTAGE_MAX = 4.060f; // Fully charged
 static const float BATTERY_VOLTAGE_MIN = 3.010f; // Empty (safe cutoff)
 static const float BATTERY_VOLTAGE_NOMINAL = 3.7f; // Nominal voltage
 
