@@ -44,6 +44,9 @@ namespace BootFlowManager {
         if (MyWiFiManager::isConnected() && MyWiFiManager::hasInternetAccess()) {
             DeviceModeManager::runConfigurationMode();
             DeviceModeManager::showPhaseInstructions(PHASE_APP_SETUP);
+            // Start web server AFTER display is ready - prevents browser from connecting
+            // while ESP is still busy with API calls and e-paper rendering (thundering herd fix)
+            DeviceModeManager::startWebServer();
         } else {
             // WiFi/Internet connection failed - revert to Phase 1
             ESP_LOGE(TAG, "WiFi validation failed - reverting to Phase 1");
@@ -64,7 +67,8 @@ namespace BootFlowManager {
         // If it leaked into config.displayMode (e.g. from a previous buggy firmware),
         // sanitize it back to WEATHER_ONLY and persist the fix.
         if (config.displayMode == DISPLAY_MODE_APPLICATION_INFO) {
-            ESP_LOGW(TAG, "config.displayMode is APPLICATION_INFO — invalid as persistent mode, resetting to WEATHER_ONLY");
+            ESP_LOGW(
+                TAG, "config.displayMode is APPLICATION_INFO — invalid as persistent mode, resetting to WEATHER_ONLY");
             config.displayMode = DISPLAY_MODE_WEATHER_ONLY;
             ConfigManager::getInstance().saveToNVS();
         }

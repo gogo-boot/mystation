@@ -26,7 +26,7 @@ RTC_DATA_ATTR RTCConfigData ConfigManager::rtcConfig = {
     "23:00", // weekendSleepStart
     "07:00", // weekendSleepEnd
     true, // otaEnabled - default enabled
-    "03:00", // otaCheckTime - default 3:00 AM
+    "", // otaCheckTime - empty = will be randomized on first boot
     FILTER_R | FILTER_S | FILTER_U | FILTER_TRAM | FILTER_BUS | FILTER_HIGHFLOOR | FILTER_FERRY | FILTER_CALLBUS,
     // filterFlags - Default filters
     true, // configMode
@@ -106,7 +106,26 @@ bool ConfigManager::loadFromNVS(bool force = false) {
 
     // Load OTA configuration
     rtcConfig.otaEnabled = preferences.getBool("otaEnabled", true);
-    String otaTime = preferences.getString("otaCheckTime", "03:00");
+    String otaTime = preferences.getString("otaCheckTime", "");
+    if (otaTime.isEmpty()) {
+        // First boot: assign a random time between 01:00–04:59 to spread server load across devices
+        uint32_t rnd = esp_random();
+        uint32_t hour = 1 + (rnd % 4); // 1, 2, 3 or 4
+        uint32_t minute = (rnd >> 8) % 60; // 0–59, using higher bits for better distribution
+        char randomTime[6];
+        snprintf(randomTime, sizeof(randomTime), "%02" PRIu32 ":%02" PRIu32, hour, minute);
+        otaTime = String(randomTime);
+        ESP_LOGI(TAG, "First boot: randomized OTA check time to %s", randomTime);
+        // Persist it immediately so all future boots use the same time
+        preferences.end();
+        if (preferences.begin("mystation", false)) {
+            preferences.putString("otaCheckTime", otaTime);
+            preferences.end();
+        }
+        if (!preferences.begin("mystation", true)) {
+            ESP_LOGE(TAG, "Failed to re-open NVS after saving OTA time");
+        }
+    }
     copyString(rtcConfig.otaCheckTime, otaTime, sizeof(rtcConfig.otaCheckTime));
 
     // Load transport filters

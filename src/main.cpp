@@ -80,14 +80,21 @@ void setup() {
     }
     if (ActivityManager::getNextActivityLifecycle() == Lifecycle::ON_LOOP) {
         ESP_LOGI(TAG, "Starting loop");
+        // Run web server inline — avoids latency between setup() returning and
+        // Arduino runtime calling loop() for the first time.
+        while (ActivityManager::getNextActivityLifecycle() == Lifecycle::ON_LOOP) {
+            server.handleClient();
+            delay(10);
+        }
     }
 }
 
 void loop() {
-    // Only handle web server in config mode
+    // The web server is handled by the inline while loop inside setup().
+    // This fallback exists only in case the lifecycle transitions unexpectedly.
     if (ActivityManager::getNextActivityLifecycle() == Lifecycle::ON_LOOP) {
         server.handleClient();
-        delay(10); // Small delay to prevent watchdog issues
+        delay(10);
     } else {
         // Normal operation happens in setup() and then device goes to sleep
         // This should never be reached in normal operation

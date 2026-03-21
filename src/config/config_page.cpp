@@ -62,13 +62,8 @@ void handleConfigPage(WebServer& server) {
     // Replace city, ssid, etc.
     page.replace("{{CITY}}", pageData.getCityName());
 
-    // Get configuration from ConfigManager
-    RTCConfigData& config = ConfigManager::getConfig();
-    page.replace("{{ROUTER}}", config.ssid);
-    page.replace("{{IP}}", pageData.getIPAddress());
-    page.replace("{{MDNS}}", "mystation.local");
-
     // Replace configuration values with current settings from ConfigManager
+    RTCConfigData& config = ConfigManager::getConfig();
     page.replace("{{WEATHER_INTERVAL}}", String(config.weatherInterval));
     page.replace("{{TRANSPORT_INTERVAL}}", String(config.transportInterval));
     page.replace("{{TRANSPORT_ACTIVE_START}}", config.transportActiveStart);
