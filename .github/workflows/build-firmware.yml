@@ -99,7 +99,7 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                environment: [ esp32-s3-production ]
+                environment: [ esp32-s3-e1001-production ]
         if: github.ref_type == 'tag'
 
         steps:
