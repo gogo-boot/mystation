@@ -150,5 +150,5 @@ jobs:
                         # MyStation Firmware Release ${{ github.ref_name }}
                     draft: true
                     prerelease: false
-                env:
-                    GITHUB_TOKEN: ${{ secrets.ACTION_TOKEN }}
+                    generate_release_notes: true
+                    token: ${{ secrets.ACTION_TOKEN }}
