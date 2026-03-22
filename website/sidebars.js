@@ -95,6 +95,7 @@ const sidebars = {
             items: [
                 'maintainer-guide/ota-update',
                 'maintainer-guide/github-actions',
+                'maintainer-guide/certificate-bundle',
             ],
         },
     ],
