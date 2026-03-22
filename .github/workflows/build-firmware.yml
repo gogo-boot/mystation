@@ -150,4 +150,4 @@ jobs:
                         # MyStation Firmware Release ${{ github.ref_name }}
                     draft: true
                     prerelease: false
-                token: ${{ secrets.ACTION_TOKEN }}
+                    token: ${{ secrets.ACTION_TOKEN }}
