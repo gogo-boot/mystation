@@ -16,8 +16,8 @@ static const char* TAG = "OTA_UPDATE";
 char rcv_buffer[200];
 
 // Declare the certificate
-extern const char server_cert_pem_start[] asm("_binary_cert_github_pem_start");
-extern const char server_cert_pem_end[] asm("_binary_cert_github_pem_end");
+extern const char server_cert_pem_start[] asm("_binary_cert_github_bundle_pem_start");
+extern const char server_cert_pem_end[] asm("_binary_cert_github_bundle_pem_end");
 
 // esp_http_client event handler
 esp_err_t _http_event_handler(esp_http_client_event_t* evt) {
@@ -47,7 +47,14 @@ void check_ota_update() {
     ReleaseInfo release;
     if (getLatestReleaseFromGitHub(release)) {
         SemanticVersion current = SemanticVersion::parse(FIRMWARE_VERSION);
-        if (release.version.isNewerThan(current)) {
+#if OTA_FORCE_UPDATE
+        ESP_LOGW(TAG, "OTA_FORCE_UPDATE is enabled – skipping version check. Remote: %s, Local: %s",
+                 release.version.toString().c_str(), current.toString().c_str());
+        bool doUpdate = true;
+#else
+        bool doUpdate = release.version.isNewerThan(current);
+#endif
+        if (doUpdate) {
             ESP_LOGI(TAG, "Update available: %s -> %s",
                      current.toString().c_str(),
                      release.version.toString().c_str());
