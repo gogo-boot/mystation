@@ -415,7 +415,7 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
         u8g2.setFont(u8g2_font_helvB12_tf);
         y += lhBig;
         u8g2.setCursor(margin, y);
-        u8g2.print("Location");
+        u8g2.print("Weather Location");
         display.drawFastHLine(margin, y + 3, screenWidth / 2 - margin * 2, GxEPD_BLACK);
 
         u8g2.setFont(u8g2_font_helvB10_tf);
@@ -425,6 +425,9 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
         y += lhSmall;
         u8g2.setCursor(margin, y);
         u8g2.printf("Lat/Lon : %.5f / %.5f", cfg.latitude, cfg.longitude);
+        y += lhSmall;
+        u8g2.setCursor(margin, y);
+        u8g2.printf("Interval: %d hour(s)", cfg.weatherInterval);
 
         // ── Transport ──────────────────────────────────────────────────────
         u8g2.setFont(u8g2_font_helvB12_tf);
@@ -559,7 +562,7 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
             struct tm* t = localtime(&now);
             char buf[32];
             strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", t);
-            u8g2.printf("Generated: %s");
+            u8g2.printf("Generated: %s", buf);
         }
     } while (display.nextPage());
 
