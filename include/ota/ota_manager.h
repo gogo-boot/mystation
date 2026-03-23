@@ -25,5 +25,13 @@ namespace OTAManager {
      * - Device will restart if update is found and installed
      */
     void checkAndApplyUpdate();
+
+    /**
+     * Mark that the user has explicitly requested an OTA update via button.
+     * When set, checkAndApplyUpdate() will bypass the scheduled time check
+     * and the otaEnabled config flag, and run OTA immediately.
+     * The flag is reset after use and does not persist across deep sleep.
+     */
+    void requestUpdateByUser();
 }
 

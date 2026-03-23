@@ -4,6 +4,7 @@
 #include "util/button_monitor.h"
 #include "util/button_manager.h"
 #include "config/config_manager.h"
+#include "ota/ota_manager.h"
 #include <esp_log.h>
 #include <nvs_flash.h>
 
@@ -43,8 +44,9 @@ namespace SystemInit {
             Serial.println("ℹ️  Application info mode triggered by Button 2 long press");
             ButtonManager::setSyntheticButtonMode(DISPLAY_MODE_APPLICATION_INFO);
         } else if (held == BUTTON_3_HELD) {
-            // Button 3 only → Reserved for future use
-            Serial.println("🔵 Button 3 long press detected (reserved)");
+            // Button 3 only → Trigger OTA update immediately on next onRunning()
+            Serial.println("🚀 OTA update triggered by Button 3 long press");
+            OTAManager::requestUpdateByUser();
         }
     }
 
