@@ -69,10 +69,6 @@ namespace OTAManager {
     }
 
     bool shouldCheckForUpdate() {
-#if OTA_FORCE_UPDATE
-        ESP_LOGW(TAG, "OTA_FORCE_UPDATE is enabled – skipping time/config check");
-        return true;
-#else
         // User explicitly triggered OTA via button — bypass schedule and config flag
         if (userRequestedUpdate) {
             ESP_LOGI(TAG, "User-requested OTA update – bypassing schedule check");
@@ -119,7 +115,6 @@ namespace OTAManager {
         ESP_LOGD(TAG, "OTA update time not matched. Configured: %s, Current: %02d:%02d",
                  config.otaCheckTime, currentHour, currentMinute);
         return false;
-#endif // OTA_FORCE_UPDATE
     }
 
     void checkAndApplyUpdate() {

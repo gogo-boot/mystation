@@ -141,13 +141,7 @@ void check_ota_update() {
     }
 
     SemanticVersion current = SemanticVersion::parse(FIRMWARE_VERSION);
-#if OTA_FORCE_UPDATE
-    ESP_LOGW(TAG, "OTA_FORCE_UPDATE is enabled – skipping version check. Remote: %s, Local: %s",
-             release.version.toString().c_str(), current.toString().c_str());
-    bool doUpdate = true;
-#else
     bool doUpdate = release.version.isNewerThan(current);
-#endif
 
     if (!doUpdate) {
         ESP_LOGI(TAG, "Firmware is up to date (%s)", current.toString().c_str());

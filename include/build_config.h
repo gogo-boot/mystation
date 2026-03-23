@@ -78,14 +78,4 @@ enum class BoardType {
 #define FIRMWARE_VERSION "unknown"
 #endif
 
-// =============================================================================
-// OTA Testing Flag
-// =============================================================================
-// Set -D OTA_FORCE_UPDATE=1 in build_flags to:
-//   - Skip the scheduled time check   (runs OTA on every boot)
-//   - Skip the version comparison      (installs even if remote == local)
-// NEVER enable this in production builds.
-#ifndef OTA_FORCE_UPDATE
-#define OTA_FORCE_UPDATE 0
-#endif
 
