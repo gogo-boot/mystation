@@ -559,7 +559,7 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
             struct tm* t = localtime(&now);
             char buf[32];
             strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", t);
-            u8g2.printf("Generated: %s");
+            u8g2.printf("Generated: %s", buf);
         }
     } while (display.nextPage());
 
