@@ -10,8 +10,8 @@
 
 // External variables
 extern char rcv_buffer[200];
-extern const char server_cert_pem_start[] asm("_binary_cert_github_pem_start");
-extern const char server_cert_pem_end[] asm("_binary_cert_github_pem_end");
+extern const char server_cert_pem_start[] asm("_binary_cert_github_bundle_pem_start");
+extern const char server_cert_pem_end[] asm("_binary_cert_github_bundle_pem_end");
 
 // Function declarations
 esp_err_t _http_event_handler(esp_http_client_event_t* evt);

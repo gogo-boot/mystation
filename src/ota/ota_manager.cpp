@@ -4,15 +4,81 @@
 #include "ota/ota_manager.h"
 #include "ota/ota_update.h"
 #include <ctime>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
 static const char* TAG = "OTA_MANAGER";
 
+// The OTA work (TLS handshake + mbedTLS + flash write) is very stack-heavy.
+// Running it on the main Arduino task (default ~8 KB stack) causes a stack
+// overflow that manifests as ESP_ERR_INVALID_ARG from esp_https_ota_perform()
+// and a subsequent LoadProhibited/StoreProhibited panic.
+// Solution: spin up a dedicated task with a large enough stack (16 KB), run
+// OTA there, and block the caller via a task notification until it finishes.
+// If OTA installs a new image it will call esp_restart() from inside the task,
+// so the caller will never be unblocked in that case.
+
+static TaskHandle_t s_callerTask = nullptr;
+
+static void otaTask(void* param) {
+    check_ota_update();
+
+    // Notify the caller that OTA finished without a reboot (no update / error)
+    // Use a local copy of the handle in case of race conditions
+    TaskHandle_t caller = s_callerTask;
+    s_callerTask = nullptr; // clear before notify to prevent double-notify
+
+    if (caller != nullptr) {
+        xTaskNotifyGive(caller);
+    }
+
+    // Delete this task
+    vTaskDelete(nullptr);
+}
+
+static void runOtaInDedicatedTask() {
+    s_callerTask = xTaskGetCurrentTaskHandle();
+
+    BaseType_t created = xTaskCreate(
+        otaTask,
+        "ota_task",
+        16384, // 16 KB – enough for TLS handshake + mbedTLS + OTA flash write
+        nullptr,
+        5, // slightly above normal so it isn't starved
+        nullptr
+    );
+
+    if (created != pdPASS) {
+        ESP_LOGE(TAG, "Failed to create OTA task – running inline (may stack overflow)");
+        check_ota_update();
+        return;
+    }
+
+    // Block indefinitely; if OTA succeeds the device reboots and we never wake.
+    ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+}
+
+// Set to true when the user explicitly triggers OTA via Button 3 long press.
+// Lives in normal RAM — valid only within the current boot, not across deep sleep.
+static bool userRequestedUpdate = false;
+
 namespace OTAManager {
+    void requestUpdateByUser() {
+        ESP_LOGI(TAG, "OTA update requested by user (Button 3 long press)");
+        userRequestedUpdate = true;
+    }
+
     bool shouldCheckForUpdate() {
 #if OTA_FORCE_UPDATE
         ESP_LOGW(TAG, "OTA_FORCE_UPDATE is enabled – skipping time/config check");
         return true;
 #else
+        // User explicitly triggered OTA via button — bypass schedule and config flag
+        if (userRequestedUpdate) {
+            ESP_LOGI(TAG, "User-requested OTA update – bypassing schedule check");
+            return true;
+        }
+
         RTCConfigData& config = ConfigManager::getConfig();
 
         // Check if OTA is enabled
@@ -59,7 +125,12 @@ namespace OTAManager {
     void checkAndApplyUpdate() {
         if (shouldCheckForUpdate()) {
             ESP_LOGI(TAG, "Starting OTA update check...");
-            check_ota_update();
+
+            // Reset user-request flag before running so normal scheduling
+            // is not affected if the OTA check completes without a restart
+            userRequestedUpdate = false;
+
+            runOtaInDedicatedTask();
 
             // Mark OTA check timestamp to prevent repeated checks
             time_t now;

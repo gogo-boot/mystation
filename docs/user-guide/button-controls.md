@@ -14,7 +14,7 @@ change the display mode for 2 minutes by pressing buttons, even when the device 
 | Button 3       | N                    | display full screen departure                                            |
 | Button 1       | Y                    | allows you to reconfigure your weather location and departure stations   |
 | Button 2       | Y                    | display application version, current configuration and other information |
-| Button 3       | Y                    | N/A                                                                      |
+| Button 3       | Y                    | initiate OTA Update                                                      |
 | Button 1 and 2 | Y                    | initiate factory reset                                                   |
 | Button 1 and 3 | Y                    | N/A                                                                      |
 | Button 2 and 3 | Y                    | N/A                                                                      |
