@@ -5,7 +5,6 @@
 #include "ota/version_helper.h"
 
 // OTA Configuration
-#define UPDATE_JSON_URL     "https://raw.githubusercontent.com/gogo-boot/mystation/refs/heads/61-firmware-ota-update/test/ota/example.json"
 #define LATEST_RELEASE_API "https://api.github.com/repos/gogo-boot/mystation/releases/latest"
 
 // External variables
