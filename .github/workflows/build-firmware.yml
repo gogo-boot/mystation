@@ -1,9 +1,8 @@
 name: Build and Release MyStation Firmware
 
-on:
-    push:
-        branches:
-            - *
+on: push
+#on:
+#    push:
 #        # when pull request is created, 2 github actions are triggered, one for push and one for pull_request
 #        # to avoid double builds, we only build on to pull_request
 #        #        branches:
