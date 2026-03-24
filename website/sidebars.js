@@ -93,6 +93,7 @@ const sidebars = {
             type: 'category',
             label: '📋 Maintainer Guide',
             items: [
+                'maintainer-guide/release-process',
                 'maintainer-guide/ota-update',
                 'maintainer-guide/github-actions',
                 'maintainer-guide/certificate-bundle',
