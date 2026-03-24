@@ -1,15 +1,15 @@
 name: Build and Release MyStation Firmware
 
-on: push
-#on:
-#    push:
-#        # when pull request is created, 2 github actions are triggered, one for push and one for pull_request
-#        # to avoid double builds, we only build on to pull_request
-#        #        branches:
-#        #            - '*'
-#        tags: [ 'v*' ]
-#    pull_request:
-#        branches: [ main ]
+#on: push
+on:
+    push:
+        # when pull request is created, 2 github actions are triggered, one for push and one for pull_request
+        # to avoid double builds, we only build on to pull_request
+        #        branches:
+        #            - '*'
+        tags: [ 'v*' ]
+    pull_request:
+        branches: [ main ]
 
 env:
     PLATFORMIO_CORE_VERSION: "6.1.19"
@@ -63,11 +63,11 @@ jobs:
                     echo "#define GOOGLE_API_KEY \"${{ secrets.GOOGLE_API_KEY }}\"" >> include/secrets/general_secrets.h
                     echo "#define RMV_API_KEY \"${{ secrets.RMV_API_KEY }}\"" >> include/secrets/general_secrets.h
                     echo "#define ENCRYPTION_KEY \"${{ secrets.ENCRYPTION_KEY }}\"" >> include/secrets/general_secrets.h
-                    # Verify secrets are not empty (lengths will be shown, not actual values)
-                    echo "Verifying secrets file..."
-                    echo "GOOGLE_API_KEY length: $(grep GOOGLE_API_KEY include/secrets/general_secrets.h | wc -c)"
-                    echo "RMV_API_KEY length: $(grep RMV_API_KEY include/secrets/general_secrets.h | wc -c)"
-                    echo "ENCRYPTION_KEY length: $(grep ENCRYPTION_KEY include/secrets/general_secrets.h | wc -c)"
+            #                     Verify secrets are not empty (lengths will be shown, not actual values)
+            #                    echo "Verifying secrets file..."
+            #                    echo "GOOGLE_API_KEY length: $(grep GOOGLE_API_KEY include/secrets/general_secrets.h | wc -c)"
+            #                    echo "RMV_API_KEY length: $(grep RMV_API_KEY include/secrets/general_secrets.h | wc -c)"
+            #                    echo "ENCRYPTION_KEY length: $(grep ENCRYPTION_KEY include/secrets/general_secrets.h | wc -c)"
 
             -   name: Build firmware
                 run: |
