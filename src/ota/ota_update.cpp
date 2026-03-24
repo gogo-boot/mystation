@@ -58,8 +58,8 @@ esp_err_t _http_event_handler(esp_http_client_event_t* evt) {
  */
 
 // Buffer filled by the event handler below during URL resolution
-// Must be large enough for GitHub's signed release-assets URLs which can exceed 700 chars
-static char s_redirectUrl[1024] = {};
+// Must be large enough for GitHub's signed release-assets URLs which can exceed 900 chars
+static char s_redirectUrl[2048] = {};
 
 static esp_err_t resolveRedirectEventHandler(esp_http_client_event_t* evt) {
     if (evt->event_id == HTTP_EVENT_ON_HEADER) {
@@ -83,6 +83,8 @@ static bool resolveFirmwareUrl(const char* originalUrl, char* outUrl, size_t out
     config.max_redirection_count = 0; // stop at the 302, do NOT follow it
     config.skip_cert_common_name_check = true;
     config.event_handler = resolveRedirectEventHandler;
+    config.buffer_size = 2048; // Larger buffer for long URLs
+    config.buffer_size_tx = 1024;
 
     esp_http_client_handle_t client = esp_http_client_init(&config);
     if (!client) {
@@ -154,7 +156,7 @@ void check_ota_update() {
     // Pre-resolve the GitHub 302 redirect to the direct signed release-assets URL
     // so esp_https_ota never encounters a redirect mid-stream (which invalidates
     // the internal OTA flash-write handle and causes ESP_ERR_INVALID_ARG).
-    char directUrl[1024] = {};
+    char directUrl[2048] = {};
     if (!resolveFirmwareUrl(release.firmwareUrl.c_str(), directUrl, sizeof(directUrl))) {
         // Fall back to original URL; esp_https_ota will try and likely fail on redirect
         strncpy(directUrl, release.firmwareUrl.c_str(), sizeof(directUrl) - 1);
@@ -167,8 +169,8 @@ void check_ota_update() {
     ota_client_config.cert_len = (size_t)(server_cert_pem_end - server_cert_pem_start);
     ota_client_config.timeout_ms = 60000;
     ota_client_config.max_redirection_count = 0;
-    ota_client_config.buffer_size = 4096;
-    ota_client_config.buffer_size_tx = 2048;
+    ota_client_config.buffer_size = 4096; // Large buffer for firmware download
+    ota_client_config.buffer_size_tx = 2048; // Increased for long URL in request
     ota_client_config.skip_cert_common_name_check = true;
     ota_client_config.keep_alive_enable = false;
 
