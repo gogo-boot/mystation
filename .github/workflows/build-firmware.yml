@@ -55,13 +55,13 @@ jobs:
 
             -   name: Create secrets files from environment variables
                 run: |
-                    mkdir -p src/secrets
-                    cat > src/secrets/general_secrets.h << EOF
+                    mkdir -p include/secrets
+                    cat > include/secrets/general_secrets.h << 'SECRETS_EOF'
                     #pragma once
-                    #define GOOGLE_API_KEY "${{ secrets.GOOGLE_API_KEY }}"
-                    #define ENCRYPTION_KEY "${{ secrets.ENCRYPTION_KEY }}"
-                    #define RMV_API_KEY "${{ secrets.RMV_API_KEY }}"
-                    EOF
+                    SECRETS_EOF
+                    echo "#define GOOGLE_API_KEY \"${{ secrets.GOOGLE_API_KEY }}\"" >> include/secrets/general_secrets.h
+                    echo "#define ENCRYPTION_KEY \"${{ secrets.ENCRYPTION_KEY }}\"" >> include/secrets/general_secrets.h
+                    echo "#define RMV_API_KEY \"${{ secrets.RMV_API_KEY }}\"" >> include/secrets/general_secrets.h
 
             -   name: Build firmware
                 run: |
