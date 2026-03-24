@@ -62,8 +62,12 @@ jobs:
                     SECRETS_EOF
                     echo "#define GOOGLE_API_KEY \"${{ secrets.GOOGLE_API_KEY }}\"" >> include/secrets/general_secrets.h
                     echo "#define RMV_API_KEY \"${{ secrets.RMV_API_KEY }}\"" >> include/secrets/general_secrets.h
-                    cat include/secrets/general_secrets.h
                     echo "#define ENCRYPTION_KEY \"${{ secrets.ENCRYPTION_KEY }}\"" >> include/secrets/general_secrets.h
+                    # Verify secrets are not empty (lengths will be shown, not actual values)
+                    echo "Verifying secrets file..."
+                    echo "GOOGLE_API_KEY length: $(grep GOOGLE_API_KEY include/secrets/general_secrets.h | wc -c)"
+                    echo "RMV_API_KEY length: $(grep RMV_API_KEY include/secrets/general_secrets.h | wc -c)"
+                    echo "ENCRYPTION_KEY length: $(grep ENCRYPTION_KEY include/secrets/general_secrets.h | wc -c)"
 
             -   name: Build firmware
                 run: |
@@ -102,7 +106,7 @@ jobs:
         strategy:
             matrix:
                 environment: [ esp32-s3-e1001-production ]
-        if: github.ref_type == 'tag'
+        #        if: github.ref_type == 'tag'
 
         steps:
             -   name: Download all artifacts
