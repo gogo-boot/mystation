@@ -2,13 +2,15 @@ name: Build and Release MyStation Firmware
 
 on:
     push:
-        # when pull request is created, 2 github actions are triggered, one for push and one for pull_request
-        # to avoid double builds, we only build on to pull_request
-        #        branches:
-        #            - '*'
-        tags: [ 'v*' ]
-    pull_request:
-        branches: [ main ]
+        branches:
+            - *
+#        # when pull request is created, 2 github actions are triggered, one for push and one for pull_request
+#        # to avoid double builds, we only build on to pull_request
+#        #        branches:
+#        #            - '*'
+#        tags: [ 'v*' ]
+#    pull_request:
+#        branches: [ main ]
 
 env:
     PLATFORMIO_CORE_VERSION: "6.1.19"
@@ -60,8 +62,9 @@ jobs:
                     #pragma once
                     SECRETS_EOF
                     echo "#define GOOGLE_API_KEY \"${{ secrets.GOOGLE_API_KEY }}\"" >> include/secrets/general_secrets.h
-                    echo "#define ENCRYPTION_KEY \"${{ secrets.ENCRYPTION_KEY }}\"" >> include/secrets/general_secrets.h
                     echo "#define RMV_API_KEY \"${{ secrets.RMV_API_KEY }}\"" >> include/secrets/general_secrets.h
+                    cat include/secrets/general_secrets.h
+                    echo "#define ENCRYPTION_KEY \"${{ secrets.ENCRYPTION_KEY }}\"" >> include/secrets/general_secrets.h
 
             -   name: Build firmware
                 run: |
