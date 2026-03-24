@@ -12,10 +12,16 @@ String getCityFromLatLon(float lat, float lon) {
         String(lon, 6) + "&zoom=10&addressdetails=1";
     HTTPClient http;
     http.begin(url);
-    http.addHeader("User-Agent", "ESP32-mystation/1.0");
+    // Nominatim requires a valid User-Agent with contact info per their usage policy
+    // https://operations.osmfoundation.org/policies/nominatim/
+    http.addHeader("User-Agent", "MyStation-ESP32/1.0 (https://github.com/gogo-boot/mystation)");
+    http.addHeader("Accept", "application/json");
+    http.addHeader("Accept-Language", "en");
+    // Set longer timeout - Nominatim can be slow for automated requests (15 seconds)
+    http.setTimeout(5000);
     int httpCode = http.GET();
     String city = "";
-    if (httpCode > 0) {
+    if (httpCode == HTTP_CODE_OK) {
         String payload = http.getString();
         ESP_LOGD("DWD_CITY", "Nominatim payload: %s", payload.c_str());
         DynamicJsonDocument doc(2048);
@@ -31,6 +37,9 @@ String getCityFromLatLon(float lat, float lon) {
                 city = doc["address"]["county"].as<String>();
             }
         }
+    } else {
+        ESP_LOGW("DWD_CITY", "HTTP request failed, code: %d, error: %s", httpCode,
+                 http.errorToString(httpCode).c_str());
     }
     http.end();
     // return city if found, otherwise empty string
