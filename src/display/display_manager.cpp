@@ -445,6 +445,9 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
         u8g2.printf("Active  : %s - %s", cfg.transportActiveStart, cfg.transportActiveEnd);
         y += lhSmall;
         u8g2.setCursor(margin, y);
+        u8g2.printf("Interval: %d min", cfg.transportInterval);
+        y += lhSmall;
+        u8g2.setCursor(margin, y);
         // Build active vehicle filter string from bitmask
         {
             char filters[64] = "";
