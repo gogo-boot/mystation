@@ -108,7 +108,7 @@ jobs:
         strategy:
             matrix:
                 environment: [ esp32-s3-e1001-production ]
-                if: github.ref_type == 'tag'
+        if: github.ref_type == 'tag'
 
         steps:
             -   name: Download all artifacts
