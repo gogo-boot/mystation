@@ -44,42 +44,19 @@ bool TimeManager::getCurrentLocalTime(tm& timeinfo) {
         return false;
     }
 
-    time_t now = time(nullptr);
+    // Always ensure timezone is set before getting local time
+    // This is necessary because TZ environment may not persist across deep sleep
+    // German timezone: CET-1CEST,M3.5.0,M10.5.0/3 means:
+    // - CET (Central European Time) is UTC+1
+    // - CEST (Central European Summer Time) is UTC+2
+    // M3.5.0 = DST starts on month 3 (March), week 5 (last), day 0 (Sunday) at 02:00
+    // M10.5.0/3 = DST ends on month 10 (October), week 5 (last), day 0 (Sunday) at 03:00
+    setenv("TZ", "CET-1CEST,M3.5.0,M10.5.0/3", 1);
+    tzset();
 
-    // First try with localtime_r (should use timezone settings)
+    time_t now = time(nullptr);
     localtime_r(&now, &timeinfo);
 
-    // Check if timezone conversion worked by comparing with UTC
-    tm utc_timeinfo;
-    gmtime_r(&now, &utc_timeinfo);
-
-    // Calculate hour difference
-    int local_hour = timeinfo.tm_hour;
-    int utc_hour = utc_timeinfo.tm_hour;
-    int hour_diff = local_hour - utc_hour;
-
-    // Handle day boundary crossing
-    if (hour_diff < -12) hour_diff += 24;
-    if (hour_diff > 12) hour_diff -= 24;
-
-    ESP_LOGD(TAG, "UTC: %02d:%02d, Local: %02d:%02d, Diff: %+d hours",
-             utc_hour, utc_timeinfo.tm_min, local_hour, timeinfo.tm_min, hour_diff);
-
-    // If timezone conversion didn't work (hour_diff is 0), manually add German offset
-    if (hour_diff == 0) {
-        ESP_LOGW(TAG, "Timezone not applied automatically, applying manual offset");
-
-        // Determine if we're in DST (roughly March to October)
-        bool is_dst = (timeinfo.tm_mon >= 2 && timeinfo.tm_mon <= 9); // March=2, October=9
-        int german_offset = is_dst ? 2 : 1; // CEST=UTC+2, CET=UTC+1
-
-        // Apply German timezone offset
-        now += german_offset * 3600; // Add hours in seconds
-        localtime_r(&now, &timeinfo);
-
-        ESP_LOGI(TAG, "Applied manual German offset: +%d hours (%s)",
-                 german_offset, is_dst ? "CEST" : "CET");
-    }
 
     // Debug: Log current time being returned
     ESP_LOGD(TAG, "getCurrentLocalTime returning: %04d-%02d-%02d %02d:%02d:%02d",

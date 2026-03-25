@@ -1,5 +1,6 @@
 name: Build and Release MyStation Firmware
 
+#on: push
 on:
     push:
         # when pull request is created, 2 github actions are triggered, one for push and one for pull_request
@@ -55,13 +56,20 @@ jobs:
 
             -   name: Create secrets files from environment variables
                 run: |
-                    mkdir -p src/secrets
-                    cat > src/secrets/general_secrets.h << EOF
+                    cat > include/secrets/general_secrets.h << 'SECRETS_EOF'
                     #pragma once
                     #define GOOGLE_API_KEY "${{ secrets.GOOGLE_API_KEY }}"
                     #define ENCRYPTION_KEY "${{ secrets.ENCRYPTION_KEY }}"
                     #define RMV_API_KEY "${{ secrets.RMV_API_KEY }}"
-                    EOF
+                    SECRETS_EOF
+            #                    echo "#define GOOGLE_API_KEY \"${{ secrets.GOOGLE_API_KEY }}\"" >> include/secrets/general_secrets.h
+            #                    echo "#define RMV_API_KEY \"${{ secrets.RMV_API_KEY }}\"" >> include/secrets/general_secrets.h
+            #                    echo "#define ENCRYPTION_KEY \"${{ secrets.ENCRYPTION_KEY }}\"" >> include/secrets/general_secrets.h
+            #                     Verify secrets are not empty (lengths will be shown, not actual values)
+            #                    echo "Verifying secrets file..."
+            #                    echo "GOOGLE_API_KEY length: $(grep GOOGLE_API_KEY include/secrets/general_secrets.h | wc -c)"
+            #                    echo "RMV_API_KEY length: $(grep RMV_API_KEY include/secrets/general_secrets.h | wc -c)"
+            #                    echo "ENCRYPTION_KEY length: $(grep ENCRYPTION_KEY include/secrets/general_secrets.h | wc -c)"
 
             -   name: Build firmware
                 run: |

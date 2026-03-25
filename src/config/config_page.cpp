@@ -64,6 +64,7 @@ void handleConfigPage(WebServer& server) {
 
     // Replace configuration values with current settings from ConfigManager
     RTCConfigData& config = ConfigManager::getConfig();
+    page.replace("{{DISPLAY_MODE}}", String(config.displayMode));
     page.replace("{{WEATHER_INTERVAL}}", String(config.weatherInterval));
     page.replace("{{TRANSPORT_INTERVAL}}", String(config.transportInterval));
     page.replace("{{TRANSPORT_ACTIVE_START}}", config.transportActiveStart);

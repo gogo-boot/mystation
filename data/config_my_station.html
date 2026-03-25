@@ -228,8 +228,9 @@
       <div class="config-row">
           <select id="display-mode"
                   style="width:100%; padding:0.5em; font-size:1em; border:1px solid #ccc; border-radius:5px;"
-                  onchange="updateDisplayModePreview()">
-              <option value="0" selected>Wetter + Abfahrten (Hälfte-Hälfte)</option>
+                  onchange="updateDisplayModePreview()"
+                  data-saved-mode="{{DISPLAY_MODE}}">
+              <option value="0">Wetter + Abfahrten (Hälfte-Hälfte)</option>
               <option value="1">Nur Wetter (Vollbild)</option>
               <option value="2">Nur Abfahrten (Vollbild)</option>
           </select>
@@ -814,6 +815,7 @@
         stopId: stopId,
         stopName: stopName,
         filters: filters,
+        displayMode: parseInt(displayMode),
         weatherInterval: parseInt(weatherInterval),
         transportInterval: parseInt(transportInterval),
         transportActiveStart: transportActiveStart,
@@ -992,6 +994,12 @@
 
       // Initialize display mode preview
       document.addEventListener('DOMContentLoaded', function () {
+          // Pre-select saved display mode
+          var displayModeSelect = document.getElementById('display-mode');
+          var savedMode = displayModeSelect.getAttribute('data-saved-mode');
+          if (savedMode !== null && savedMode !== '') {
+              displayModeSelect.value = savedMode;
+          }
           updateDisplayModePreview();
       });
 

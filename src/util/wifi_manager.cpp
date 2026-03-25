@@ -41,7 +41,7 @@ void MyWiFiManager::setupWiFiAccessPointAndRestart(WiFiManager& wm) {
     wm.setMenu(menu, 1);
     wm.setConnectTimeout(20); // 20 seconds per connection attempt
     wm.setConnectRetries(3);
-    wm.setMinimumSignalQuality(20); // Lower signal quality requirement
+    wm.setMinimumSignalQuality(8); // Lower signal quality requirement
     wm.setAPStaticIPConfig(IPAddress(10, 0, 1, 1), IPAddress(10, 0, 1, 1), IPAddress(255, 255, 255, 0));
     wm.setTitle("MyStation WiFi Setup");
     wm.setCountry("DE");
