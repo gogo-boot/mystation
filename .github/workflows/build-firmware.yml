@@ -56,13 +56,15 @@ jobs:
 
             -   name: Create secrets files from environment variables
                 run: |
-                    mkdir -p include/secrets
                     cat > include/secrets/general_secrets.h << 'SECRETS_EOF'
                     #pragma once
+                    #define GOOGLE_API_KEY "${{ secrets.GOOGLE_API_KEY }}"
+                    #define ENCRYPTION_KEY "${{ secrets.ENCRYPTION_KEY }}"
+                    #define RMV_API_KEY "${{ secrets.RMV_API_KEY }}"
                     SECRETS_EOF
-                    echo "#define GOOGLE_API_KEY \"${{ secrets.GOOGLE_API_KEY }}\"" >> include/secrets/general_secrets.h
-                    echo "#define RMV_API_KEY \"${{ secrets.RMV_API_KEY }}\"" >> include/secrets/general_secrets.h
-                    echo "#define ENCRYPTION_KEY \"${{ secrets.ENCRYPTION_KEY }}\"" >> include/secrets/general_secrets.h
+            #                    echo "#define GOOGLE_API_KEY \"${{ secrets.GOOGLE_API_KEY }}\"" >> include/secrets/general_secrets.h
+            #                    echo "#define RMV_API_KEY \"${{ secrets.RMV_API_KEY }}\"" >> include/secrets/general_secrets.h
+            #                    echo "#define ENCRYPTION_KEY \"${{ secrets.ENCRYPTION_KEY }}\"" >> include/secrets/general_secrets.h
             #                     Verify secrets are not empty (lengths will be shown, not actual values)
             #                    echo "Verifying secrets file..."
             #                    echo "GOOGLE_API_KEY length: $(grep GOOGLE_API_KEY include/secrets/general_secrets.h | wc -c)"
@@ -106,7 +108,7 @@ jobs:
         strategy:
             matrix:
                 environment: [ esp32-s3-e1001-production ]
-        #        if: github.ref_type == 'tag'
+                if: github.ref_type == 'tag'
 
         steps:
             -   name: Download all artifacts
