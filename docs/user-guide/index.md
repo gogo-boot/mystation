@@ -55,27 +55,30 @@ for your location. It's designed to be:
 
 ## Device Controls
 
-Your MyStation device includes:
+> 📷 *[Photo placeholder: device front view with buttons labelled]*
 
-- **Physical Buttons** (3 buttons) - Switch between display modes instantly
-    - Button 1: Weather + Departures view
-    - Button 2: Weather only view
-    - Button 3: Departures only view
-    - Button 1 (long press): Factory reset
-- **Reset Button** - Restart the device if needed
+Your MyStation device includes **3 physical buttons**:
 
-See [Button Controls](button-controls.md) for detailed usage.
+- **Button 1** (Left): Weather + Departures view (short press) / Enter Configure Mode (hold 5 sec)
+- **Button 2** (Middle): Weather only view (short press) / Show device info (hold 5 sec)
+- **Button 3** (Right): Departures only view (short press) / Trigger OTA update (hold 5 sec)
+- **Button 1 + Button 2** (hold 5 sec): Factory reset
+
+See [Button Controls](button-controls.md) for detailed use-case guide.
 
 ## Getting Started
 
 ### Setup & Configuration
 
-- **[Quick Start](quick-start.md)** - Get up and running in 2 minutes
+- **[Quick Start](quick-start.md)** - Get up and running in 5 minutes
+- **[Network Setup](network-setup.md)** - WiFi requirements and network diagrams
+- **[Configure Mode](configure-mode.md)** - How and when to configure the device
+- **[Configuration Guide](configuration.md)** - Every setting explained in detail
 
 ### Daily Usage
 
 - **[Understanding the Display](understanding-display.md)** - What information is shown and where
-- **[Button Controls](button-controls.md)** - Using the physical buttons
+- **[Button Controls](button-controls.md)** - Use-case driven button guide
 
 ## Important Notes
 
@@ -103,7 +106,7 @@ MyStation is optimized for use in Germany with access to:
 ### Battery Life
 
 It depends on your refresh intervals and usage patterns. It varies based on user pattern.
-30 Updates per day can last 3 months on a full charge.
+30 Updates per day can last 6 months on a full charge.
 
 For longer battery life:
 
@@ -123,9 +126,6 @@ For longer battery life:
 
 ## Security and Privacy
 
-Mystation doesn't have microphone or camera.
-
-It does store your WiFi credentials securely in encrypted storage on the device.
 It gets automatically its Geo Location via Wifi Networks.
 The found Geo Location is not exact geo location, It is brief geolocation.
 The Geolocation is only used to configure device easily to avoid type in longitude and latitude manually.
@@ -137,16 +137,18 @@ It does not share any data with third parties beyond these API requests.
 ## Need Help?
 
 - 🚀 [Quick Start Guide](quick-start.md) - First-time setup
+- 🌐 [Network Setup](network-setup.md) - WiFi and network requirements
+- ⚙️ [Configuration Guide](configuration.md) - All settings explained
+- 🔘 [Configure Mode](configure-mode.md) - How to reconfigure the device
 - 🔧 [Troubleshooting](troubleshooting.md) - Common issues and solutions
-- 📖 [Full Documentation](index.md) - Complete documentation index
 
 ## Quick Links
 
 ### First Time Setup
 
 1. [Quick Start Guide](quick-start.md) - Complete setup walkthrough
-2. [WiFi Configuration](quick-start.md#step-1-wifi-configuration-1-minutes) - Connect to your network
-3. [Station Configuration](quick-start.md#configure-your-transport-stop) - Select your transport stop
+2. [WiFi Configuration](quick-start.md#step-4-configure-wifi) - Connect to your network
+3. [Station Configuration](quick-start.md#transport-stop) - Select your transport stop
 
 ---
 

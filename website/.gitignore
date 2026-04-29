@@ -7,20 +7,10 @@ node_modules/
 build/
 .DS_Store
 
-# npm
-package-lock.json
-
 # Debug
 npm-debug.log*
 *.log
 .docusaurus-ssg
-.hero__title {
-  font-size: 3rem;
-}
 
-.buttons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
+# Lock file (generated fresh in CI)
+package-lock.json

@@ -32,14 +32,18 @@ jobs:
         steps:
             -   name: Checkout
                 uses: actions/checkout@v5
-            -   name: Setup Node.js (Latest LTS)
+            -   name: Setup Node.js
                 uses: actions/setup-node@v6
                 with:
-                    node-version: '22'
+                    node-version: '24.15.0'
+                    package-manager-cache: false
+
+            -   name: Clean npm cache
+                run: npm cache clean --force
 
             -   name: Install dependencies
                 working-directory: ./website
-                run: npm install
+                run: npm install --no-audit --no-fund
 
             -   name: Build Docusaurus site
                 working-directory: ./website
