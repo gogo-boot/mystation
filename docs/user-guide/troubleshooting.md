@@ -126,7 +126,7 @@ This guide helps you solve common issues with your MyStation e-paper departure b
 
 **Solutions:**
 
-1. **Push Reset button**
+1. **Power cycle the device** — disconnect and reconnect the battery or USB power
 1. **Check WiFi connection**
     - Verify device connects to 2.4 GHz WiFi
 1. **Charge Battery**
@@ -212,20 +212,93 @@ This guide helps you solve common issues with your MyStation e-paper departure b
 
 ---
 
-### Factory Reset Button Not Working
-
-**Symptoms:**
-
-- Hold Button 1 for 5 seconds, nothing happens
-- No factory reset occurs
+### Device is Stuck / Unresponsive
 
 **Solutions:**
 
-1. **Timing is critical**
-    - Continue holding for full 5 seconds
-    - Count slowly: 1-Mississippi, 2-Mississippi...
+1. **Power cycle the device**
+    - Disconnect and reconnect the battery or USB power
+    - This device does not have a dedicated reset button
+    - All saved settings are preserved through a power cycle
 
 ---
+
+### Configured Display Mode is Not Applied
+
+**Symptoms:**
+
+- You configured "Weather Full" or "Transport Full" in the settings
+- But the device always shows Half & Half after restarting
+
+**Solutions:**
+
+1. **Re-enter Configure Mode and re-save**
+    - Hold Button 1 for 5 seconds to enter Configure Mode
+    - Check that the correct display mode is selected
+    - Click "Save Settings" again
+    - This is a known issue that is fixed in recent firmware versions
+
+2. **Check firmware version**
+    - Hold Button 2 for 5 seconds to see the current firmware version
+    - If OTA updates are enabled, the device will update automatically overnight
+
+---
+
+### Display Shows Wrong Time (UTC+2 instead of UTC+1)
+
+**Symptoms:**
+
+- Footer time is 1 hour ahead of local time
+- Usually happens after several update cycles without a full restart
+
+**Solutions:**
+
+1. **Power cycle the device**
+    - Disconnect and reconnect the battery or USB power
+    - The device re-syncs the time on boot
+    - This is a known issue related to daylight saving time (DST) transitions
+
+2. **Note**: This issue is most common during DST transition periods (March and October)
+
+---
+
+### OTA Update Failed
+
+**Symptoms:**
+
+- Firmware update did not complete
+- Device restarted but shows same firmware version
+
+**Solutions:**
+
+1. **Trigger a manual OTA update**
+    - Hold Button 3 for 5 seconds to force an OTA check
+    - Ensure WiFi and internet connection are working
+
+2. **Check internet connectivity**
+    - Verify your router has internet access
+
+3. **Wait for the nightly automatic check**
+    - OTA update is retried automatically the following night
+
+4. **Why OTA updates matter**
+    - The DWD and RMV APIs may change their data format over time
+    - Without a firmware update, weather or transport data may stop displaying correctly
+    - Keeping OTA enabled ensures continued compatibility
+
+---
+
+### Factory Reset Procedure
+
+**When to use**: Device is completely misconfigured, or you want to start fresh.
+
+> ⚠️ **This erases all settings permanently.**
+
+**Steps:**
+
+1. Press and hold **Button 1 + Button 2 simultaneously** for 5 seconds
+2. Confirm the reset when prompted on the display
+3. The device restarts as new — follow the [Quick Start Guide](quick-start.md)
 
 ## Configuration Issues
 

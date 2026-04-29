@@ -1,110 +1,143 @@
 # Quick Start Guide
 
-Get your MyStation up and running in 3 minutes!
+Get your MyStation up and running in about 5 minutes!
 
-## Step 1: WiFi Configuration (1 minutes)
+> 📷 *[Photo placeholder: device powered on, showing initial screen]*
 
-### Connect to MyStation
+---
 
-1. **Find the WiFi network** named `MyStation-XXXXXXXX` (XXXXXXXX is your device's unique ID)
-2. **Connect** using your phone or computer
-3. **No password required** for initial setup
+## What You Need Before You Start
 
-### Configure WiFi
+- Your **home WiFi name (SSID)** and **password**
+- A phone or computer with a browser
+- Your WiFi must be **2.4 GHz** — 5 GHz is **not supported**
+- Your WiFi must be a standard home network (no captive portal login like hotel WiFi)
 
-1. **Open your browser** and go to `http://10.0.1.1`
-2. **Select your home WiFi** network from the list
-    - ⚠️ **Make sure it's a 2.4 GHz network** (5 GHz will not work)
-3. **Enter your WiFi password**
-4. **Click "Save"**
+---
 
-The device will:
+## Step 1: Power On the Device
 
-- Connect to your WiFi network
-- Get an IP address
-- verify internet connectivity
-- Start the configuration web interface
-- Detect your location automatically
+Connect the battery or USB power. The device will boot and after ~30 seconds display a setup screen.
 
-> 💡 **Tip**: After connecting to WiFi, the serial monitor will show your device's IP address
+> 📷 *[Photo placeholder: device showing "MyStation-XXXXXXXX" WiFi hotspot name on screen]*
 
-## Step 2: MyStation Web Configuration (2 minutes)
+---
 
-### Access Configuration Interface
+## Step 2: Connect to MyStation WiFi (1 minute)
 
-After WiFi setup, access the configuration page:
+1. On your phone or computer, open **WiFi settings**
+2. Find the network named **`MyStation-XXXXXXXX`** (XXXXXXXX is your device's unique ID)
+3. Connect to it — **no password required**
 
-- **By IP**: `http://192.168.1.XXX` (check display to get exact IP)
-- **By mDNS**: `http://mystation.local` (if your router supports mDNS)
+> 📷 *[Photo placeholder: phone WiFi list showing MyStation-XXXXXXXX network]*
 
-### Display Settings
+---
 
-Configure how and when to update:
+## Step 3: Open the Configuration Page
 
-- **Display Mode**: What to show on screen
-    - Half & Half: Weather + Departures split screen
-    - Weather Only: Full screen weather display
-    - Departures Only: Full screen departure display
+1. Open your browser and go to **`http://10.0.1.1`**
+2. The MyStation configuration page will load
 
-### Configure Your Location
+> 📷 *[Photo placeholder: browser showing the MyStation configuration web page]*
 
-The device will automatically:
+---
 
-1. ✅ Detect your brief location from Wifi
-2. ✅ Find and display nearby public transport stops in the configuration interface
+## Step 4: Configure WiFi
 
-### Configure Your Town/City for Weather Forecast
+1. Select your **home WiFi network** from the list
+    - ⚠️ Make sure it's a **2.4 GHz** network
+2. Enter your **WiFi password**
+3. Click **"Connect"**
 
-1. **Review the detected location** shown on the configuration page
-1. **If incorrect, enter your town/city manually**
-1. **Update Interval**: How often to refresh data (default: 3 hours)
+MyStation will:
 
-### Configure Your Transport Stop
+- Connect to your home WiFi
+- Detect your approximate location automatically
+- Discover nearby public transport stops
 
-1. **Review the list of nearby stops** shown on the configuration page
-2. **Select your preferred departure station**
-3. **Choose transport types** you want to see (RE, S-Bahn, Bus, etc.)
-1. **Update Interval**: How often to refresh data (default: 5 minutes)
+> 💡 After connecting to your home WiFi, the configuration page will reload automatically at the device's new IP address.
 
-### Deep Sleep Settings
+---
 
-- **Sleep Schedule** (Optional): Set quiet hours
-    - Example: Sleep from 23:00 to 06:00
-    - Saves battery overnight
+## Step 5: Configure the Application (2 minutes)
 
-### Save Configuration
+The configuration page now shows all settings. Your location and nearby stops are already detected.
 
-Click **"Save Settings"** and your device will:
+### Display Mode
 
-1. Save all settings to permanent storage
-1. Mystation restarts itself and up and running
+Choose what to show on the screen:
 
-## Step 5: Up and Running
+- **Half & Half** — Weather on the left, departures on the right
+- **Weather Full** — Full screen detailed weather
+- **Transport Full** — Full screen departure board
 
-### Check the Display
+### Location / Weather
 
-Your e-paper display should now show:
+- Review the **auto-detected location** shown on the page
+- If it looks correct, leave it as-is — this gives the most accurate weather for your location
+- If incorrect, enter your **city or town name** manually
+
+> 💡 Auto-detected coordinates are more accurate than a city name. A city name uses the geographic centre of the
+> city, which may be several kilometres from your actual location.
+> See [Configuration Guide](configuration.md#location-settings).
+
+### Transport Stop
+
+1. Review the list of **nearby stops** — they are sorted by distance
+2. Select your preferred departure stop
+3. Choose which **transport types** to show (RE, S-Bahn, Bus, Tram, etc.)
+
+### Update Intervals
+
+- **Weather interval**: How often weather data refreshes (default: 3 hours)
+- **Transport interval**: How often departure data refreshes (default: 5 minutes)
+
+### Sleep Schedule (Recommended)
+
+Set quiet hours to save battery overnight. Example: sleep from `22:30` to `05:30`.
+
+### Save
+
+Click **"Save Settings"**. MyStation saves all settings and **restarts automatically**.
+
+---
+
+## Step 6: Up and Running 🎉
+
+After restarting, MyStation will fetch data and update the display. You should see:
 
 - 🌤️ Current weather information
 - 🚌 Upcoming departures from your selected stop
-- ⏰ Last update timestamp
-- 🔋 Battery status (ESP32-S3 only)
+- ⏰ Last update time in the footer
+- 🔋 Battery status
 
-### Need to Reconfigure?
+> 📷 *[Photo placeholder: device showing live weather and departure data]*
 
-Hold button 1 longer than 5 seconds. It will start over the configuration process from beginning.
+---
+
+## Need to Reconfigure?
+
+Hold **Button 1 for 5 seconds** to enter Configure Mode at any time.
+All your previous settings will be pre-loaded. See [Configure Mode](configure-mode.md).
+
+---
 
 ## Common First-Time Issues
 
-### "Cannot connect to WiFi network"
+### "Cannot connect to MyStation WiFi"
 
-- ✅ Your Wifi is not required a captive portal login, like a hotel or public wifi
-- ✅ Check that WiFi password is correct
-- ✅ Make sure signal strength is adequate
+- Wait 30–60 seconds after powering on — the device needs time to boot
+- Make sure your phone is not locked to 5 GHz only
+
+### "WiFi connection failed"
+
+- ✅ Check that your WiFi password is correct (case-sensitive)
+- ✅ Verify your network is 2.4 GHz
+- ✅ Your network must not require a browser login (captive portal)
 
 ### "No nearby stops found"
 
 - ✅ Verify internet connection is working
-- ✅ Ensure you're in an area covered by RMV (German public transport)
+- ✅ You must be in an area covered by RMV (German public transport network)
 
 For more help, see the [Troubleshooting Guide](troubleshooting.md).

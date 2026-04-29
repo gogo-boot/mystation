@@ -21,6 +21,15 @@ const sidebars = {
             items: [
                 'user-guide/index',
                 'user-guide/quick-start',
+                'user-guide/network-setup',
+            ],
+        },
+        {
+            type: 'category',
+            label: '⚙️ Configuration',
+            items: [
+                'user-guide/configure-mode',
+                'user-guide/configuration',
             ],
         },
         {
