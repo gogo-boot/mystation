@@ -144,11 +144,7 @@ This guide helps you solve common issues with your MyStation e-paper departure b
     - E-paper displays can show ghosting
     - Periodic full refresh reduces this
 
-2. **Enable/verify full refresh**
-    - Code should do full refresh periodically
-    - Full refresh clears ghosts
-
-3. **Display wearing out**
+2. **Display wearing out**
     - E-paper has limited refresh cycles
     - Ghosting increases with age
     - ~10,000-100,000 full refreshes typical

@@ -22,7 +22,7 @@ network is used during configuration and normal operation.
 
 MyStation behaves differently depending on whether it is in **Configure Mode** or **Normal Operation**.
 
-### Configure Mode — Setting Up the Device
+### Internet Access Configure Mode — Setting Up the Device Internet Access
 
 When you enter Configure Mode (hold Button 1 for 5 seconds), MyStation opens its **own WiFi Access Point** so you can
 connect your phone or computer directly to it.
@@ -53,6 +53,23 @@ graph LR
 
 ---
 
+### Setting Up the MyStation Interval and Location Configuration Page
+
+```mermaid
+graph LR
+    Phone["📱 Your Phone"]
+    Router["🏠 Your Router"]
+    Station["🖥️ MyStation"]
+    Phone <-- " http://mystation.local\nor device IP " --> Router
+    Station <-- " Connected to\nhome WiFi " --> Router
+```
+
+> ⚠️ **Important**: You can only access the MyStation configuration page while your phone and MyStation are both
+> connected to the **same WiFi network**. If your phone is on mobile data or a different network, the page will
+> not load.
+
+---
+
 ### Normal Operation — Daily Use
 
 Once configured, MyStation connects to your home WiFi router to fetch data from the internet.
@@ -79,24 +96,6 @@ graph LR
 > 💡 To access the configuration page **during normal operation**, your phone or computer must be connected to
 > **the same WiFi network** as MyStation. You can then open the page at `http://mystation.local` or the
 > device's IP address shown in the display footer.
-
----
-
-## Same Network Requirement for Configuration Page
-
-```mermaid
-graph LR
-    Phone["📱 Your Phone"]
-    Router["🏠 Your Router"]
-    Station["🖥️ MyStation"]
-    Phone -- " Connected to\nhome WiFi " --> Router
-    Station -- " Connected to\nhome WiFi " --> Router
-    Phone -- " http://mystation.local\nor device IP " --> Station
-```
-
-> ⚠️ **Important**: You can only access the MyStation configuration page while your phone and MyStation are both
-> connected to the **same WiFi network**. If your phone is on mobile data or a different network, the page will
-> not load.
 
 ---
 

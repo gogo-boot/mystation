@@ -106,7 +106,7 @@ MyStation is optimized for use in Germany with access to:
 ### Battery Life
 
 It depends on your refresh intervals and usage patterns. It varies based on user pattern.
-30 Updates per day can last 3 months on a full charge.
+30 Updates per day can last 6 months on a full charge.
 
 For longer battery life:
 
@@ -126,9 +126,6 @@ For longer battery life:
 
 ## Security and Privacy
 
-Mystation doesn't have microphone or camera.
-
-It does store your WiFi credentials securely in encrypted storage on the device.
 It gets automatically its Geo Location via Wifi Networks.
 The found Geo Location is not exact geo location, It is brief geolocation.
 The Geolocation is only used to configure device easily to avoid type in longitude and latitude manually.

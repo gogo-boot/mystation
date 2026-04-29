@@ -54,24 +54,6 @@ stateDiagram-v2
 
 ---
 
-## Pre-Loaded Values in Configure Mode
-
-When you re-enter Configure Mode, the following values are restored from the last saved configuration:
-
-| Setting                              | Pre-loaded? |
-|--------------------------------------|-------------|
-| WiFi network (SSID)                  | ✅ Yes       |
-| Transport stop selection             | ✅ Yes       |
-| Weather update interval              | ✅ Yes       |
-| Transport update interval            | ✅ Yes       |
-| Sleep schedule                       | ✅ Yes       |
-| Weekend mode                         | ✅ Yes       |
-| Transport filters (RE, S-Bahn, Bus…) | ✅ Yes       |
-| Display mode                         | ✅ Yes       |
-| City / location                      | ✅ Yes       |
-
----
-
 ## Returning to Normal Operation
 
 Normal Operation resumes when:

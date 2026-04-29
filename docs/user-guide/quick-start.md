@@ -17,7 +17,7 @@ Get your MyStation up and running in about 5 minutes!
 
 ## Step 1: Power On the Device
 
-Connect the battery or USB power. The device will boot and after ~30 seconds display a setup screen.
+Turn on the device or Connect USB power. The device will boot and after ~30 seconds display a setup screen.
 
 > 📷 *[Photo placeholder: device showing "MyStation-XXXXXXXX" WiFi hotspot name on screen]*
 
