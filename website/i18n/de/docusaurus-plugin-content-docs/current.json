@@ -1,35 +1,98 @@
 {
-    "sidebar.userSidebar.doc.user-guide/index.label": {
-        "message": "📖 Willkommen",
-        "description": "Sidebar label for user-guide/index"
-    },
-    "sidebar.userSidebar.doc.user-guide/quick-start.label": {
-        "message": "🚀 Schnellstart",
-        "description": "Sidebar label for user-guide/quick-start"
-    },
-    "sidebar.userSidebar.doc.user-guide/network-setup.label": {
-        "message": "🌐 WLAN & Netzwerk",
-        "description": "Sidebar label for user-guide/network-setup"
-    },
-    "sidebar.userSidebar.doc.user-guide/configure-mode.label": {
-        "message": "⚙️ Einstellungen ändern",
-        "description": "Sidebar label for user-guide/configure-mode"
-    },
-    "sidebar.userSidebar.doc.user-guide/configuration.label": {
-        "message": "📋 Einstellungsübersicht",
-        "description": "Sidebar label for user-guide/configuration"
-    },
-    "sidebar.userSidebar.doc.user-guide/understanding-display.label": {
-        "message": "📺 Das Display verstehen",
-        "description": "Sidebar label for user-guide/understanding-display"
-    },
-    "sidebar.userSidebar.doc.user-guide/button-controls.label": {
-        "message": "🔘 Die Tasten benutzen",
-        "description": "Sidebar label for user-guide/button-controls"
-    },
-    "sidebar.userSidebar.doc.user-guide/troubleshooting.label": {
-        "message": "🆘 Hilfe & Problemlösung",
-        "description": "Sidebar label for user-guide/troubleshooting"
-    }
+  "sidebar.userSidebar.doc.user-guide/index.label": {
+    "message": "📖 Willkommen",
+    "description": "Sidebar label for user-guide/index"
+  },
+  "sidebar.userSidebar.doc.user-guide/quick-start.label": {
+    "message": "🚀 Schnellstart",
+    "description": "Sidebar label for user-guide/quick-start"
+  },
+  "sidebar.userSidebar.doc.user-guide/network-setup.label": {
+    "message": "🌐 WLAN & Netzwerk",
+    "description": "Sidebar label for user-guide/network-setup"
+  },
+  "sidebar.userSidebar.doc.user-guide/configure-mode.label": {
+    "message": "⚙️ Einstellungen ändern",
+    "description": "Sidebar label for user-guide/configure-mode"
+  },
+  "sidebar.userSidebar.doc.user-guide/configuration.label": {
+    "message": "📋 Einstellungsübersicht",
+    "description": "Sidebar label for user-guide/configuration"
+  },
+  "sidebar.userSidebar.doc.user-guide/understanding-display.label": {
+    "message": "📺 Das Display verstehen",
+    "description": "Sidebar label for user-guide/understanding-display"
+  },
+  "sidebar.userSidebar.doc.user-guide/button-controls.label": {
+    "message": "🔘 Die Tasten benutzen",
+    "description": "Sidebar label for user-guide/button-controls"
+  },
+  "sidebar.userSidebar.doc.user-guide/troubleshooting.label": {
+    "message": "🆘 Hilfe & Problemlösung",
+    "description": "Sidebar label for user-guide/troubleshooting"
+  },
+  "version.label": {
+    "message": "Next",
+    "description": "The label for version current"
+  },
+  "sidebar.userSidebar.doc.📖 Welcome": {
+    "message": "📖 Willkommen",
+    "description": "The label for the doc item 📖 Welcome in sidebar userSidebar, linking to the doc user-guide/index"
+  },
+  "sidebar.userSidebar.doc.🚀 Quick Start": {
+    "message": "🚀 Schnellstart",
+    "description": "The label for the doc item 🚀 Quick Start in sidebar userSidebar, linking to the doc user-guide/quick-start"
+  },
+  "sidebar.userSidebar.doc.🌐 WiFi & Network": {
+    "message": "🌐 WLAN & Netzwerk",
+    "description": "The label for the doc item 🌐 WiFi & Network in sidebar userSidebar, linking to the doc user-guide/network-setup"
+  },
+  "sidebar.userSidebar.doc.⚙️ How to Change Settings": {
+    "message": "⚙️ Einstellungen ändern",
+    "description": "The label for the doc item ⚙️ How to Change Settings in sidebar userSidebar, linking to the doc user-guide/configure-mode"
+  },
+  "sidebar.userSidebar.doc.📋 Settings Guide": {
+    "message": "📋 Einstellungsübersicht",
+    "description": "The label for the doc item 📋 Settings Guide in sidebar userSidebar, linking to the doc user-guide/configuration"
+  },
+  "sidebar.userSidebar.doc.📺 What's on the Display": {
+    "message": "📺 Das Display verstehen",
+    "description": "The label for the doc item 📺 What's on the Display in sidebar userSidebar, linking to the doc user-guide/understanding-display"
+  },
+  "sidebar.userSidebar.doc.🔘 Using the Buttons": {
+    "message": "🔘 Die Tasten benutzen",
+    "description": "The label for the doc item 🔘 Using the Buttons in sidebar userSidebar, linking to the doc user-guide/button-controls"
+  },
+  "sidebar.userSidebar.doc.🆘 Troubleshooting": {
+    "message": "🆘 Hilfe & Problemlösung",
+    "description": "The label for the doc item 🆘 Troubleshooting in sidebar userSidebar, linking to the doc user-guide/troubleshooting"
+  },
+  "sidebar.developerSidebar.category.🏗️ Architecture": {
+    "message": "🏗️ Architecture",
+    "description": "The label for category 🏗️ Architecture in sidebar developerSidebar"
+  },
+  "sidebar.developerSidebar.category.⚙️ Core Systems": {
+    "message": "⚙️ Core Systems",
+    "description": "The label for category ⚙️ Core Systems in sidebar developerSidebar"
+  },
+  "sidebar.developerSidebar.category.📡 APIs & Integration": {
+    "message": "📡 APIs & Integration",
+    "description": "The label for category 📡 APIs & Integration in sidebar developerSidebar"
+  },
+  "sidebar.developerSidebar.category.🛠️ Development": {
+    "message": "🛠️ Development",
+    "description": "The label for category 🛠️ Development in sidebar developerSidebar"
+  },
+  "sidebar.developerSidebar.category.🔌 Hardware": {
+    "message": "🔌 Hardware",
+    "description": "The label for category 🔌 Hardware in sidebar developerSidebar"
+  },
+  "sidebar.maintainerSidebar.category.📋 Maintainer Guide": {
+    "message": "📋 Maintainer Guide",
+    "description": "The label for category 📋 Maintainer Guide in sidebar maintainerSidebar"
+  },
+  "sidebar.referenceSidebar.category.📋 Quick Reference": {
+    "message": "📋 Quick Reference",
+    "description": "The label for category 📋 Quick Reference in sidebar referenceSidebar"
+  }
 }
-
