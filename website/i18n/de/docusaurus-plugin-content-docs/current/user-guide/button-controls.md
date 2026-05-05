@@ -132,8 +132,7 @@ Führt einen **Werksreset** durch:
 
 ## Verhalten im temporären Modus
 
-Wenn du eine Taste drückst, um den Anzeigemodus zu wechseln (kurzer Druck auf Taste 1, 2 oder 3),
-ist der neue Modus **vorübergehend**:
+Wenn du eine Taste kurz drückst (Taste 1, 2 oder 3), ist der neue Modus **vorübergehend**:
 
 - Dauer: **2 Minuten**
 - Nach 2 Minuten kehrt das Display zum **konfigurierten Anzeigemodus** zurück
@@ -145,7 +144,7 @@ So kannst du schnell Wetter oder Abfahrten prüfen, ohne dauerhaft die Konfigura
 
 ## Tastenübersichtstabelle
 
-| Aktion                       | Taste       | Drucken       | Ergebnis                     |
+| Aktion                       | Taste       | Drücken       | Ergebnis                     |
 |------------------------------|-------------|---------------|------------------------------|
 | Halb & Halb-Ansicht          | Taste 1     | Kurz drücken  | Temporärer Modus (2 Min)     |
 | Wetter-Vollbildansicht       | Taste 2     | Kurz drücken  | Temporärer Modus (2 Min)     |
@@ -154,4 +153,3 @@ So kannst du schnell Wetter oder Abfahrten prüfen, ohne dauerhaft die Konfigura
 | Geräteinformationen anzeigen | Taste 2     | 5 Sek. halten | Geräteinfoanzeige            |
 | Softwareupdate auslösen      | Taste 3     | 5 Sek. halten | Softwareupdate               |
 | Werksreset                   | Taste 1 + 2 | 5 Sek. halten | Alle Einstellungen löschen   |
-
