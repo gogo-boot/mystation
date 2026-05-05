@@ -65,8 +65,8 @@ Just change what you need and press **Save Settings**.
 Once you press **"Save Settings"**, MyStation saves everything and **restarts automatically**.
 Normal operation (fetching data and updating the display) resumes within about 30 seconds.
 
-You can also exit Configure Mode without saving by turn off and turn on.
-In that case, your previous settings remain unchanged.
+You can also exit Configure Mode without saving by sliding the power switch to OFF, then back to ON to restart the
+device. In that case, your previous settings remain unchanged.
 
 ---
 

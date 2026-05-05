@@ -13,7 +13,8 @@ Something not working? This guide walks through the most common issues and how t
 **Solutions:**
 
 1. **Wait a bit longer after powering on** — the device needs up to 60 seconds to start up
-2. **Check that the device has power** — connect it to USB if the battery might be low
+2. **Check that the device has power** — if the battery is low the device may not start up. Charge it via USB and try
+   again
 3. **Try a different phone or computer** — some devices have trouble seeing certain WiFi networks
 4. **Make sure you are looking for a 2.4 GHz network** — if your phone is set to "5 GHz only", change it to "automatic"
 
@@ -56,10 +57,10 @@ Something not working? This guide walks through the most common issues and how t
 
 **Solutions:**
 
-1. **Power cycle the device** — unplug the USB or battery, wait a few seconds, and reconnect. This device does not have
-   a hardware reset button; unplugging is the equivalent
+1. **Restart the device** — slide the power switch to OFF, then back to ON. This device has an embedded battery; the
+   power switch is the correct way to restart it.
 2. **Check WiFi** — make sure the device is still connected to your home WiFi (2.4 GHz)
-3. **Check battery level** — low battery can cause updates to stop. Connect to USB power
+3. **Check battery level** — low battery can cause updates to stop. Charge the device via USB
 
 ---
 
@@ -92,9 +93,11 @@ Something not working? This guide walks through the most common issues and how t
 
 **Solutions:**
 
-1. **Try a different USB cable** — some cables only charge and don't carry power properly
-2. **Try a different power source** — wall adapter vs. computer USB port
-3. **Charge the battery first** — connect to USB power and wait 30 minutes before trying again
+1. **Charge the battery** — connect the device to a USB charger and wait at least 30 minutes. The battery is built-in
+   and cannot be removed or replaced easily.
+2. **Try a different USB cable or charger** — some cables or chargers do not deliver enough power. Try a known-working
+   cable and a wall adapter (not just a computer USB port).
+3. **Slide the power switch to ON** — after charging, slide the power switch to the ON position to turn the device on
 
 ---
 
@@ -123,9 +126,8 @@ This tends to happen after the device has been running for several update cycles
 
 **Solutions:**
 
-1. **Power cycle the device** — turn off and on power. The device re-syncs the time
-   on each restart. This is a known issue that can appear around the daylight saving time
-   changes in March and October.
+1. **Restart the device** — slide the power switch to OFF, then back to ON. The device re-syncs the time on each
+   restart. This is a known issue that can appear around the daylight saving time changes in March and October.
 
 ---
 
