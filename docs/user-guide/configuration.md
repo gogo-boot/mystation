@@ -1,116 +1,119 @@
 # Configuration Guide
 
-This page explains every setting available in the MyStation configuration web interface.
-You access this page by entering **Configure Mode** (hold Button 1 for 5 seconds).
+This page explains every setting in the MyStation settings screen.
 
-See [Network Setup](network-setup.md) for how to connect to the configuration page.
+To open the settings screen, hold **Button 1 for 5 seconds** to enter Configure Mode.
+Not sure how? See [Configure Mode](configure-mode.md).
 
 ---
 
 ## Display Mode
 
-Controls what is shown on the e-paper display during normal operation.
+Choose what appears on the screen during normal use.
 
-| Mode               | What is displayed                                        |
-|--------------------|----------------------------------------------------------|
-| **Half & Half**    | Left half: weather summary · Right half: departure list  |
-| **Weather Full**   | Full screen detailed weather with 12-hour forecast graph |
-| **Transport Full** | Full screen departure board with more departure entries  |
+| Mode               | What you see                                                   |
+|--------------------|----------------------------------------------------------------|
+| **Half & Half**    | Weather on one side, transport departures on the other         |
+| **Weather Full**   | Full screen weather details with a 12-hour forecast graph      |
+| **Transport Full** | Full screen list of upcoming departures — more entries visible |
 
-> 💡 The display mode you configure here is your **permanent mode**. You can temporarily switch modes using the
-> physical buttons (reverts after 2 minutes). See [Button Controls](button-controls.md).
+> 💡 This is your **permanent** setting. Pressing the buttons switches the view temporarily
+> for 2 minutes, then it returns to this setting. See [Button Controls](button-controls.md).
 
 ---
 
-## Location Settings
+## Location
 
-### City / Town for Weather
+### How MyStation Finds Your Location
 
-MyStation uses the city name to get weather data from the **German Weather Service (DWD)**. When you enter a city
-name, the weather coordinates are set to the **geographic centre of that city**.
+When you open the settings page, MyStation automatically estimates your location
+using nearby WiFi networks. It uses this to:
 
-### Auto-Detect Coordinates (Recommended)
+- Find public transport stops close to you
+- Set up the weather for your area
 
-When you open the configuration page, MyStation automatically detects your **approximate location using nearby WiFi
-networks** (via Google Geolocation API). This gives a coordinate that is **near your actual location**, not just
-the centre of your city.
+This estimated location is shown on the settings page. In most cases it is accurate
+enough and you don't need to change anything.
 
-> 💡 **Why auto-detect is more accurate:**
-> If you live in a suburb or on the edge of a city, the city-centre coordinate may be several kilometres away.
-> Auto-detected coordinates are typically within a few hundred metres of your actual location, which gives you
-> a more accurate local weather forecast — especially for precipitation and temperature.
+### City Name vs. Auto-Detected Location
 
-**Recommendation**: Use the auto-detected coordinates when available. Only enter a city name manually if the
-auto-detection fails or gives a wrong location.
+You can also type in a city or town name manually. However, **auto-detection is more accurate**:
+
+> 💡 **Why auto-detect is better:**
+> When you type a city name, the weather is calculated for the **exact centre of that city**.
+> If you live in a suburb or on the edge of town, that centre point may be several kilometres away,
+> which can lead to slightly different rain or temperature readings.
+>
+> The auto-detected location is based on where your WiFi networks are, which places the point
+> much closer to your actual home — giving you more accurate local weather.
+
+**In practice:**
+
+- ✅ Leave the auto-detected location if it looks roughly correct
+- ✏️ Type your city name only if the auto-detection shows a completely wrong area
 
 ---
 
 ## Weather Settings
 
-### Weather Update Interval
+### How Often to Update the Weather
 
-How often MyStation wakes up to refresh weather data.
+This controls how frequently MyStation checks for new weather data.
 
-| Interval | Description                              |
-|----------|------------------------------------------|
-| 1 hour   | Most up-to-date, higher battery usage    |
-| 2 hours  | Balanced                                 |
-| 3 hours  | Default                                  |
-| 6 hours  | Low battery usage, less frequent updates |
-| 12 hours | Minimum updates, best battery life       |
+| Interval                | Battery impact | Good for              |
+|-------------------------|----------------|-----------------------|
+| 1 hour                  | Higher         | Very frequent updates |
+| 2 hours                 | Medium         |                       |
+| **3 hours** *(default)* | **Balanced**   | **Most users**        |
+| 6 hours                 | Low            | Battery saving        |
+| 12 hours                | Lowest         | Maximum battery life  |
 
-> 🔋 Longer intervals significantly extend battery life. Weather changes slowly — a 3-hour interval is usually
-> sufficient for daily planning.
+> 🔋 Weather changes slowly. Checking every 3 hours is enough for most daily decisions.
 
 ---
 
 ## Transport Settings
 
-### Transport Stop
+### Selecting Your Stop
 
-Select which public transport stop to display departures from. MyStation automatically discovers nearby stops
-based on your detected location.
+The settings page shows a list of nearby transport stops, sorted by how close they are to you.
+Simply select the stop you use most often.
 
-1. The configuration page shows a list of **nearby stops** with distance
-2. Select your preferred stop
-3. If your stop is not listed, check your location settings
+If you don't see your stop, check that your location was detected correctly.
 
-### Transport Update Interval
+### How Often to Update Departures
 
-How often MyStation wakes up to fetch new departure data.
+This controls how frequently MyStation checks for new departure times.
 
-| Interval   | Description                                        |
-|------------|----------------------------------------------------|
-| 1 minute   | Near real-time, significantly higher battery usage |
-| 3 minutes  | Very frequent                                      |
-| 5 minutes  | Default                                            |
-| 10 minutes | Moderate battery savings                           |
-| 15 minutes | Low battery usage                                  |
-| 30 minutes | Minimum updates                                    |
+| Interval                  | Battery impact | Good for             |
+|---------------------------|----------------|----------------------|
+| 1 minute                  | Much higher    | Near real-time       |
+| 3 minutes                 | Higher         | Frequent             |
+| **5 minutes** *(default)* | **Balanced**   | **Most users**       |
+| 10 minutes                | Lower          | Battery saving       |
+| 15 minutes                | Low            |                      |
+| 30 minutes                | Lowest         | Maximum battery life |
 
-> 🔋 Transport data changes more frequently than weather. A 5-minute interval gives a good balance between
-> freshness and battery life.
+> 🔋 Departure times can change with delays, so shorter intervals are more useful here
+> than for weather. 5 minutes is a good balance.
 
-### Transport Active Hours
+### Active Hours for Transport Updates
 
-You can limit transport updates to a time window — for example, only during your commute hours.
-Outside this window, transport updates are paused to save battery.
+You can limit transport updates to certain hours of the day — for example, only during
+your morning commute. Outside those hours, the device skips transport updates to save battery.
 
-| Setting      | Example |
-|--------------|---------|
-| Active Start | `06:00` |
-| Active End   | `09:00` |
+Example: Active from `06:00` to `09:00`
 
-### Walking Time to Stop
+### Walking Time to the Stop
 
-Enter how many minutes it takes you to walk to your stop. Departures that are too soon to catch
-(given your walking time) will be shown differently or filtered.
+Enter how many minutes it takes you to walk to your stop.
+MyStation uses this to omits which departures are not catchable.
 
-### Transport Type Filters
+### Transport Types
 
-Choose which types of transport to display:
+Choose which types of transport to show. Only enable the types that actually serve your stop:
 
-| Filter | Transport type                     |
+| Type   | What it is                         |
 |--------|------------------------------------|
 | RE     | Regional Express / Regional trains |
 | S-Bahn | Suburban railway                   |
@@ -118,57 +121,49 @@ Choose which types of transport to display:
 | Tram   | Straßenbahn                        |
 | Bus    | Regular bus                        |
 
-Enable only the types that serve your stop to reduce irrelevant entries.
-
 ---
 
 ## Sleep Schedule
 
-Configure quiet hours during which MyStation does not fetch data or update the display.
-This is the single most effective way to extend battery life.
+Set hours during which the device goes into deep sleep and stops updating entirely.
+This is the **most effective way to extend battery life**.
 
-| Setting     | Example |
-|-------------|---------|
-| Sleep Start | `22:30` |
-| Sleep End   | `05:30` |
+Example: Sleep from `22:30` to `05:30`
 
-During sleep hours, the device enters deep sleep and does **not** wake up for data updates.
-The last displayed content remains on the e-paper screen (e-paper holds its image without power).
+> 💡 The e-paper screen keeps showing the last content even while the device is sleeping —
+> it doesn't need power to hold the image.
 
 ---
 
 ## Weekend Mode
 
-Enable different settings for weekends (Saturday and Sunday):
+Set different active hours and sleep times for weekends (Saturday and Sunday).
+Useful if you have a different routine on weekends.
 
-| Setting                 | Example |
-|-------------------------|---------|
-| Weekend Transport Start | `08:00` |
-| Weekend Transport End   | `20:00` |
-| Weekend Sleep Start     | `23:00` |
-| Weekend Sleep End       | `07:00` |
+Example: Stay awake later on weekends — sleep from `23:00` to `07:00`.
 
 ---
 
-## OTA Firmware Updates
+## Automatic Software Updates
 
-MyStation can update its own firmware automatically over WiFi (**Over-The-Air update**).
+MyStation can update its own internal software automatically while you sleep.
 
-| Setting        | Default                                      |
-|----------------|----------------------------------------------|
-| OTA Enabled    | ✅ Yes                                        |
-| OTA Check Time | Randomised between 01:00–04:59 on first boot |
+| Setting         | Default                                                |
+|-----------------|--------------------------------------------------------|
+| Updates enabled | ✅ Yes                                                  |
+| Update time     | Randomly set between 1:00 am and 4:59 am on first boot |
 
-### Why OTA Updates Are Important
+### Why Updates Matter
 
-The weather and transport data providers (**DWD** and **RMV**) may change their API formats over time.
-When this happens, the firmware must be updated to continue working correctly with the new API.
-Without an OTA update, data may stop appearing or show incorrect values.
+The services that provide weather data and transport times (German Weather Service and RMV)
+occasionally change how they send data. When this happens, MyStation needs a software update
+to keep working correctly.
 
-Keeping OTA enabled ensures your device stays compatible with the latest API specifications
-without requiring manual firmware flashing.
+Without updates, the weather or departure information may eventually stop appearing or show
+incorrect values.
 
-> 💡 OTA updates happen automatically in the early morning hours. The device downloads and installs the update,
-> then restarts. The display will show the new firmware version after the update.
+> 💡 Updates happen quietly in the early morning hours. The device downloads the update,
+> installs it, and restarts on its own. You'll see the updated software version the next time
+> you check device info (hold Button 2 for 5 seconds).
 
-
+We recommend keeping automatic updates **turned on**.

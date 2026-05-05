@@ -109,11 +109,10 @@ Triggers an **OTA (Over-The-Air) firmware update** immediately:
 
 ### "The device is stuck or behaving incorrectly"
 
-**Turn off and on**
+**Slide the power switch to OFF**, then slide it back to ON to restart the device.
 
-There is no dedicated hardware reset button on this device. Cycling the power performs a full restart.
-
-> 💡 A power cycle is equivalent to a full restart. All saved settings are kept
+> 💡 This device has an embedded battery. The power switch is the correct way to restart it. All saved settings are kept
+> after a restart.
 
 ---
 

@@ -1,111 +1,111 @@
 # Network Setup
 
-MyStation needs a WiFi network to fetch weather and transport data. This page explains what is required and how the
-network is used during configuration and normal operation.
+MyStation needs a WiFi connection to fetch weather and transport data. This page explains what kind
+of WiFi it works with, and how your phone and the device talk to each other.
 
-## Requirements
+---
 
-| Requirement     | Details                                                     |
-|-----------------|-------------------------------------------------------------|
-| WiFi frequency  | **2.4 GHz only** — 5 GHz is not supported                   |
-| Security        | WPA / WPA2 Personal                                         |
-| Internet access | Required for weather and transport data                     |
-| DHCP            | Must be enabled on your router                              |
-| Captive portal  | Not supported (hotel/public WiFi login pages will not work) |
+## What You Need
 
-> ⚠️ **5 GHz is not supported.** If your router broadcasts both 2.4 GHz and 5 GHz under the same name, MyStation will
-> try to connect but may fail. Use a router that has a separate 2.4 GHz SSID, or check your router settings.
+| Requirement         | Details                                                                  |
+|---------------------|--------------------------------------------------------------------------|
+| WiFi type           | **2.4 GHz only** — the older, shorter-range WiFi standard                |
+| Internet access     | Required — to fetch weather and transport data                           |
+| Normal home network | Must be a standard home WiFi (not hotel or public WiFi with login pages) |
+
+> ⚠️ **5 GHz WiFi is not supported.** Most home routers broadcast on both 2.4 GHz and 5 GHz.
+> If your network name is the same for both, try looking in your router settings to find the 2.4 GHz name separately.
+> Many routers label it like **"MyNetwork"** (2.4 GHz) and **"MyNetwork_5G"** (5 GHz).
 
 ---
 
 ## How the Network is Used
 
-MyStation behaves differently depending on whether it is in **Configure Mode** or **Normal Operation**.
+### Step 1 — First-Time Setup (Configure Mode)
 
-### Internet Access Configure Mode — Setting Up the Device Internet Access
-
-When you enter Configure Mode (hold Button 1 for 5 seconds), MyStation opens its **own WiFi Access Point** so you can
-connect your phone or computer directly to it.
-
-```mermaid
-graph LR
-    Phone["📱 Your Phone / Computer"]
-    AP["📡 MyStation WiFi\n(MyStation-XXXXXXXX)"]
-    Router["🌐 Your Router"]
-    Phone -- " 1. Connect to\nMyStation-XXXXXXXX " --> AP
-    AP -- " 2. You enter your\nWiFi credentials " --> Phone
-    AP -- " 3. MyStation connects\nto your router " --> Router
-    Router -- " 4. MyStation detects\nyour location " --> AP
-```
-
-**What happens step by step:**
-
-1. MyStation broadcasts a WiFi hotspot named `MyStation-XXXXXXXX`
-2. You connect your phone/computer to this hotspot (no password needed)
-3. You open `http://10.0.1.1` in your browser to open the configuration page
-4. You enter your home WiFi name and password
-5. MyStation connects to your router and detects your approximate location
-6. You finish the rest of the configuration in the browser
-7. MyStation saves the settings and restarts into Normal Operation
-
-> 💡 Your phone and MyStation **do not need to be on the same network** during Configure Mode. Your phone connects
-> directly to MyStation's own hotspot.
-
----
-
-### Setting Up the MyStation Interval and Location Configuration Page
+When you first set up MyStation,
+the device creates its **own temporary WiFi hotspot**. You connect your phone to it directly —
+just like connecting to a café WiFi.
 
 ```mermaid
 graph LR
     Phone["📱 Your Phone"]
-    Router["🏠 Your Router"]
-    Station["🖥️ MyStation"]
-    Phone <-- " http://mystation.local\nor device IP " --> Router
-    Station <-- " Connected to\nhome WiFi " --> Router
+    AP["📡 MyStation Hotspot\n(MyStation-XXXXXXXX)"]
+    Router["🏠 Your Home Router"]
+    Phone -- " 1. Connect to\nMyStation-XXXXXXXX " --> AP
+    AP -- " 2. You enter your\nhome WiFi details " --> Phone
+    AP -- " 3. MyStation connects\nto your router " --> Router
+    Router -- " 4. MyStation finds\nyour location " --> AP
 ```
 
-> ⚠️ **Important**: You can only access the MyStation configuration page while your phone and MyStation are both
-> connected to the **same WiFi network**. If your phone is on mobile data or a different network, the page will
-> not load.
+**What you do:**
+
+1. Connect your phone to the **`MyStation-XXXXXXXX`** WiFi (no password needed)
+2. Open your browser and go to **`http://10.0.1.1`**
+3. Enter your home WiFi name and password
+4. MyStation connects to your router and finds nearby transport stops automatically
+5. Finish the rest of the settings and press **Save** — the device restarts
+
+> 💡 During this step, your phone is connected directly to MyStation — not to your home WiFi.
+> That is normal and expected.
+
+---
+
+### Step 2 — Changing Settings Later
+
+If you want to change any settings after first-time setup (or when you hold Button 1 for 5 seconds to re-configure),
+your phone and MyStation must both be connected to **the same home WiFi network**. Then you can open the settings page
+in your browser.
+
+```mermaid
+graph LR
+    Phone["📱 Your Phone\n(on home WiFi)"]
+    Router["🏠 Your Home Router"]
+    Station["🖥️ MyStation\n(on home WiFi)"]
+    Phone -- " same WiFi network " --> Router
+    Station -- " same WiFi network " --> Router
+    Phone -- " open settings page\nin browser " --> Station
+```
+
+> ⚠️ If your phone is using mobile data (4G/5G) instead of home WiFi, you will not be able
+> to reach the MyStation settings page. Switch your phone to home WiFi first.
 
 ---
 
 ### Normal Operation — Daily Use
 
-Once configured, MyStation connects to your home WiFi router to fetch data from the internet.
+Once set up, MyStation connects to your home WiFi and fetches data from the internet automatically.
 
 ```mermaid
 graph LR
-    Station["🖥️ MyStation Device"]
-    Router["🏠 Your Router\n(2.4 GHz WiFi)"]
+    Station["🖥️ MyStation"]
+    Router["🏠 Your Home Router\n(2.4 GHz WiFi)"]
     Internet["🌍 Internet"]
-    DWD["☁️ DWD Weather API\n(German Weather Service)"]
-    RMV["🚌 RMV Transport API\n(German Public Transport)"]
-    Station -- " WiFi (2.4 GHz) " --> Router
-    Router -- " Internet " --> Internet
+    DWD["☁️ German Weather Service"]
+    RMV["🚌 German Public Transport\n(RMV)"]
+    Station -- " WiFi " --> Router
+    Router --> Internet
     Internet --> DWD
     Internet --> RMV
 ```
 
-**MyStation connects to the internet to:**
+MyStation connects to the internet to:
 
-- Fetch weather data from the **German Weather Service (DWD)**
-- Fetch departure data from the **RMV public transport API**
-- Check for **firmware updates (OTA)** once per day (between 01:00–04:59)
-
-> 💡 To access the configuration page **during normal operation**, your phone or computer must be connected to
-> **the same WiFi network** as MyStation. You can then open the page at `http://mystation.local` or the
-> device's IP address shown in the display footer.
+- Get **weather data** from the German Weather Service
+- Get **departure times** from the German public transport network (RMV)
+- Download **software updates** automatically once per day (usually around 2–3 am)
 
 ---
 
 ## WiFi Tips
 
-- **Dual-band routers**: If your router uses the same SSID for 2.4 GHz and 5 GHz, your phone may connect at 5 GHz
-  while MyStation cannot. Check your router settings to separate them or use a 2.4 GHz-only SSID.
-- **Signal strength**: A strong signal saves battery. Place MyStation within reasonable range of your router.
-- **AP Isolation / Client Isolation**: If enabled on your router, your phone cannot reach MyStation even on the same
-  network. Disable this setting in your router.
-- **WPA3**: Not supported. Use WPA2 Personal.
+**My router has 2.4 GHz and 5 GHz with the same name**
+→ Check your router settings and separate them into two different names, or ask your internet
+provider. MyStation will need to connect to the 2.4 GHz one.
 
+**MyStation connects but can't reach the settings page from my phone**
+→ Make sure your phone is on home WiFi, not mobile data. Check that your router does not have
+"client isolation" enabled (a setting that prevents devices on the same network from talking to each other).
 
+**Should I place MyStation close to the router?**
+→ Closer is better. A stronger signal means faster updates and less power used.

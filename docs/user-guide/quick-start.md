@@ -17,7 +17,10 @@ Get your MyStation up and running in about 5 minutes!
 
 ## Step 1: Power On the Device
 
-Turn on the device or Connect USB power. The device will boot and after ~30 seconds display a setup screen.
+Slide the **power switch** to the ON position to turn on the device. After about 30 seconds, the setup screen will
+appear on the display.
+
+> 📷 *[Photo placeholder: location of the power switch on the device, showing OFF and ON positions]*
 
 > 📷 *[Photo placeholder: device showing "MyStation-XXXXXXXX" WiFi hotspot name on screen]*
 
@@ -79,7 +82,7 @@ Choose what to show on the screen:
 
 > 💡 Auto-detected coordinates are more accurate than a city name. A city name uses the geographic centre of the
 > city, which may be several kilometres from your actual location.
-> See [Configuration Guide](configuration.md#location-settings).
+> See [Configuration Guide](configuration.md#city-name-vs-auto-detected-location).
 
 ### Transport Stop
 
