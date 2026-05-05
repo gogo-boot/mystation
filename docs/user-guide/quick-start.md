@@ -79,7 +79,7 @@ Choose what to show on the screen:
 
 > 💡 Auto-detected coordinates are more accurate than a city name. A city name uses the geographic centre of the
 > city, which may be several kilometres from your actual location.
-> See [Configuration Guide](configuration.md#location-settings).
+> See [Configuration Guide](configuration.md#city-name-vs-auto-detected-location).
 
 ### Transport Stop
 

@@ -1,448 +1,198 @@
 # Troubleshooting Guide
 
-This guide helps you solve common issues with your MyStation e-paper departure board.
+Something not working? This guide walks through the most common issues and how to fix them.
+
+---
 
 ## WiFi & Network Issues
 
-### Cannot Connect to MyStation WiFi Access Point
+### The MyStation WiFi Hotspot Does Not Appear
 
-**Symptoms:**
-
-- `MyStation-XXXXXXXX` network not visible
-- Can't join configuration WiFi
+**Symptoms:** You can't find `MyStation-XXXXXXXX` in your phone's WiFi list.
 
 **Solutions:**
 
-1. **Wait for startup** (30-60 seconds after power on)
-    - Device needs time to boot
+1. **Wait a bit longer after powering on** — the device needs up to 60 seconds to start up
+2. **Check that the device has power** — connect it to USB if the battery might be low
+3. **Try a different phone or computer** — some devices have trouble seeing certain WiFi networks
+4. **Make sure you are looking for a 2.4 GHz network** — if your phone is set to "5 GHz only", change it to "automatic"
 
-1. **Check WiFi band**
-    - ⚠️ MyStation only works with **2.4 GHz WiFi**
-    - If your phone is set to "5 GHz only", change to "Auto" or "2.4 GHz"
-    - Some phones hide 2.4 GHz networks by default
+---
 
-1. **Try different device**
-    - Use different phone/computer
-    - Some devices have WiFi compatibility issues
+### MyStation Won't Connect to Your Home WiFi
 
-1. **Charge Battery**
-    - Low battery may prevent WiFi AP from starting
-    - Connect USB power or charge battery
-
-### Cannot Connect MyStation to Home WiFi
-
-**Symptoms:**
-
-- Configuration page shows "Failed to connect to WiFi"
-- Device keeps restarting
-- Can't complete WiFi setup
+**Symptoms:** After entering your WiFi details, the device keeps failing to connect.
 
 **Solutions:**
 
-1. **Verify WiFi network is 2.4 GHz**
-    - ⚠️ **Critical**: MyStation only supports 2.4 GHz networks
-    - 5 GHz networks are **not supported** (high energy consumption)
-    - Check your router settings
-    - Many routers have separate 2.4 GHz and 5 GHz SSIDs
-    - Look for network names like "MyNetwork-2.4G" or "MyNetwork"
+1. **Check your WiFi password** — it is case-sensitive, so `Password1` is different from `password1`
+2. **Make sure it's a 2.4 GHz network** — 5 GHz is not supported. Look for the 2.4 GHz version of your network name
+3. **Check your signal strength** — move the device closer to the router and try again
+4. **Check your router type** — MyStation works with standard home routers (WPA/WPA2). It does not work with hotel WiFi,
+   public WiFi with login screens, or business networks with special security
 
-2. **Check WiFi password**
-    - Verify password is correct (case-sensitive)
-    - Watch for special characters
-    - Try typing password in notes app first, then copy/paste
+---
 
-3. **Check WiFi signal strength**
-    - Move device closer to router
-    - Ensure no thick walls or metal objects blocking signal
-    - Signal strength should be at least -70 dBm
+### Connected but Can't Reach the Settings Page
 
-4. **Router compatibility**
-    - supports: WPA/WPA2 Personal
-    - NOT supported: WPA3, WPA2 Enterprise
-    - Check router security settings
-
-5. **Disable WiFi features**
-    - Turn off AP Isolation
-    - Disable Client Isolation
-    - Enable DHCP
-    - Allow new device connections
-
-6. **Check MAC address filtering**
-    - If enabled on router, add MyStation's MAC address
-    - MAC address shown in serial monitor during boot
-
-### Device Connects but Can't Access Internet
-
-**Symptoms:**
-
-- WiFi shows connected
-- Display doesn't update
-- "Failed to fetch data" errors
+**Symptoms:** The device is connected to WiFi, but `http://mystation.local` or the IP address won't open.
 
 **Solutions:**
 
-1. **Check internet connection**
-    - Verify router has internet access
-    - Test with other devices
-
-2. **Check firewall settings**
-    - Router firewall might block HTTPS requests
-    - Whitelist MyStation's IP
-    - Allow outbound connections on ports 80, 443
-
-3. **DNS issues**
-    - Router might have DNS problems
-    - Check serial monitor for DNS resolution errors
-
-### mDNS Not Working (Can't Access mystation.local)
-
-**Symptoms:**
-
-- `http://mystation.local` doesn't work
-- "Server not found" error
-
-**Solutions:**
-
-1. **Use IP address instead**
-    - Check serial monitor for device IP
-    - Use `http://192.168.1.XXX` directly
-
-1. **Network configuration**
-    - mDNS requires multicast support
-    - Some routers block mDNS
-    - Try on different network
+1. **Make sure your phone is on home WiFi, not mobile data** — switch to WiFi first
+2. **Try the IP address directly** — check the display footer for the device's current IP address and open that in your
+   browser (e.g. `http://192.168.1.42`)
+3. **Try a different browser** — some browsers block local addresses
+4. **Your router may have device isolation turned on** — this prevents devices on the same network from talking to each
+   other. Check your router settings or contact your internet provider
 
 ---
 
 ## Display Issues
 
-### Display Not Updating
+### Display Is Not Updating
 
-**Symptoms:**
-
-- E-paper shows old data
-- Display never refreshes
-- Stuck on initial screen
+**Symptoms:** The screen shows old data and doesn't refresh.
 
 **Solutions:**
 
-1. **Power cycle the device** — disconnect and reconnect the battery or USB power
-1. **Check WiFi connection**
-    - Verify device connects to 2.4 GHz WiFi
-1. **Charge Battery**
-
-### Display Has "Ghost" Images
-
-**Symptoms:**
-
-- Previous image still faintly visible
-- Overlapping images
-
-**Solutions:**
-
-1. **This is normal for e-paper**
-    - E-paper displays can show ghosting
-    - Periodic full refresh reduces this
-
-2. **Display wearing out**
-    - E-paper has limited refresh cycles
-    - Ghosting increases with age
-    - ~10,000-100,000 full refreshes typical
+1. **Power cycle the device** — unplug the USB or battery, wait a few seconds, and reconnect. This device does not have
+   a hardware reset button; unplugging is the equivalent
+2. **Check WiFi** — make sure the device is still connected to your home WiFi (2.4 GHz)
+3. **Check battery level** — low battery can cause updates to stop. Connect to USB power
 
 ---
 
-## Power & Battery Issues
+### Display Shows "Ghost" Images
+
+**Symptoms:** A faint shadow of a previous image is still visible on screen.
+
+**Solutions:**
+
+1. **This is normal for e-paper screens** — the display technology can leave faint traces that clear up over time
+2. The device does a full screen refresh periodically to clear these ghosts
+
+---
+
+## Power & Battery
 
 ### Battery Drains Too Quickly
 
 **Solutions:**
 
-1. **Increase update interval**
-    - Change from 5 to 10 or 15 minutes
-    - Doubles/triples battery life
-    - Still provides current information
-
-3. **Enable sleep schedule**
-    - Configure quiet hours (e.g., 23:00-06:00)
-    - Save power overnight
-    - See web configuration interface
-
-3. **Check WiFi strength**
-    - Weak signal uses more power
-    - Move closer to router
-    - Consider WiFi range extender
-
-4. **Reduce display complexity**
-    - Weather-only mode uses less data
-    - Fewer API calls = less power
-
-6. **Battery health**
-    - Replace if battery damaged/old
-
-### Device Won't Power On
-
-**Symptoms:**
-
-- No LED when plugged in
-- Completely dead
-- Won't charge
-
-**Solutions:**
-
-1. **Try different USB cable**
-    - Some cables are charge-only (no data)
-    - Try known-good cable
-
-2. **Try different power source**
-    - Different USB port
-    - Different charger
-    - Computer USB vs wall adapter
-
-4. **Disconnect battery**
-    - Test with USB power only
-    - Battery fault might prevent boot
-
-6. **Hardware failure**
-    - Board may be damaged
-    - Replace or repair
+1. **Increase the update interval** — change from every 5 minutes to every 10 or 15 minutes for transport, and from 1
+   hour to 3 hours for weather
+2. **Set a sleep schedule** — configure quiet hours (e.g. `22:30` to `05:30`) so the device doesn't update overnight
+3. **Move closer to your router** — a weak WiFi signal uses significantly more power
+4. **Check battery health** — older batteries hold less charge. Replace if needed
 
 ---
 
-### Device is Stuck / Unresponsive
+### Device Won't Turn On
 
 **Solutions:**
 
-1. **Power cycle the device**
-    - Disconnect and reconnect the battery or USB power
-    - This device does not have a dedicated reset button
-    - All saved settings are preserved through a power cycle
+1. **Try a different USB cable** — some cables only charge and don't carry power properly
+2. **Try a different power source** — wall adapter vs. computer USB port
+3. **Charge the battery first** — connect to USB power and wait 30 minutes before trying again
 
 ---
-
-### Configured Display Mode is Not Applied
-
-**Symptoms:**
-
-- You configured "Weather Full" or "Transport Full" in the settings
-- But the device always shows Half & Half after restarting
-
-**Solutions:**
-
-1. **Re-enter Configure Mode and re-save**
-    - Hold Button 1 for 5 seconds to enter Configure Mode
-    - Check that the correct display mode is selected
-    - Click "Save Settings" again
-    - This is a known issue that is fixed in recent firmware versions
-
-2. **Check firmware version**
-    - Hold Button 2 for 5 seconds to see the current firmware version
-    - If OTA updates are enabled, the device will update automatically overnight
-
----
-
-### Display Shows Wrong Time (UTC+2 instead of UTC+1)
-
-**Symptoms:**
-
-- Footer time is 1 hour ahead of local time
-- Usually happens after several update cycles without a full restart
-
-**Solutions:**
-
-1. **Power cycle the device**
-    - Disconnect and reconnect the battery or USB power
-    - The device re-syncs the time on boot
-    - This is a known issue related to daylight saving time (DST) transitions
-
-2. **Note**: This issue is most common during DST transition periods (March and October)
-
----
-
-### OTA Update Failed
-
-**Symptoms:**
-
-- Firmware update did not complete
-- Device restarted but shows same firmware version
-
-**Solutions:**
-
-1. **Trigger a manual OTA update**
-    - Hold Button 3 for 5 seconds to force an OTA check
-    - Ensure WiFi and internet connection are working
-
-2. **Check internet connectivity**
-    - Verify your router has internet access
-
-3. **Wait for the nightly automatic check**
-    - OTA update is retried automatically the following night
-
-4. **Why OTA updates matter**
-    - The DWD and RMV APIs may change their data format over time
-    - Without a firmware update, weather or transport data may stop displaying correctly
-    - Keeping OTA enabled ensures continued compatibility
-
----
-
-### Factory Reset Procedure
-
-**When to use**: Device is completely misconfigured, or you want to start fresh.
-
-> ⚠️ **This erases all settings permanently.**
-
-**Steps:**
-
-1. Press and hold **Button 1 + Button 2 simultaneously** for 5 seconds
-2. Confirm the reset when prompted on the display
-3. The device restarts as new — follow the [Quick Start Guide](quick-start.md)
 
 ## Configuration Issues
 
-### Can't Access Configuration Page
+### Configured Display Mode Is Not Applied
 
-**Symptoms:**
-
-- Can't load `http://10.0.1.1` or `http://mystation.local`
-- Page won't load
-- Connection timeout
+**Symptoms:** You selected "Weather Full" or "Transport Full" in the settings, but the device
+always shows Half & Half after restarting.
 
 **Solutions:**
 
-1. **Verify connected to correct WiFi**
-    - In config mode: Connect to `MyStation-XXXXXXXX`
-    - In normal mode: Same network as MyStation
-
-2. **Check device mode**
-    - Config mode: Use `http://10.0.1.1`
-    - Normal mode: Use device IP or `http://mystation.local`
-
-3. **Clear browser cache**
-    - Hard refresh: Ctrl+Shift+R (PC) or Cmd+Shift+R (Mac)
-    - Try different browser
-    - Try incognito/private mode
-
-### No Nearby Stops Found
-
-**Symptoms:**
-
-- Configuration page shows "No stops found"
-- Can't select transport station
-
-**Solutions:**
-
-1. **Verify location**
-    - MyStation uses Google Geolocation
-    - Verify internet connection
-
-2. **Check RMV coverage**
-    - RMV covers German public transport
-    - Must be in Germany or covered area
-    - Try manual location entry
-
-### Settings Don't Save
-
-**Symptoms:**
-
-- Change settings, but they reset
-- Configuration reverts after restart
-
-**Solutions:**
-
-1. **Click "Save" button**
-    - Must explicitly save
-    - Look for confirmation message
-
-2. **NVS storage full**
-    - Rare, but possible
-    - Try factory reset
-    - Clears old data
-
-3. **NVS write errors**
-    - Check serial monitor for errors
-    - May indicate flash memory issue
-
-4. **Power loss during save**
-    - Don't disconnect power while saving
-    - Wait for confirmation message
+1. **Re-enter Configure Mode and save again**
+    - Hold Button 1 for 5 seconds
+    - Check that the correct display mode is selected
+    - Press "Save Settings"
+2. **Check for a software update** — hold Button 3 for 5 seconds to trigger an update.
+   This issue is fixed in recent software versions.
 
 ---
 
-## Data & API Issues
+### Display Shows Wrong Time (1 Hour Off)
 
-### Weather Data Not Showing
-
-**Symptoms:**
-
-- Display shows "---" for weather
-- Temperature missing
-- Weather icon blank
+**Symptoms:** The time shown in the display footer is 1 hour ahead of the real time.
+This tends to happen after the device has been running for several update cycles.
 
 **Solutions:**
 
-1. **Check location configured**
-    - Weather requires valid coordinates
-    - Verify in configuration page
+1. **Power cycle the device** — turn off and on power. The device re-syncs the time
+   on each restart. This is a known issue that can appear around the daylight saving time
+   changes in March and October.
 
-2. **DWD API access**
-    - Check internet connection
-    - Verify DWD service online
-    - Serial monitor shows API errors
+---
 
-3. **Location outside Germany**
-    - DWD covers Germany only
-    - Won't work in other countries
-    - Consider alternative weather API
+### Settings Don't Save / Keep Resetting
 
-4. **Wait for next update**
-    - Data might be loading
-    - Check update interval setting
-    - Monitor serial output
+**Solutions:**
+
+1. **Make sure you clicked "Save Settings"** — look for a confirmation message after clicking
+2. **Don't turn off during saving** — wait for the confirmation before disconnecting power
+3. **Try a factory reset** — if settings never stick, the internal storage may need to be cleared.
+   Hold Button 1 + Button 2 for 5 seconds to factory reset, then set up from scratch
+
+---
+
+## Data Issues
+
+### Weather Not Showing
+
+**Symptoms:** The weather area shows `---` or no information at all.
+
+**Solutions:**
+
+1. **Check your location is set correctly** — open Configure Mode and verify the location looks right
+2. **Check your internet connection** — verify your router has internet access by checking with another device
+3. **Note:** MyStation uses the German Weather Service (DWD), which covers Germany only. It will not show weather for
+   locations outside Germany
+
+---
 
 ### Transport Departures Not Showing
 
-**Symptoms:**
-
-- No departures listed
-- Empty departure board
-- Only weather shows
+**Symptoms:** The departure area is empty, or shows no entries.
 
 **Solutions:**
 
-1. **Check station configured**
-    - Must select transport stop
-    - Verify in configuration page
-
-2. **RMV API access**
-    - Check internet connection
-    - Verify RMV API key
-    - Check API limits not exceeded
-
-3. **No departures available**
-    - Late night/early morning
-    - Check if service actually running
-    - Try different time of day
-
-4. **Transport filter too restrictive**
-    - Check which transport types enabled
-    - Enable more types (Bus, Tram, S-Bahn, etc.)
+1. **Check that a stop is selected** — open Configure Mode and verify a transport stop is chosen
+2. **Check the time** — very early in the morning or late at night, there may genuinely be no departures
+3. **Check transport type filters** — if you have filtered out all transport types, nothing will show. Enable at least
+   one type (Bus, S-Bahn, etc.)
+4. **Check internet connection** — departures require a working internet connection
 
 ---
 
-### Check Documentation
+### Software Update Failed
 
-- 📖 [User Guide](index.md) - Complete user documentation
-- 📚 [Understanding Display](understanding-display.md) - Display modes and troubleshooting
+**Symptoms:** The device restarted but the software version didn't change.
 
-### Report Issues
+**Solutions:**
 
-If you found a bug:
+1. **Trigger a manual update** — hold Button 3 for 5 seconds to force an update check
+2. **Check internet connection** — the update requires a working internet connection
+3. **Try again the next night** — the device retries automatically
 
-- Check GitHub issues for similar problems
-- Create new issue with details
-- Include serial monitor output
-- Describe steps to reproduce
+> 💡 **Why updates matter:** The services that provide weather and transport data occasionally
+> change how they format their data. A software update is needed to keep MyStation compatible.
+> If updates are disabled and the data format changes, weather or departure info may stop appearing.
 
 ---
 
-**Remember**: Most issues are related to WiFi (2.4 GHz only!), wiring, or configuration. Start with the basics and work
-through systematically.
+## Factory Reset
+
+Use this when the device is completely misconfigured, or you want to start from scratch.
+
+> ⚠️ **All settings will be permanently erased.** You will need to set up the device again from the beginning.
+
+**Steps:**
+
+1. Press and hold **Button 1 + Button 2 simultaneously** for **5 seconds**
+2. Confirm the reset on the display
+3. Follow the [Quick Start Guide](quick-start.md) to set up again
