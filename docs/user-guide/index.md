@@ -43,7 +43,7 @@ See [Understanding the Display](understanding-display.md) for details.
 
 ## Device Buttons
 
-> 📷 *[Photo placeholder: device front view with buttons labelled]*
+![Device front view with Button 1 (left), Button 2 (middle), Button 3 (right) labelled](/img/user-guide/device-buttons-overview.jpg)
 
 Your MyStation has **3 buttons** on the side:
 

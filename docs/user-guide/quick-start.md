@@ -2,7 +2,7 @@
 
 Get your MyStation up and running in about 5 minutes!
 
-> 📷 *[Photo placeholder: device powered on, showing initial screen]*
+![MyStation device showing the initial startup screen](/img/user-guide/device-startup-screen.jpg)
 
 ---
 
@@ -20,9 +20,9 @@ Get your MyStation up and running in about 5 minutes!
 Slide the **power switch** to the ON position to turn on the device. After about 30 seconds, the setup screen will
 appear on the display.
 
-> 📷 *[Photo placeholder: location of the power switch on the device, showing OFF and ON positions]*
+![Power switch location showing OFF and ON positions](/img/user-guide/device-power-switch.jpg)
 
-> 📷 *[Photo placeholder: device showing "MyStation-XXXXXXXX" WiFi hotspot name on screen]*
+![Device displaying the MyStation-XXXXXXXX WiFi hotspot name on screen](/img/user-guide/device-hotspot-screen.jpg)
 
 ---
 
@@ -114,7 +114,7 @@ After restarting, MyStation will fetch data and update the display. You should s
 - ⏰ Last update time in the footer
 - 🔋 Battery status
 
-> 📷 *[Photo placeholder: device showing live weather and departure data]*
+![Device showing live weather and departure data](/img/user-guide/device-running.jpg)
 
 ---
 

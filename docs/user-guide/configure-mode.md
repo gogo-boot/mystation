@@ -21,7 +21,7 @@ So the settings screen is only available when you deliberately turn it on — th
 
 ## How to Enter Configure Mode
 
-> 📷 *[Photo placeholder: device in hand, finger pressing Button 1]*
+![Device in hand showing Button 1 (left button) being held](/img/user-guide/device-button1-hold.jpg)
 
 1. **Press and hold Button 1** (the left button) for **5 seconds**
 2. The display refreshes and shows a setup screen with a link or QR code
@@ -36,7 +36,7 @@ So the settings screen is only available when you deliberately turn it on — th
 3. Open your browser and go to **`http://10.0.1.1`**
 4. The MyStation settings page will appear
 
-> 📷 *[Photo placeholder: phone browser showing the settings page]*
+![Phone browser showing the MyStation settings page at 10.0.1.1](/img/user-guide/config-page-browser.jpg)
 
 ---
 

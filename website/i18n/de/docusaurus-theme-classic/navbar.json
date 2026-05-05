@@ -1,0 +1,30 @@
+{
+  "title": {
+    "message": "MyStation",
+    "description": "The title in the navbar"
+  },
+  "logo.alt": {
+    "message": "MyStation Logo",
+    "description": "The alt text of navbar logo"
+  },
+  "item.label.User Guide": {
+    "message": "User Guide",
+    "description": "Navbar item with label User Guide"
+  },
+  "item.label.Developer Guide": {
+    "message": "Developer Guide",
+    "description": "Navbar item with label Developer Guide"
+  },
+  "item.label.Maintainer Guide": {
+    "message": "Maintainer Guide",
+    "description": "Navbar item with label Maintainer Guide"
+  },
+  "item.label.Reference": {
+    "message": "Reference",
+    "description": "Navbar item with label Reference"
+  },
+  "item.label.GitHub": {
+    "message": "GitHub",
+    "description": "Navbar item with label GitHub"
+  }
+}

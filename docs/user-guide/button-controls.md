@@ -7,7 +7,7 @@ organised by the task you want to accomplish.
 
 ## Device Buttons Overview
 
-> 📷 *[Photo placeholder: front/side view of device with Button 1, Button 2, Button 3 labelled]*
+![Device side view with Button 1 (left), Button 2 (middle), Button 3 (right) labelled](/img/user-guide/device-buttons-side.jpg)
 
 | Button   | Location |
 |----------|----------|
