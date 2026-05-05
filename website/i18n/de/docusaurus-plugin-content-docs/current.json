@@ -1,0 +1,35 @@
+{
+    "sidebar.userSidebar.doc.user-guide/index.label": {
+        "message": "📖 Willkommen",
+        "description": "Sidebar label for user-guide/index"
+    },
+    "sidebar.userSidebar.doc.user-guide/quick-start.label": {
+        "message": "🚀 Schnellstart",
+        "description": "Sidebar label for user-guide/quick-start"
+    },
+    "sidebar.userSidebar.doc.user-guide/network-setup.label": {
+        "message": "🌐 WLAN & Netzwerk",
+        "description": "Sidebar label for user-guide/network-setup"
+    },
+    "sidebar.userSidebar.doc.user-guide/configure-mode.label": {
+        "message": "⚙️ Einstellungen ändern",
+        "description": "Sidebar label for user-guide/configure-mode"
+    },
+    "sidebar.userSidebar.doc.user-guide/configuration.label": {
+        "message": "📋 Einstellungsübersicht",
+        "description": "Sidebar label for user-guide/configuration"
+    },
+    "sidebar.userSidebar.doc.user-guide/understanding-display.label": {
+        "message": "📺 Das Display verstehen",
+        "description": "Sidebar label for user-guide/understanding-display"
+    },
+    "sidebar.userSidebar.doc.user-guide/button-controls.label": {
+        "message": "🔘 Die Tasten benutzen",
+        "description": "Sidebar label for user-guide/button-controls"
+    },
+    "sidebar.userSidebar.doc.user-guide/troubleshooting.label": {
+        "message": "🆘 Hilfe & Problemlösung",
+        "description": "Sidebar label for user-guide/troubleshooting"
+    }
+}
+
