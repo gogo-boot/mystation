@@ -2,7 +2,9 @@
 #include "build_config.h"
 #include "config/pins.h"
 #include "config/config_manager.h"
+#include "global_instances.h"
 #include <driver/rtc_io.h>
+#include <esp_system.h>
 
 static const char* TAG = "BUTTON";
 
@@ -149,6 +151,11 @@ void ButtonManager::handleWakeupMode() {
         if (buttonMode >= 0) {
             ESP_LOGI(TAG, "Consuming synthetic button mode: %d", buttonMode);
             syntheticButtonMode = -1; // consume it
+        } else if (buttonPressedWhileAwake >= 0) {
+            // Consume mode that was captured by the running-mode ISR
+            buttonMode = buttonPressedWhileAwake;
+            ESP_LOGI(TAG, "Consuming awake-press button mode: %d", buttonMode);
+            buttonPressedWhileAwake = -1; // consume it
         } else {
             buttonMode = getWakeupButtonMode();
         }
@@ -213,3 +220,61 @@ void ButtonManager::handleWakeupMode() {
         }
     }
 }
+
+// =============================================================================
+// ISR handlers — must be in IRAM, no heap allocation, no logging
+// =============================================================================
+static void IRAM_ATTR isrButton1() {
+    if (buttonPressedWhileAwake < 0) {
+        buttonPressedWhileAwake = DISPLAY_MODE_HALF_AND_HALF;
+    }
+}
+static void IRAM_ATTR isrButton2() {
+    if (buttonPressedWhileAwake < 0) {
+        buttonPressedWhileAwake = DISPLAY_MODE_WEATHER_ONLY;
+    }
+}
+static void IRAM_ATTR isrButton3() {
+    if (buttonPressedWhileAwake < 0) {
+        buttonPressedWhileAwake = DISPLAY_MODE_TRANSPORT_ONLY;
+    }
+}
+
+void ButtonManager::attachRunningInterrupts() {
+    if (!HAS_BUTTON) return;
+
+    // Clear any stale press from a previous awake cycle
+    buttonPressedWhileAwake = -1;
+
+    // Pins must already be INPUT_PULLUP — attach falling-edge ISRs
+    attachInterrupt(digitalPinToInterrupt(Pins::BUTTON_HALF_AND_HALF), isrButton1, FALLING);
+    attachInterrupt(digitalPinToInterrupt(Pins::BUTTON_WEATHER_ONLY),  isrButton2, FALLING);
+    attachInterrupt(digitalPinToInterrupt(Pins::BUTTON_DEPARTURE_ONLY), isrButton3, FALLING);
+
+    ESP_LOGI(TAG, "Running-mode button interrupts attached (GPIO %d, %d, %d)",
+             Pins::BUTTON_HALF_AND_HALF, Pins::BUTTON_WEATHER_ONLY, Pins::BUTTON_DEPARTURE_ONLY);
+}
+
+void ButtonManager::checkAndHandleRunningButtonPress() {
+    if (!HAS_BUTTON) return;
+
+    int8_t mode = buttonPressedWhileAwake;
+    if (mode < 0) return; // No press while awake
+
+    ESP_LOGI(TAG, "Button pressed while awake (mode %d) — injecting synthetic mode, restarting", mode);
+
+    // Detach interrupts so they don't fire during restart
+    detachInterrupt(digitalPinToInterrupt(Pins::BUTTON_HALF_AND_HALF));
+    detachInterrupt(digitalPinToInterrupt(Pins::BUTTON_WEATHER_ONLY));
+    detachInterrupt(digitalPinToInterrupt(Pins::BUTTON_DEPARTURE_ONLY));
+
+    // Store mode so handleWakeupMode() picks it up on the next boot via
+    // syntheticButtonMode (setSyntheticButtonMode is RAM-only, so we reuse
+    // the RTC variable directly — handleWakeupMode already checks it via
+    // getWakeupButtonMode; we override by calling setSyntheticButtonMode
+    // before that path and then restart).
+    // The buttonPressedWhileAwake RTC var is read in handleWakeupMode below.
+    // (buttonPressedWhileAwake remains set across esp_restart)
+    esp_restart();
+}
+

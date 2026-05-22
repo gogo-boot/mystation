@@ -64,6 +64,10 @@ void ActivityManager::onInit() {
 #endif
     SystemInit::loadNvsConfig();
 
+    // Attach GPIO interrupts so button presses are captured while awake
+    ButtonManager::setWakupableButtons();
+    ButtonManager::attachRunningInterrupts();
+
     DEBUG_ONLY(ConfigManager::printConfiguration(false);)
 
     setNextActivityLifecycle(Lifecycle::ON_START);
@@ -136,6 +140,10 @@ void ActivityManager::onStop() {
 
 void ActivityManager::onShutdown() {
     setCurrentActivityLifecycle(Lifecycle::ON_SHUTDOWN);
+
+    // If a button was pressed while the device was awake, restart immediately
+    // so the button press is handled (no sleep, no display lag).
+    ButtonManager::checkAndHandleRunningButtonPress();
 
     // Turn off peripherals
     DisplayManager::hibernate();
