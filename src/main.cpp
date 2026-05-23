@@ -56,11 +56,6 @@ U8G2_FOR_ADAFRUIT_GFX u8g2;
 // RTC memory for persistent state across deep sleep
 RTC_DATA_ATTR unsigned long wakeupCount = 0;
 
-// Button pressed while device was awake (not via EXT1 wakeup).
-// -1 = none, otherwise holds the display mode index (0/1/2).
-// Written by GPIO ISR; consumed by ButtonManager on next boot.
-RTC_DATA_ATTR int8_t buttonPressedWhileAwake = -1;
-
 // =============================================================================
 // Main Entry Points
 // =============================================================================

@@ -20,8 +20,4 @@ extern U8G2_FOR_ADAFRUIT_GFX u8g2;
 // RTC memory for persistent state across deep sleep
 extern RTC_DATA_ATTR unsigned long wakeupCount;
 
-// Button pressed while device was awake (interrupt-driven, not EXT1 wakeup).
-// -1 = none; set by GPIO ISR; consumed by ButtonManager on the restart that follows.
-extern RTC_DATA_ATTR int8_t buttonPressedWhileAwake;
-
 
