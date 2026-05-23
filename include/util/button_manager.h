@@ -28,17 +28,6 @@ public:
     // Should be called early in boot process
     static void handleWakeupMode();
 
-    // Attach GPIO interrupts on all button pins so presses are detected while
-    // the device is awake and running (not in deep sleep).
-    // Call once during onInit(), after pins are configured.
-    static void attachRunningInterrupts();
-
-    // Check if a button was pressed while the device was awake (via ISR).
-    // If so, inject it as a synthetic mode and trigger esp_restart() so the
-    // normal handleWakeupMode() path processes it on the next boot.
-    // Call in onShutdown() before entering deep sleep.
-    static void checkAndHandleRunningButtonPress();
-
 private:
     // Get GPIO mask for all three buttons
     static uint64_t getButtonMask();
