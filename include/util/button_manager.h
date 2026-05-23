@@ -4,7 +4,7 @@
 // Button manager for temporary display mode switching (ESP32-S3 only)
 class ButtonManager {
 public:
-    // Duration for temporary mode in active hours (2 minutes in seconds)
+    // Duration for temporary mode (2 minutes in seconds)
     static constexpr uint32_t TEMP_MODE_ACTIVE_DURATION = 120;
 
     // Debounce delay in milliseconds
@@ -24,9 +24,20 @@ public:
     // Enable EXT1 wakeup for all buttons before entering deep sleep
     static void enableButtonWakeup();
 
-    // Handle button wakeup and set temporary display mode if needed
-    // Should be called early in boot process
+    // Handle button wakeup and set temporary display mode if needed.
+    // Handles: EXT1 wakeup, synthetic mode, and awake-press (ISR-triggered restart).
+    // Uses cycle-based expiry (TEMP_MODE_CYCLES wakeup cycles).
     static void handleWakeupMode();
+
+    // Attach GPIO falling-edge interrupts so button presses are captured while
+    // the device is awake. Call once in onInit() after pins are configured.
+    static void attachRunningInterrupts();
+
+    // Check if a button was pressed while awake (via ISR).
+    // If so, activates temporary mode in RTC config and calls esp_restart().
+    // Call this anywhere in the lifecycle to respond to button presses ASAP.
+    // Returns true if restart was triggered (caller won't reach next line).
+    static bool checkAndRestartIfButtonPressed();
 
 private:
     // Get GPIO mask for all three buttons
