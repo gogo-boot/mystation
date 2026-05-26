@@ -64,6 +64,10 @@ void ActivityManager::onInit() {
 #endif
     SystemInit::loadNvsConfig();
 
+    // Attach GPIO interrupts so button presses are detected while awake
+    ButtonManager::setWakupableButtons();
+    ButtonManager::attachRunningInterrupts();
+
     DEBUG_ONLY(ConfigManager::printConfiguration(false);)
 
     setNextActivityLifecycle(Lifecycle::ON_START);
@@ -77,7 +81,6 @@ void ActivityManager::onStart() {
     if (phase == PHASE_WIFI_SETUP) {
         BootFlowManager::handlePhaseWifiSetup();
     }
-    // Setup by pressing buttons changes display mode while running - To make
 
     // Start Wifi connection. If gets failed, show Wifi Error Screen
     MyWiFiManager::reconnectWiFi();
@@ -87,6 +90,9 @@ void ActivityManager::onStart() {
         setNextActivityLifecycle(Lifecycle::ON_STOP);
         return;
     }
+
+    // Check if button was pressed during WiFi connect
+    ButtonManager::checkAndRestartIfButtonPressed();
 
     // Set up Time if it needed
     DeviceModeManager::setupConnectivityAndTime();
@@ -109,13 +115,22 @@ void ActivityManager::onRunning() {
         return;
     }
 
+    // Check if button was pressed before OTA/API work
+    ButtonManager::checkAndRestartIfButtonPressed();
+
     // OTA Update Check by checking scheduled time with RTC clock time
     OTAManager::checkAndApplyUpdate();
+
+    // Check if button was pressed during OTA check
+    ButtonManager::checkAndRestartIfButtonPressed();
 
     // Fetch Data from APIs and Update Display
     if (phase == PHASE_COMPLETE) {
         BootFlowManager::handlePhaseComplete();
     }
+
+    // Check if button was pressed during API fetch / display render
+    ButtonManager::checkAndRestartIfButtonPressed();
 
     setNextActivityLifecycle(Lifecycle::ON_STOP);
 }
@@ -136,6 +151,9 @@ void ActivityManager::onStop() {
 
 void ActivityManager::onShutdown() {
     setCurrentActivityLifecycle(Lifecycle::ON_SHUTDOWN);
+
+    // Final check: if button was pressed while awake, restart to handle it
+    ButtonManager::checkAndRestartIfButtonPressed();
 
     // Turn off peripherals
     DisplayManager::hibernate();
