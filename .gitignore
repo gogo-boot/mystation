@@ -8,3 +8,6 @@
 # Ignore all secret headers except example files
 include/secrets/*.h
 !include/secrets/*.example
+
+# Auto-generated embedded HTML header
+include/config/config_page_html.h

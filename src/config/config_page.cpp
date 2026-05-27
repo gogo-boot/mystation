@@ -1,4 +1,5 @@
 #include "config/config_page.h"
+#include "config/config_page_html.h"
 #include <LittleFS.h>
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
@@ -35,13 +36,8 @@ void handleStationSelect(WebServer& server) {
 
 // Update the config page handler to serve config_my_station.html
 void handleConfigPage(WebServer& server) {
-    File file = LittleFS.open("/config_my_station.html", "r");
-    if (!file) {
-        server.send(404, "text/plain", "Konfigurationsseite nicht gefunden");
-        return;
-    }
-    String page = file.readString();
-    file.close();
+    // HTML template is embedded in firmware via PROGMEM (see tools/embed_html.py)
+    String page(CONFIG_PAGE_HTML);
 
     ConfigPageData& pageData = ConfigPageData::getInstance();
     // Replace reserved keywords
