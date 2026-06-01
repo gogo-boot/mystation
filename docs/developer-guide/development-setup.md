@@ -84,22 +84,11 @@ you can change environment with `-e` option.
 ### 1. Build Project
 
 ```bash
-# Build filesystem (for web based configuration )
-pio run --target buildfs
-```
-
-```bash
-# Build firmware
+# Build firmware (HTML config page is embedded automatically via pre-build script)
 pio run
 ```
 
 ### 2. Upload Firmware
-
-```bash
-# The `data/` directory contains files uploaded to the ESP32's filesystem
-# Upload filesystem
-pio run --target uploadfs
-```
 
 ```bash
 # Upload firmware

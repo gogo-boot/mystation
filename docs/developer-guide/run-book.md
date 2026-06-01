@@ -70,11 +70,14 @@ pio run --target upload --upload-port /dev/ttyUSB0
 
 ### Filesystem Upload Fails
 
+The data partition (LittleFS/SPIFFS) has been removed. The HTML configuration page is now embedded
+directly in the firmware binary. If you need to update the HTML, edit `data/config_my_station.html`
+and rebuild the firmware — the pre-build script (`tools/embed_html.py`) regenerates the header automatically.
+
 ```bash
 # Erase flash completely
 pio run --target erase
 
-# Re-upload firmware and filesystem
+# Re-upload firmware
 pio run --target upload
-pio run --target uploadfs
 ```

@@ -1,5 +1,5 @@
 #include "config/config_page.h"
-#include <LittleFS.h>
+#include "config/config_page_html.h"
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
 #include <StreamUtils.h>
@@ -12,36 +12,8 @@
 
 static const char* TAG = "CONFIG";
 
-void handleStationSelect(WebServer& server) {
-    File file = LittleFS.open("/station_select.html", "r");
-    if (!file) {
-        server.send(500, "text/plain", "Template not found");
-        return;
-    }
-    String page = file.readString();
-    file.close();
-
-    ConfigPageData& pageData = ConfigPageData::getInstance();
-    String html;
-    for (size_t i = 0; i < pageData.getStopCount(); ++i) {
-        html += "<div class='station'>";
-        html += "<input type='radio' name='station' value='" + pageData.getStopId(i) + "'>";
-        html += pageData.getStopName(i) + " (ID: " + pageData.getStopId(i) + ")";
-        html += "</div>";
-    }
-    page.replace("{{stations}}", html);
-    server.send(200, "text/html", page);
-}
-
-// Update the config page handler to serve config_my_station.html
 void handleConfigPage(WebServer& server) {
-    File file = LittleFS.open("/config_my_station.html", "r");
-    if (!file) {
-        server.send(404, "text/plain", "Konfigurationsseite nicht gefunden");
-        return;
-    }
-    String page = file.readString();
-    file.close();
+    String page(CONFIG_PAGE_HTML);
 
     ConfigPageData& pageData = ConfigPageData::getInstance();
     // Replace reserved keywords
@@ -417,14 +389,6 @@ void handleStopAutocompleteWrapper() {
 }
 
 void setupWebServer(WebServer& server) {
-    // Initialize filesystem
-    // It need to be done before load configurration html files
-    if (!LittleFS.begin()) {
-        ESP_LOGE(TAG, "LittleFS mount failed! Please check filesystem or flash.");
-        while (true) {
-            delay(500);
-        }
-    }
     ESP_LOGI(TAG, "Setting up web server...");
     g_server = &server;
     server.on("/", handleConfigPageWrapper);
