@@ -140,10 +140,9 @@ It is used for ESP32 with 4MB flash size. very tight fit for current application
 # Name,   Type, SubType, Offset,  Size, Flags
 nvs,      data, nvs,     0x9000,  0x5000,
 otadata,  data, ota,     0xe000,  0x2000,
-app0,     app,  ota_0,   0x10000, 0x180000,
-app1,     app,  ota_1,   0x190000,0x180000,
-spiffs,   data, spiffs,  0x310000,0x5000,
-coredump, data, coredump,0x315000,0xEB000,
+app0,     app,  ota_0,   0x10000, 0x1E0000,
+app1,     app,  ota_1,   0x1F0000,0x1E0000,
+coredump, data, coredump,0x3D0000,0x30000,
 ```
 
 Human-readable format:
@@ -152,16 +151,15 @@ Human-readable format:
 |----------|------|----------|----------|----------|------|-----------|-------------------------------------------|
 | nvs      | data | nvs      | 0x9000   | 0x5000   | 0.02 | 20,480    | Non-Volatile Storage (WiFi, config)       |
 | otadata  | data | ota      | 0xe000   | 0x2000   | 0.01 | 8,192     | OTA metadata (active partition tracking)  |
-| app0     | app  | ota_0    | 0x10000  | 0x180000 | 1.50 | 1,572,864 | Primary firmware slot (OTA partition 0)   |
-| app1     | app  | ota_1    | 0x190000 | 0x180000 | 1.50 | 1,572,864 | Secondary firmware slot (OTA partition 1) |
-| spiffs   | data | spiffs   | 0x310000 | 0x5000   | 0.02 | 20,480    | File system (web interface, certificates) |
-| coredump | data | coredump | 0x315000 | 0xEB000  | 0.92 | 962,560   | Core dump storage for crash debugging     |
+| app0     | app  | ota_0    | 0x10000  | 0x1E0000 | 1.88 | 1,966,080 | Primary firmware slot (OTA partition 0)   |
+| app1     | app  | ota_1    | 0x1F0000 | 0x1E0000 | 1.88 | 1,966,080 | Secondary firmware slot (OTA partition 1) |
+| coredump | data | coredump | 0x3D0000 | 0x30000  | 0.19 | 196,608   | Core dump storage for crash debugging     |
 
 **Summary:**
 
-- **Total used**: 3.97 MiB (4,157,440 bytes)
-- **Current app size**: 1.36 MiB (1,430,241 bytes)
-- **Margin per OTA partition**: ~0.14 MiB (142,623 bytes) — **9% headroom**
+- **Total used**: 4.00 MiB (4,194,304 bytes)
+- **Current app size**: ~1.4 MiB (including embedded HTML)
+- **Margin per OTA partition**: ~0.48 MiB — **~35% headroom**
 
 ### partitions/default_16MB.csv
 
@@ -173,8 +171,7 @@ nvs,      data, nvs,     0x9000,  0x5000,
 otadata,  data, ota,     0xe000,  0x2000,
 app0,     app,  ota_0,   0x10000, 0x640000,
 app1,     app,  ota_1,   0x650000,0x640000,
-spiffs,   data, spiffs,  0xc90000,0x360000,
-coredump, data, coredump,0xFF0000,0x10000,
+coredump, data, coredump,0xc90000,0x10000,
 ```
 
 | Name     | Type | SubType  | Offset   | Size     | MiB  | Bytes     | Description                               |
@@ -183,10 +180,9 @@ coredump, data, coredump,0xFF0000,0x10000,
 | otadata  | data | ota      | 0xe000   | 0x2000   | 0.01 | 8,192     | OTA metadata (active partition tracking)  |
 | app0     | app  | ota_0    | 0x10000  | 0x640000 | 6.25 | 6,553,600 | Primary firmware slot (OTA partition 0)   |
 | app1     | app  | ota_1    | 0x650000 | 0x640000 | 6.25 | 6,553,600 | Secondary firmware slot (OTA partition 1) |
-| spiffs   | data | spiffs   | 0xc90000 | 0x360000 | 3.38 | 3,538,944 | File system (web interface, certificates) |
-| coredump | data | coredump | 0xFF0000 | 0x10000  | 0.06 | 65,536    | Core dump storage for crash debugging     |
+| coredump | data | coredump | 0xc90000 | 0x10000  | 0.06 | 65,536    | Core dump storage for crash debugging     |
 
 Summary:
-Total used: 15.97 MiB (16,740,352 bytes)
+Total used: 12.59 MiB (13,201,408 bytes)
 Current app size: 1.36 MiB (1,430,241 bytes)
 Margin per OTA partition: ~4.89 MiB (5,123,359 bytes) — 78% headroom (very comfortable!)

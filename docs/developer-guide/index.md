@@ -77,7 +77,7 @@ information.
 | MCU       | ESP32-C3 / S3 | Main processor          |
 | Display   | GDEY075T7     | 7.5" e-paper, 800x480   |
 | WiFi      | Built-in      | 2.4 GHz 802.11 b/g/n    |
-| Storage   | 4MB Flash     | Firmware + SPIFFS + NVS |
+| Storage   | 4MB Flash     | Firmware + NVS |
 | Power     | 3.7V LiPo     | Battery powered         |
 
 ### Software
@@ -160,7 +160,8 @@ mystation/
 ├── include/            # Header files (mirrors src/)
 ├── lib/                # Libraries
 ├── test/               # Unit tests
-├── data/               # SPIFFS files
+├── data/               # HTML source (embedded in firmware at build time)
+├── tools/              # Build scripts (embed_html.py)
 ├── docs/               # Documentation
 └── platformio.ini      # Build configuration
 ```

@@ -55,7 +55,9 @@ void ActivityManager::onInit() {
     SystemInit::initFont();
     BatteryManager::init();;
 #if SHOW_BATTERY_STATUS
-    if (BatteryManager::getBatteryVoltage() <= BATTERY_VOLTAGE_MIN) {
+    float batteryVoltage = BatteryManager::getBatteryVoltage();
+    // 0V means no battery connected (USB-only power) — skip the check
+    if (batteryVoltage > 0.1f && batteryVoltage <= BATTERY_VOLTAGE_MIN) {
         DisplayManager::displayErrorIfBatteryLow();
         // Shutdown immediately if battery is low
         setNextActivityLifecycle(Lifecycle::ON_SHUTDOWN);
@@ -157,6 +159,12 @@ void ActivityManager::onShutdown() {
 
     // Turn off peripherals
     DisplayManager::hibernate();
+
+    // Use minimum sleep time if none was calculated (e.g. battery-low shutdown)
+    if (sleepTimeSeconds == 0) {
+        sleepTimeSeconds = 3600; // 1 hour fallback
+    }
+
     // Enter deep sleep mode
     enterDeepSleep(sleepTimeSeconds);
 }
