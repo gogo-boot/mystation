@@ -61,28 +61,6 @@ uint32_t TimingManager::calculateNextTransportUpdate(uint32_t currentTimeSeconds
     return nextUpdate;
 }
 
-uint32_t TimingManager::findNearestUpdateTime(uint32_t weather, uint32_t transport, uint32_t ota) {
-    uint32_t nearest = 0;
-
-    // Collect all valid update times
-    if (weather > 0) nearest = weather;
-    if (transport > 0 && (nearest == 0 || transport < nearest)) nearest = transport;
-    if (ota > 0 && (nearest == 0 || ota < nearest)) nearest = ota;
-
-    // Fallback if no updates scheduled; log all parameters and nearest value
-    ESP_LOGI(TAG, "findNearestUpdateTime params: weather=%u, transport=%u, ota=%u, nearest=%u", weather, transport, ota,
-             nearest);
-
-    if (nearest == 0) {
-        time_t now = GET_CURRENT_TIME();
-        nearest = (uint32_t)now + 60; // Wake in 1 minute
-        ESP_LOGI(TAG, "No updates configured - fallback wake in 60 seconds at: %u", nearest);
-        return nearest;
-    }
-
-    return nearest;
-}
-
 bool TimingManager::isTransportActiveAtTime(uint32_t timestamp) {
     RTCConfigData& config = ConfigManager::getConfig();
 

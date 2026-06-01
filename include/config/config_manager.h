@@ -94,8 +94,6 @@ public:
 
     // RTC-based configuration management
     static RTCConfigData& getConfig() { return rtcConfig; }
-    static bool hasValidConfig();
-    static void invalidateConfig();
 
     // NVS persistence (backup storage)
     bool loadFromNVS(bool force);

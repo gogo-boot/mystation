@@ -2,18 +2,6 @@
 
 #include <Arduino.h>
 
-enum class UpdateType {
-    WEATHER_ONLY,
-    TRANSPORT_ONLY,
-    BOTH
-};
-
-enum class TimeOfDay {
-    ACTIVE_HOURS,
-    SLEEP_HOURS,
-    TRANSITION
-};
-
 class TimingManager {
 public:
     // Get next sleep duration based on mode and next required update
@@ -57,7 +45,6 @@ private:
     // Sleep duration calculation helpers
     static uint32_t calculateNextWeatherUpdate(uint32_t currentTimeSeconds);
     static uint32_t calculateNextTransportUpdate(uint32_t currentTimeSeconds);
-    static uint32_t findNearestUpdateTime(uint32_t weather, uint32_t transport, uint32_t ota);
 
     static uint32_t adjustForDeepSleepPeriod(uint32_t nearestUpdate, bool isOTAUpdate);
     static bool isWeekend(time_t timestamp);

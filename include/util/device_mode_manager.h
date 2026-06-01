@@ -17,7 +17,7 @@ public:
     // Configuration phase management
     static ConfigPhase getCurrentPhase();
     static void showPhaseInstructions(ConfigPhase phase);
-    static void showWifiErrorPage();
+    static void logWifiError();
 
     // Common operational mode functions
     static bool setupConnectivityAndTime();

@@ -267,11 +267,6 @@ ConfigPhase DeviceModeManager::getCurrentPhase() {
         return PHASE_COMPLETE;
     }
 
-    if (config.displayMode == DISPLAY_MODE_APPLICATION_INFO) {
-        ESP_LOGI(TAG, "Configuration Phase: 3 (Complete - Application Info Mode)");
-        return PHASE_COMPLETE;
-    }
-
     ESP_LOGI(TAG, "Configuration Phase: 2 (App Setup)");
     return PHASE_APP_SETUP;
 }
@@ -303,7 +298,7 @@ void DeviceModeManager::showPhaseInstructions(ConfigPhase phase) {
     }
 }
 
-void DeviceModeManager::showWifiErrorPage() {
+void DeviceModeManager::logWifiError() {
     ESP_LOGE(TAG, "=== INTERNET ACCESS ERROR ===");
     ESP_LOGE(TAG, "WiFi connected but internet is not accessible");
     ESP_LOGE(TAG, "");

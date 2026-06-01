@@ -14,7 +14,7 @@
 #include "util/wifi_manager.h"
 
 static Lifecycle currentLifecycle = Lifecycle::ON_INIT;
-static Lifecycle nextLifecyele = Lifecycle::ON_START;
+static Lifecycle nextLifecycle = Lifecycle::ON_START;
 static const char* TAG = "ACTIVITY_MGR";
 
 Lifecycle ActivityManager::getCurrentActivityLifecycle() {
@@ -27,12 +27,12 @@ void ActivityManager::setCurrentActivityLifecycle(Lifecycle status) {
 }
 
 Lifecycle ActivityManager::getNextActivityLifecycle() {
-    return nextLifecyele;
+    return nextLifecycle;
 }
 
 void ActivityManager::setNextActivityLifecycle(Lifecycle status) {
     ESP_LOGI(TAG, "Current Lifecycle : %s", lifecycleToString(status));
-    nextLifecyele = status;
+    nextLifecycle = status;
 }
 
 const char* ActivityManager::lifecycleToString(Lifecycle lifecycle) {
@@ -137,7 +137,7 @@ void ActivityManager::onRunning() {
     setNextActivityLifecycle(Lifecycle::ON_STOP);
 }
 
-uint64_t sleepTimeSeconds = 0;
+static uint64_t sleepTimeSeconds = 0;
 
 void ActivityManager::onStop() {
     setCurrentActivityLifecycle(Lifecycle::ON_STOP);
