@@ -31,19 +31,8 @@ RTCConfigData& config = ConfigManager::getConfig();
 RTC_DATA_ATTR WeatherInfo weather;
 
 void DeviceModeManager::runConfigurationMode() {
-    ESP_LOGI(TAG, "=== ENTERING CONFIGURATION MODE ===");
+    ESP_LOGI(TAG, "=== PHASE 2: CONFIGURATION MODE ===");
 
-    // Phase 2+: WiFi already configured, setup app configuration
-    ESP_LOGI(TAG, "=== PHASE 2+ CONFIGURATION MODE ===");
-    ESP_LOGI(TAG, "WiFi already configured, setting up app configuration...");
-
-    // Ensure WiFi connection
-    if (!MyWiFiManager::isConnected()) {
-        ESP_LOGW(TAG, "WiFi not connected, attempting reconnect...");
-        MyWiFiManager::reconnectWiFi();
-    }
-
-    // Get location if not already saved
     ConfigPageData& pageData = ConfigPageData::getInstance();
 
     pageData.setIPAddress(config.ipAddress);

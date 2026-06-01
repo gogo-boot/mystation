@@ -54,14 +54,13 @@ namespace BootFlowManager {
     void handlePhaseAppSetup() {
         ESP_LOGI(TAG, "Phase 2: Application Setup Required");
 
-        MyWiFiManager::reconnectWiFi();
-
-        if (MyWiFiManager::isConnected() && MyWiFiManager::hasInternetAccess()) {
+        // WiFi is already connected (verified in onStart)
+        if (MyWiFiManager::hasInternetAccess()) {
             DeviceModeManager::runConfigurationMode();
             DeviceModeManager::showPhaseInstructions(PHASE_APP_SETUP);
             DeviceModeManager::startWebServer();
         } else {
-            ESP_LOGE(TAG, "WiFi validation failed - reverting to Phase 1");
+            ESP_LOGE(TAG, "No internet access - reverting to Phase 1");
             DeviceModeManager::logWifiError();
             handlePhaseWifiSetup();
         }
