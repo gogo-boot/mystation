@@ -2,7 +2,7 @@
 
 #include "build_config.h"
 #include "util/battery_manager.h"
-#include "util/boot_flow_manager.h"
+#include "util/device_mode_manager.h"
 #include "util/button_manager.h"
 #include "util/device_mode_manager.h"
 #include "ota/ota_manager.h"
@@ -81,7 +81,7 @@ void ActivityManager::onStart() {
     // Start configuration Phase 1 if needed : Wifi Manager Configuration
     ConfigPhase phase = DeviceModeManager::getCurrentPhase();
     if (phase == PHASE_WIFI_SETUP) {
-        BootFlowManager::handlePhaseWifiSetup();
+        DeviceModeManager::handlePhaseWifiSetup();
     }
 
     // Start Wifi connection. If gets failed, show Wifi Error Screen
@@ -111,7 +111,7 @@ void ActivityManager::onRunning() {
     // Start configuration Phase 2 if needed : Application Configuration
     ConfigPhase phase = DeviceModeManager::getCurrentPhase();
     if (phase == PHASE_APP_SETUP) {
-        BootFlowManager::handlePhaseAppSetup();
+        DeviceModeManager::handlePhaseAppSetup();
         setNextActivityLifecycle(Lifecycle::ON_LOOP);
         // The web server will run in loop() for configuration
         return;
@@ -128,7 +128,7 @@ void ActivityManager::onRunning() {
 
     // Fetch Data from APIs and Update Display
     if (phase == PHASE_COMPLETE) {
-        BootFlowManager::handlePhaseComplete();
+        DeviceModeManager::handlePhaseComplete();
     }
 
     // Check if button was pressed during API fetch / display render

@@ -299,3 +299,73 @@ void DeviceModeManager::logWifiError() {
     ESP_LOGI(TAG, "3. Configure display settings and intervals");
     ESP_LOGI(TAG, "4. Save configuration to begin operation");
 }
+
+// ===== PHASE HANDLERS (merged from BootFlowManager) =====
+
+void DeviceModeManager::runOperationalMode(uint8_t displayMode) {
+    switch (displayMode) {
+    case DISPLAY_MODE_HALF_AND_HALF:
+        ESP_LOGI(TAG, "Starting Weather + Departure half-and-half mode");
+        showWeatherDeparture();
+        break;
+    case DISPLAY_MODE_WEATHER_ONLY:
+        ESP_LOGI(TAG, "Starting Weather-only full screen mode");
+        updateWeatherFull();
+        break;
+    case DISPLAY_MODE_TRANSPORT_ONLY:
+        ESP_LOGI(TAG, "Starting Departure-only full screen mode");
+        updateDepartureFull();
+        break;
+    case DISPLAY_MODE_APPLICATION_INFO:
+        ESP_LOGI(TAG, "Starting Application Info mode");
+        showApplicationInfo();
+        break;
+    default:
+        ESP_LOGW(TAG, "Unknown display mode %d, defaulting to half-and-half", displayMode);
+        showWeatherDeparture();
+        break;
+    }
+}
+
+void DeviceModeManager::handlePhaseWifiSetup() {
+    ESP_LOGI(TAG, "=== PHASE 1: WiFi Setup ===");
+
+    showPhaseInstructions(PHASE_WIFI_SETUP);
+    ConfigManager::setDefaults();
+
+    WiFiManager wm;
+    MyWiFiManager::setupWiFiAccessPointAndRestart(wm);
+}
+
+void DeviceModeManager::handlePhaseAppSetup() {
+    ESP_LOGI(TAG, "Phase 2: Application Setup Required");
+
+    if (MyWiFiManager::hasInternetAccess()) {
+        runConfigurationMode();
+        showPhaseInstructions(PHASE_APP_SETUP);
+        startWebServer();
+    } else {
+        ESP_LOGE(TAG, "No internet access - reverting to Phase 1");
+        logWifiError();
+        handlePhaseWifiSetup();
+    }
+}
+
+void DeviceModeManager::handlePhaseComplete() {
+    ESP_LOGI(TAG, "Phase 3: Running operational mode");
+
+    RTCConfigData& cfg = ConfigManager::getConfig();
+
+    // Sanitize APPLICATION_INFO if it leaked into persistent config
+    if (cfg.displayMode == DISPLAY_MODE_APPLICATION_INFO) {
+        ESP_LOGW(TAG, "config.displayMode is APPLICATION_INFO — resetting to WEATHER_ONLY");
+        cfg.displayMode = DISPLAY_MODE_WEATHER_ONLY;
+        ConfigManager::getInstance().saveToNVS();
+    }
+
+    uint8_t displayMode = TimingManager::getEffectiveDisplayMode();
+    ESP_LOGI(TAG, "Display mode: %d (temp=%d, configured=%d)",
+             displayMode, cfg.inTemporaryMode, cfg.displayMode);
+
+    runOperationalMode(displayMode);
+}

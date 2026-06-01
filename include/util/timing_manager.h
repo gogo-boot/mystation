@@ -33,24 +33,23 @@ public:
     static void setLastOTACheck(uint32_t timestamp);
 
 private:
-    // Helper functions
-    static int parseTimeString(const String& timeStr); // Convert "HH:MM" to minutes since midnight
-    static int getCurrentMinutesSinceMidnight();
+    // Time utility helpers
+    static int parseTimeString(const String& timeStr);
     static bool isTimeInRange(uint32_t currentMinutes, uint32_t startMinutes, uint32_t endMinutes);
-    static uint32_t calculateNextOTACheckTime(uint32_t currentTimeSeconds);
-    // Transport active hours helpers
-    static bool isTransportActiveAtTime(uint32_t timestamp);
-    static uint32_t calculateNextActiveTransportTime(uint32_t currentTime);
-
-    // Sleep duration calculation helpers
-    static uint32_t calculateNextWeatherUpdate(uint32_t currentTimeSeconds);
-    static uint32_t calculateNextTransportUpdate(uint32_t currentTimeSeconds);
-
-    static uint32_t adjustForDeepSleepPeriod(uint32_t nearestUpdate, bool isOTAUpdate);
-    static bool isWeekend(time_t timestamp);
-    static bool isInDeepSleepPeriod();
-    static bool isInDeepSleepPeriod(uint32_t timestamp);
     static uint16_t getCurrentMin();
     static uint16_t getSleepStartMin();
     static uint16_t getSleepEndMin();
+    static bool isWeekend(time_t timestamp);
+    static bool isInDeepSleepPeriod();
+    static bool isInDeepSleepPeriod(uint32_t timestamp);
+
+    // Sleep duration calculation helpers
+    static uint32_t calculateNextOTACheckTime(uint32_t currentTimeSeconds);
+    static uint32_t calculateNextWeatherUpdate(uint32_t currentTimeSeconds);
+    static uint32_t calculateNextTransportUpdate(uint32_t currentTimeSeconds);
+    static uint32_t adjustForDeepSleepPeriod(uint32_t nearestUpdate, bool isOTAUpdate);
+
+    // Transport active hours helpers
+    static bool isTransportActiveAtTime(uint32_t timestamp);
+    static uint32_t calculateNextActiveTransportTime(uint32_t currentTime);
 };

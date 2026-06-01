@@ -352,7 +352,7 @@ uint64_t TimingManager::getNextSleepDurationSeconds() {
 }
 
 bool TimingManager::isTransportActiveTime() {
-    int currentMinutes = getCurrentMinutesSinceMidnight();
+    int currentMinutes = getCurrentMin();
 
     String activeStart, activeEnd;
     if (isWeekend()) {
@@ -482,14 +482,6 @@ int TimingManager::parseTimeString(const String& timeStr) {
     int minutes = timeStr.substring(colonPos + 1).toInt();
 
     return hours * 60 + minutes;
-}
-
-int TimingManager::getCurrentMinutesSinceMidnight() {
-    time_t now = GET_CURRENT_TIME();
-    tm timeinfo;
-    localtime_r(&now, &timeinfo);
-
-    return timeinfo.tm_hour * 60 + timeinfo.tm_min;
 }
 
 bool TimingManager::isTimeInRange(uint32_t currentMinutes, uint32_t startMinutes, uint32_t endMinutes) {
