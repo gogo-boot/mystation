@@ -340,15 +340,10 @@ void DeviceModeManager::handlePhaseWifiSetup() {
 void DeviceModeManager::handlePhaseAppSetup() {
     ESP_LOGI(TAG, "Phase 2: Application Setup Required");
 
-    if (MyWiFiManager::hasInternetAccess()) {
-        runConfigurationMode();
-        showPhaseInstructions(PHASE_APP_SETUP);
-        startWebServer();
-    } else {
-        ESP_LOGE(TAG, "No internet access - reverting to Phase 1");
-        logWifiError();
-        handlePhaseWifiSetup();
-    }
+    // Show instructions on e-paper and start web server immediately.
+    // Location detection and nearby stops are loaded lazily via /api/init from the browser.
+    showPhaseInstructions(PHASE_APP_SETUP);
+    startWebServer();
 }
 
 void DeviceModeManager::handlePhaseComplete() {

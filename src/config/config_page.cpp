@@ -5,6 +5,9 @@
 #include <StreamUtils.h>
 #include "config/config_manager.h"
 #include "config/config_page_data.h"
+#include "api/google_api.h"
+#include "api/dwd_weather_api.h"
+#include "api/rmv_api.h"
 #include "util/util.h"
 #include "sec/aes_crypto.h"
 #include "util/sleep_utils.h"
@@ -290,6 +293,47 @@ void handleStopAutocomplete(WebServer& server) {
     server.send(200, "application/json", out);
 }
 
+// AJAX handler for lazy-loading location + nearby stops (GET /api/init)
+// Called by browser on page load to avoid blocking the initial HTTP response
+void handleInit(WebServer& server) {
+    ESP_LOGI(TAG, "Handling /api/init - detecting location and nearby stops");
+
+    ConfigPageData& pageData = ConfigPageData::getInstance();
+
+    // Detect location via Google Geolocation API
+    float lat, lon;
+    bool locationOk = getLocationFromGoogle(lat, lon);
+
+    String cityName = "";
+    if (locationOk) {
+        cityName = getCityFromLatLon(lat, lon);
+        if (cityName.isEmpty()) cityName = "Unknown";
+        pageData.setLocation(lat, lon, cityName);
+
+        // Fetch nearby stops
+        getNearbyStops(lat, lon);
+    }
+
+    // Build JSON response
+    DynamicJsonDocument doc(2048);
+    doc["lat"] = locationOk ? lat : 0.0f;
+    doc["lon"] = locationOk ? lon : 0.0f;
+    doc["city"] = cityName;
+
+    JsonArray stopsArr = doc.createNestedArray("stops");
+    for (size_t i = 0; i < pageData.getStopCount(); ++i) {
+        JsonObject stop = stopsArr.createNestedObject();
+        stop["id"] = pageData.getStopId(i);
+        stop["name"] = pageData.getStopName(i);
+        stop["dist"] = pageData.getStopDistance(i);
+    }
+
+    String out;
+    serializeJson(doc, out);
+    server.send(200, "application/json", out);
+    ESP_LOGI(TAG, "/api/init complete: city=%s, stops=%d", cityName.c_str(), pageData.getStopCount());
+}
+
 // Global server reference for callback access
 static WebServer* g_server = nullptr;
 
@@ -310,6 +354,10 @@ void handleStopAutocompleteWrapper() {
     handleStopAutocomplete(*g_server);
 }
 
+void handleInitWrapper() {
+    handleInit(*g_server);
+}
+
 void setupWebServer(WebServer& server) {
     ESP_LOGI(TAG, "Setting up web server...");
     g_server = &server;
@@ -317,6 +365,7 @@ void setupWebServer(WebServer& server) {
     server.on("/save_config", HTTP_POST, handleSaveConfigWrapper);
     server.on("/api/city", HTTP_GET, handleCityAutocompleteWrapper);
     server.on("/api/stop", HTTP_GET, handleStopAutocompleteWrapper);
+    server.on("/api/init", HTTP_GET, handleInitWrapper);
     server.begin();
     ESP_LOGI("WEB_SERVER", "HTTP server started.");
 }
