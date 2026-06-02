@@ -50,13 +50,12 @@ appear on the display.
 1. Select your **home WiFi network** from the list
     - ⚠️ Make sure it's a **2.4 GHz** network
 2. Enter your **WiFi password**
-3. Click **"Connect"**
+3. Click **"Speichern"** (Save)
 
 MyStation will:
 
 - Connect to your home WiFi
-- Detect your approximate location automatically
-- Discover nearby public transport stops
+- Restart automatically and proceed to application setup
 
 > 💡 After connecting to your home WiFi, the configuration page will reload automatically at the device's new IP address.
 
@@ -64,7 +63,8 @@ MyStation will:
 
 ## Step 5: Configure the Application (2 minutes)
 
-The configuration page now shows all settings. Your location and nearby stops are already detected.
+The configuration page loads quickly. Your location and nearby stops will be detected automatically
+after a few seconds (a loading indicator is shown while this happens).
 
 ### Display Mode
 
