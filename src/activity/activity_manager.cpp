@@ -2,7 +2,7 @@
 
 #include "build_config.h"
 #include "util/battery_manager.h"
-#include "util/boot_flow_manager.h"
+#include "util/device_mode_manager.h"
 #include "util/button_manager.h"
 #include "util/device_mode_manager.h"
 #include "ota/ota_manager.h"
@@ -14,7 +14,7 @@
 #include "util/wifi_manager.h"
 
 static Lifecycle currentLifecycle = Lifecycle::ON_INIT;
-static Lifecycle nextLifecyele = Lifecycle::ON_START;
+static Lifecycle nextLifecycle = Lifecycle::ON_START;
 static const char* TAG = "ACTIVITY_MGR";
 
 Lifecycle ActivityManager::getCurrentActivityLifecycle() {
@@ -27,12 +27,12 @@ void ActivityManager::setCurrentActivityLifecycle(Lifecycle status) {
 }
 
 Lifecycle ActivityManager::getNextActivityLifecycle() {
-    return nextLifecyele;
+    return nextLifecycle;
 }
 
 void ActivityManager::setNextActivityLifecycle(Lifecycle status) {
     ESP_LOGI(TAG, "Current Lifecycle : %s", lifecycleToString(status));
-    nextLifecyele = status;
+    nextLifecycle = status;
 }
 
 const char* ActivityManager::lifecycleToString(Lifecycle lifecycle) {
@@ -81,7 +81,7 @@ void ActivityManager::onStart() {
     // Start configuration Phase 1 if needed : Wifi Manager Configuration
     ConfigPhase phase = DeviceModeManager::getCurrentPhase();
     if (phase == PHASE_WIFI_SETUP) {
-        BootFlowManager::handlePhaseWifiSetup();
+        DeviceModeManager::handlePhaseWifiSetup();
     }
 
     // Start Wifi connection. If gets failed, show Wifi Error Screen
@@ -111,7 +111,7 @@ void ActivityManager::onRunning() {
     // Start configuration Phase 2 if needed : Application Configuration
     ConfigPhase phase = DeviceModeManager::getCurrentPhase();
     if (phase == PHASE_APP_SETUP) {
-        BootFlowManager::handlePhaseAppSetup();
+        DeviceModeManager::handlePhaseAppSetup();
         setNextActivityLifecycle(Lifecycle::ON_LOOP);
         // The web server will run in loop() for configuration
         return;
@@ -128,7 +128,7 @@ void ActivityManager::onRunning() {
 
     // Fetch Data from APIs and Update Display
     if (phase == PHASE_COMPLETE) {
-        BootFlowManager::handlePhaseComplete();
+        DeviceModeManager::handlePhaseComplete();
     }
 
     // Check if button was pressed during API fetch / display render
@@ -137,7 +137,7 @@ void ActivityManager::onRunning() {
     setNextActivityLifecycle(Lifecycle::ON_STOP);
 }
 
-uint64_t sleepTimeSeconds = 0;
+static uint64_t sleepTimeSeconds = 0;
 
 void ActivityManager::onStop() {
     setCurrentActivityLifecycle(Lifecycle::ON_STOP);

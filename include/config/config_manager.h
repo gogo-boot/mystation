@@ -3,6 +3,10 @@
 #include <Preferences.h>
 #include <vector>
 
+#ifndef NATIVE_TEST
+#include <ArduinoJson.h>
+#endif
+
 // Complete RTC memory structure (survives deep sleep, lost on power loss)
 struct RTCConfigData {
     // Display configuration
@@ -94,8 +98,11 @@ public:
 
     // RTC-based configuration management
     static RTCConfigData& getConfig() { return rtcConfig; }
-    static bool hasValidConfig();
-    static void invalidateConfig();
+
+#ifndef NATIVE_TEST
+    // Update config from JSON (used by web config save handler)
+    void updateFromJson(const JsonDocument& doc);
+#endif
 
     // NVS persistence (backup storage)
     bool loadFromNVS(bool force);

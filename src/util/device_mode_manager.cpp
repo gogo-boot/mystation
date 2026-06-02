@@ -31,19 +31,8 @@ RTCConfigData& config = ConfigManager::getConfig();
 RTC_DATA_ATTR WeatherInfo weather;
 
 void DeviceModeManager::runConfigurationMode() {
-    ESP_LOGI(TAG, "=== ENTERING CONFIGURATION MODE ===");
+    ESP_LOGI(TAG, "=== PHASE 2: CONFIGURATION MODE ===");
 
-    // Phase 2+: WiFi already configured, setup app configuration
-    ESP_LOGI(TAG, "=== PHASE 2+ CONFIGURATION MODE ===");
-    ESP_LOGI(TAG, "WiFi already configured, setting up app configuration...");
-
-    // Ensure WiFi connection
-    if (!MyWiFiManager::isConnected()) {
-        ESP_LOGW(TAG, "WiFi not connected, attempting reconnect...");
-        MyWiFiManager::reconnectWiFi();
-    }
-
-    // Get location if not already saved
     ConfigPageData& pageData = ConfigPageData::getInstance();
 
     pageData.setIPAddress(config.ipAddress);
@@ -267,11 +256,6 @@ ConfigPhase DeviceModeManager::getCurrentPhase() {
         return PHASE_COMPLETE;
     }
 
-    if (config.displayMode == DISPLAY_MODE_APPLICATION_INFO) {
-        ESP_LOGI(TAG, "Configuration Phase: 3 (Complete - Application Info Mode)");
-        return PHASE_COMPLETE;
-    }
-
     ESP_LOGI(TAG, "Configuration Phase: 2 (App Setup)");
     return PHASE_APP_SETUP;
 }
@@ -303,7 +287,7 @@ void DeviceModeManager::showPhaseInstructions(ConfigPhase phase) {
     }
 }
 
-void DeviceModeManager::showWifiErrorPage() {
+void DeviceModeManager::logWifiError() {
     ESP_LOGE(TAG, "=== INTERNET ACCESS ERROR ===");
     ESP_LOGE(TAG, "WiFi connected but internet is not accessible");
     ESP_LOGE(TAG, "");
@@ -314,4 +298,74 @@ void DeviceModeManager::showWifiErrorPage() {
     ESP_LOGI(TAG, "2. Select your transport station");
     ESP_LOGI(TAG, "3. Configure display settings and intervals");
     ESP_LOGI(TAG, "4. Save configuration to begin operation");
+}
+
+// ===== PHASE HANDLERS (merged from BootFlowManager) =====
+
+void DeviceModeManager::runOperationalMode(uint8_t displayMode) {
+    switch (displayMode) {
+    case DISPLAY_MODE_HALF_AND_HALF:
+        ESP_LOGI(TAG, "Starting Weather + Departure half-and-half mode");
+        showWeatherDeparture();
+        break;
+    case DISPLAY_MODE_WEATHER_ONLY:
+        ESP_LOGI(TAG, "Starting Weather-only full screen mode");
+        updateWeatherFull();
+        break;
+    case DISPLAY_MODE_TRANSPORT_ONLY:
+        ESP_LOGI(TAG, "Starting Departure-only full screen mode");
+        updateDepartureFull();
+        break;
+    case DISPLAY_MODE_APPLICATION_INFO:
+        ESP_LOGI(TAG, "Starting Application Info mode");
+        showApplicationInfo();
+        break;
+    default:
+        ESP_LOGW(TAG, "Unknown display mode %d, defaulting to half-and-half", displayMode);
+        showWeatherDeparture();
+        break;
+    }
+}
+
+void DeviceModeManager::handlePhaseWifiSetup() {
+    ESP_LOGI(TAG, "=== PHASE 1: WiFi Setup ===");
+
+    showPhaseInstructions(PHASE_WIFI_SETUP);
+    ConfigManager::setDefaults();
+
+    WiFiManager wm;
+    MyWiFiManager::setupWiFiAccessPointAndRestart(wm);
+}
+
+void DeviceModeManager::handlePhaseAppSetup() {
+    ESP_LOGI(TAG, "Phase 2: Application Setup Required");
+
+    if (MyWiFiManager::hasInternetAccess()) {
+        runConfigurationMode();
+        showPhaseInstructions(PHASE_APP_SETUP);
+        startWebServer();
+    } else {
+        ESP_LOGE(TAG, "No internet access - reverting to Phase 1");
+        logWifiError();
+        handlePhaseWifiSetup();
+    }
+}
+
+void DeviceModeManager::handlePhaseComplete() {
+    ESP_LOGI(TAG, "Phase 3: Running operational mode");
+
+    RTCConfigData& cfg = ConfigManager::getConfig();
+
+    // Sanitize APPLICATION_INFO if it leaked into persistent config
+    if (cfg.displayMode == DISPLAY_MODE_APPLICATION_INFO) {
+        ESP_LOGW(TAG, "config.displayMode is APPLICATION_INFO — resetting to WEATHER_ONLY");
+        cfg.displayMode = DISPLAY_MODE_WEATHER_ONLY;
+        ConfigManager::getInstance().saveToNVS();
+    }
+
+    uint8_t displayMode = TimingManager::getEffectiveDisplayMode();
+    ESP_LOGI(TAG, "Display mode: %d (temp=%d, configured=%d)",
+             displayMode, cfg.inTemporaryMode, cfg.displayMode);
+
+    runOperationalMode(displayMode);
 }

@@ -74,7 +74,6 @@ void handleSaveConfig(WebServer& server) {
     }
 
     ConfigManager& configMgr = ConfigManager::getInstance();
-    RTCConfigData& config = configMgr.getConfig();
 
     // Parse JSON body
     DynamicJsonDocument doc(1024);
@@ -90,79 +89,10 @@ void handleSaveConfig(WebServer& server) {
         doc["stopId"] = Util::urlDecode(stopId);
     }
 
-    // Print the entire doc object for debugging
-    String docStr;
-    serializeJsonPretty(doc, docStr);
-    ESP_LOGI("CONFIG", "[Config] Received JSON:\n%s", docStr.c_str());
+    ESP_LOGI(TAG, "Saving configuration from web interface");
 
-    // Update global config structure
-    if (doc.containsKey("city")) strncpy(config.cityName, doc["city"].as<const char*>(), sizeof(config.cityName) - 1);
-    if (doc.containsKey("cityLat")) config.latitude = doc["cityLat"].as<float>();
-    if (doc.containsKey("cityLon")) config.longitude = doc["cityLon"].as<float>();
-    if (doc.containsKey("stopId"))
-        strncpy(config.selectedStopId, doc["stopId"].as<const char*>(),
-                sizeof(config.selectedStopId) - 1);
-    if (doc.containsKey("stopName"))
-        strncpy(config.selectedStopName, doc["stopName"].as<const char*>(),
-                sizeof(config.selectedStopName) - 1);
-
-    // Update ÖPNV filters
-    if (doc.containsKey("filters")) {
-        std::vector<String> filterList;
-        JsonArray filters = doc["filters"];
-        for (JsonVariant v : filters) {
-            filterList.push_back(v.as<String>());
-        }
-        ConfigManager::setActiveFilters(filterList);
-    }
-
-    // Update new configuration values
-    if (doc.containsKey("weatherInterval")) config.weatherInterval = doc["weatherInterval"].as<int>();
-    if (doc.containsKey("transportInterval")) config.transportInterval = doc["transportInterval"].as<int>();
-
-    // NEW: Handle display mode configuration
-    if (doc.containsKey("displayMode")) {
-        config.displayMode = doc["displayMode"].as<uint8_t>();
-        ESP_LOGI(TAG, "Display mode set to: %d", config.displayMode);
-    }
-
-    if (doc.containsKey("transportActiveStart"))
-        strncpy(config.transportActiveStart,
-                doc["transportActiveStart"].as<const char*>(),
-                sizeof(config.transportActiveStart) - 1);
-    if (doc.containsKey("transportActiveEnd"))
-        strncpy(config.transportActiveEnd,
-                doc["transportActiveEnd"].as<const char*>(),
-                sizeof(config.transportActiveEnd) - 1);
-    if (doc.containsKey("walkingTime")) config.walkingTime = doc["walkingTime"].as<int>();
-    if (doc.containsKey("sleepStart"))
-        strncpy(config.sleepStart, doc["sleepStart"].as<const char*>(),
-                sizeof(config.sleepStart) - 1);
-    if (doc.containsKey("sleepEnd"))
-        strncpy(config.sleepEnd, doc["sleepEnd"].as<const char*>(),
-                sizeof(config.sleepEnd) - 1);
-    if (doc.containsKey("weekendMode")) config.weekendMode = doc["weekendMode"].as<bool>();
-    if (doc.containsKey("weekendTransportStart"))
-        strncpy(config.weekendTransportStart,
-                doc["weekendTransportStart"].as<const char*>(),
-                sizeof(config.weekendTransportStart) - 1);
-    if (doc.containsKey("weekendTransportEnd"))
-        strncpy(config.weekendTransportEnd,
-                doc["weekendTransportEnd"].as<const char*>(),
-                sizeof(config.weekendTransportEnd) - 1);
-    if (doc.containsKey("weekendSleepStart"))
-        strncpy(config.weekendSleepStart,
-                doc["weekendSleepStart"].as<const char*>(),
-                sizeof(config.weekendSleepStart) - 1);
-    if (doc.containsKey("weekendSleepEnd"))
-        strncpy(config.weekendSleepEnd, doc["weekendSleepEnd"].as<const char*>(),
-                sizeof(config.weekendSleepEnd) - 1);
-
-    // Handle OTA configuration
-    if (doc.containsKey("otaEnabled")) config.otaEnabled = doc["otaEnabled"].as<bool>();
-    if (doc.containsKey("otaCheckTime"))
-        strncpy(config.otaCheckTime, doc["otaCheckTime"].as<const char*>(),
-                sizeof(config.otaCheckTime) - 1);
+    // Update config struct from JSON
+    configMgr.updateFromJson(doc);
 
     // Save to NVS (and RTC memory automatically)
     if (!configMgr.saveToNVS()) {
@@ -177,15 +107,7 @@ void handleSaveConfig(WebServer& server) {
 #endif
 
     server.send(200, "application/json", "{\"status\":\"ok\"}");
-
-    /*
-    *The deep sleep after saving configuration serves several purposes:
-    Apply new settings cleanly: After saving configuration changes (WiFi credentials, station settings, schedules, etc.), the device needs to restart to properly initialize with the new configuration.
-    Mode transition: The code switches from AP (Access Point) mode to STA (Station) mode on line 209. Deep sleep followed by wake-up ensures a clean transition and proper connection to the configured WiFi network.
-    Reset state: Deep sleep is a common pattern in ESP32 development to reset the device state and start fresh with the updated configuration from NVS (Non-Volatile Storage).
-    The 1-second sleep is intentionally brief - just long enough to ensure the HTTP response is sent to the client before the device resets. When it wakes up, it will load the newly saved configuration from NVS and operate in normal mode rather than configuration mode.
-    */
-    enterDeepSleep(1); // Enter deep sleep for 1 seconds
+    enterDeepSleep(1);
 }
 
 // AJAX handler to search cities by postal code (GET /api/city?q=...)
