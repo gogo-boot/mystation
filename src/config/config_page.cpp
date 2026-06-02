@@ -42,95 +42,68 @@ void handleConfigPage(WebServer& server) {
         stopsHtml = "<option value=''>Bitte wählen...</option><option value='__manual__'>Manuell eingeben...</option>";
     }
 
-    // Start chunked response - no large heap allocation needed
+    // Start chunked response
     server.setContentLength(CONTENT_LENGTH_UNKNOWN);
     server.send(200, "text/html; charset=utf-8", "");
 
-    // Stream HTML from PROGMEM, replacing {{VARS}} on the fly
+    // Stream HTML, replacing {{VARS}} on the fly
+    // On ESP32, PROGMEM is directly addressable - no pgm_read_byte needed
     const char* html = CONFIG_PAGE_HTML;
-    const size_t len = strlen_P(html);
-    const size_t CHUNK_SIZE = 512;
-    char buf[CHUNK_SIZE + 1];
+    const size_t len = strlen(html);
     size_t pos = 0;
-    size_t bufLen = 0;
+
+    // Use a String as accumulator - send in ~2KB segments to minimize sendContent calls
+    String chunk;
+    chunk.reserve(2048);
 
     while (pos < len) {
-        char c = pgm_read_byte(html + pos);
-
-        if (c == '{' && pos + 1 < len && pgm_read_byte(html + pos + 1) == '{') {
-            // Flush buffer before template var
-            if (bufLen > 0) {
-                buf[bufLen] = '\0';
-                server.sendContent(buf);
-                bufLen = 0;
-            }
-
+        if (html[pos] == '{' && pos + 1 < len && html[pos + 1] == '{') {
             // Extract variable name
             pos += 2; // skip "{{"
-            char varName[32];
-            size_t varLen = 0;
-            while (pos < len && varLen < sizeof(varName) - 1) {
-                char vc = pgm_read_byte(html + pos);
-                if (vc == '}') {
-                    pos += 2; // skip "}}"
-                    break;
-                }
-                varName[varLen++] = vc;
-                pos++;
-            }
-            varName[varLen] = '\0';
+            const char* varStart = html + pos;
+            while (pos < len && html[pos] != '}') pos++;
+            String varName(varStart, html + pos - varStart);
+            if (pos < len) pos += 2; // skip "}}"
 
-            // Look up replacement value
-            const char* val = nullptr;
-            String valStr;
-
-            if (strcmp(varName, "DISPLAY_MODE") == 0) { valStr = String(config.displayMode); }
-            else if (strcmp(varName, "WEATHER_INTERVAL") == 0) { valStr = String(config.weatherInterval); }
-            else if (strcmp(varName, "TRANSPORT_INTERVAL") == 0) { valStr = String(config.transportInterval); }
-            else if (strcmp(varName, "TRANSPORT_ACTIVE_START") == 0) { val = config.transportActiveStart; }
-            else if (strcmp(varName, "TRANSPORT_ACTIVE_END") == 0) { val = config.transportActiveEnd; }
-            else if (strcmp(varName, "WALKING_TIME") == 0) { valStr = String(config.walkingTime); }
-            else if (strcmp(varName, "SLEEP_START") == 0) { val = config.sleepStart; }
-            else if (strcmp(varName, "SLEEP_END") == 0) { val = config.sleepEnd; }
-            else if (strcmp(varName, "WEEKEND_MODE") == 0) { val = config.weekendMode ? "checked" : ""; }
-            else if (strcmp(varName, "WEEKEND_TRANSPORT_START") == 0) { val = config.weekendTransportStart; }
-            else if (strcmp(varName, "WEEKEND_TRANSPORT_END") == 0) { val = config.weekendTransportEnd; }
-            else if (strcmp(varName, "WEEKEND_SLEEP_START") == 0) { val = config.weekendSleepStart; }
-            else if (strcmp(varName, "WEEKEND_SLEEP_END") == 0) { val = config.weekendSleepEnd; }
-            else if (strcmp(varName, "OTA_ENABLED") == 0) { val = config.otaEnabled ? "true" : "false"; }
-            else if (strcmp(varName, "OTA_CHECK_TIME") == 0) { val = config.otaCheckTime; }
-            else if (strcmp(varName, "SAVED_FILTERS") == 0) { valStr = filtersJs; }
-            else if (strcmp(varName, "LAT") == 0) { valStr = String(pageData.getLatitude(), 6); }
-            else if (strcmp(varName, "LON") == 0) { valStr = String(pageData.getLongitude(), 6); }
-            else if (strcmp(varName, "CITY") == 0) { valStr = pageData.getCityName(); }
-            else if (strcmp(varName, "STOPS") == 0) { valStr = stopsHtml; }
-            else { valStr = ""; }
-
-            if (val) {
-                server.sendContent(val);
-            } else {
-                server.sendContent(valStr);
-            }
+            // Look up replacement value and append to chunk
+            if (varName == "DISPLAY_MODE") { chunk += String(config.displayMode); }
+            else if (varName == "WEATHER_INTERVAL") { chunk += String(config.weatherInterval); }
+            else if (varName == "TRANSPORT_INTERVAL") { chunk += String(config.transportInterval); }
+            else if (varName == "TRANSPORT_ACTIVE_START") { chunk += config.transportActiveStart; }
+            else if (varName == "TRANSPORT_ACTIVE_END") { chunk += config.transportActiveEnd; }
+            else if (varName == "WALKING_TIME") { chunk += String(config.walkingTime); }
+            else if (varName == "SLEEP_START") { chunk += config.sleepStart; }
+            else if (varName == "SLEEP_END") { chunk += config.sleepEnd; }
+            else if (varName == "WEEKEND_MODE") { chunk += config.weekendMode ? "checked" : ""; }
+            else if (varName == "WEEKEND_TRANSPORT_START") { chunk += config.weekendTransportStart; }
+            else if (varName == "WEEKEND_TRANSPORT_END") { chunk += config.weekendTransportEnd; }
+            else if (varName == "WEEKEND_SLEEP_START") { chunk += config.weekendSleepStart; }
+            else if (varName == "WEEKEND_SLEEP_END") { chunk += config.weekendSleepEnd; }
+            else if (varName == "OTA_ENABLED") { chunk += config.otaEnabled ? "true" : "false"; }
+            else if (varName == "OTA_CHECK_TIME") { chunk += config.otaCheckTime; }
+            else if (varName == "SAVED_FILTERS") { chunk += filtersJs; }
+            else if (varName == "LAT") { chunk += String(pageData.getLatitude(), 6); }
+            else if (varName == "LON") { chunk += String(pageData.getLongitude(), 6); }
+            else if (varName == "CITY") { chunk += pageData.getCityName(); }
+            else if (varName == "STOPS") { chunk += stopsHtml; }
         } else {
-            buf[bufLen++] = c;
+            chunk += html[pos];
             pos++;
-            // Flush when buffer is full
-            if (bufLen >= CHUNK_SIZE) {
-                buf[bufLen] = '\0';
-                server.sendContent(buf);
-                bufLen = 0;
-            }
+        }
+
+        // Send when chunk reaches ~2KB
+        if (chunk.length() >= 2048) {
+            server.sendContent(chunk);
+            chunk = "";
+            chunk.reserve(2048);
         }
     }
 
-    // Flush remaining buffer
-    if (bufLen > 0) {
-        buf[bufLen] = '\0';
-        server.sendContent(buf);
+    // Send remaining content
+    if (chunk.length() > 0) {
+        server.sendContent(chunk);
     }
-
-    // End chunked response
-    server.sendContent("");
+    server.sendContent(""); // End chunked response
 }
 
 // Save configuration handler (POST /save_config)
