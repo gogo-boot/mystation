@@ -171,14 +171,19 @@ void DisplayManager::displayPhase1WifiSetup() {
         // Draw underline for title
         display.drawFastHLine(margin, y + 5, screenWidth - (2 * margin), GxEPD_BLACK);
 
-        y += lineHeight + 10; // Extra space after title
+        y += lineHeight + 5;
 
         // Draw instruction lines in German
-        u8g2.setFont(u8g2_font_helvB10_tf); // Regular 10pt for content
+        u8g2.setFont(u8g2_font_helvB10_tf);
 
-        y += 10; // Extra spacing
+        y += 10;
         u8g2.setCursor(margin, y);
-        u8g2.print("1. Mit dem MyStation-WLAN verbinden:");
+        u8g2.print("1. Gerät einschalten (Schalter auf ON schieben)");
+        y += lineHeight;
+
+        y += 10;
+        u8g2.setCursor(margin, y);
+        u8g2.print("2. Mit dem MyStation-WLAN verbinden:");
         y += lineHeight;
 
         u8g2.setCursor(margin + 20, y);
@@ -189,9 +194,9 @@ void DisplayManager::displayPhase1WifiSetup() {
         u8g2.print("• ODER manuell: WLAN \"" + apSSID + "\" wählen (kein Passwort)");
         y += lineHeight;
 
-        y += 10; // Extra spacing
+        y += 10;
         u8g2.setCursor(margin, y);
-        u8g2.print("2. Einrichtungsseite öffnen:");
+        u8g2.print("3. Einrichtungsseite öffnen:");
         y += lineHeight;
 
         u8g2.setCursor(margin + 20, y);
@@ -202,14 +207,14 @@ void DisplayManager::displayPhase1WifiSetup() {
         u8g2.print("• Falls nicht: QR-Code 2 scannen oder http://10.0.1.1 im Browser öffnen");
         y += lineHeight;
 
-        y += 10; // Extra spacing
+        y += 10;
         u8g2.setCursor(margin, y);
-        u8g2.print("3. Ihr Heim-WLAN auswählen und Passwort eingeben");
+        u8g2.print("4. Ihr Heim-WLAN auswählen und Passwort eingeben");
         y += lineHeight;
 
-        y += 10; // Extra spacing
+        y += 10;
         u8g2.setCursor(margin, y);
-        u8g2.print("4. Warten – MyStation verbindet sich und startet automatisch neu");
+        u8g2.print("5. Warten – MyStation verbindet sich und startet automatisch neu");
         y += lineHeight;
 
         y += 20; // Extra spacing
