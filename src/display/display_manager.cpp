@@ -171,57 +171,55 @@ void DisplayManager::displayPhase1WifiSetup() {
         // Draw underline for title
         display.drawFastHLine(margin, y + 5, screenWidth - (2 * margin), GxEPD_BLACK);
 
-        y += lineHeight + 10; // Extra space after title
+        y += lineHeight + 5;
 
         // Draw instruction lines in German
-        u8g2.setFont(u8g2_font_helvB10_tf); // Regular 10pt for content
+        u8g2.setFont(u8g2_font_helvB10_tf);
 
-        y += 10; // Extra spacing
+        y += 10;
         u8g2.setCursor(margin, y);
-        u8g2.print("1. Schalten Sie MyStation an");
+        u8g2.print("1. Gerät einschalten (Schalter auf ON schieben)");
         y += lineHeight;
 
-        y += 10; // Extra spacing
+        y += 10;
         u8g2.setCursor(margin, y);
-        u8g2.print(
-            "2. Mit Smartphone/PC mit dem MyStation-Netzwerk verbinden");
+        u8g2.print("2. Mit dem MyStation-WLAN verbinden:");
         y += lineHeight;
 
         u8g2.setCursor(margin + 20, y);
-        u8g2.print("1. QR-Code scannen");
-        y += lineHeight;
-
-        y += 10; // Extra spacing
-        u8g2.setCursor(margin, y);
-        u8g2.print("3. Seite erscheint nicht automatisch?");
+        u8g2.print("• QR-Code 1 scannen (verbindet automatisch)");
         y += lineHeight;
 
         u8g2.setCursor(margin + 20, y);
-        u8g2.print("ggf. 2. QR-Code scannen");
+        u8g2.print("• ODER manuell: WLAN \"" + apSSID + "\" wählen (kein Passwort)");
         y += lineHeight;
 
-        y += 10; // Extra spacing
+        y += 10;
         u8g2.setCursor(margin, y);
-        u8g2.print("4. Wählen Sie Ihr WLAN aus");
+        u8g2.print("3. Einrichtungsseite öffnen:");
         y += lineHeight;
 
         u8g2.setCursor(margin + 20, y);
-        u8g2.print("und geben Sie Ihre WLAN-Zugangsdaten ein");
-        y += lineHeight;
-
-        y += 10; // Extra spacing
-        u8g2.setCursor(margin, y);
-        u8g2.print("5. Warten Sie etwa 10 Sekunden");
+        u8g2.print("• Seite öffnet sich automatisch");
         y += lineHeight;
 
         u8g2.setCursor(margin + 20, y);
-        u8g2.print("System prüft Internetverbindung und leitet nächsten Schritt ein");
+        u8g2.print("• Falls nicht: QR-Code 2 scannen oder http://10.0.1.1 im Browser öffnen");
         y += lineHeight;
 
-        y += 20; // Extra spacing
+        y += 10;
         u8g2.setCursor(margin, y);
-        u8g2.print("MyStation braucht die Internetverbindung für Zeit, Wetter- und Verkehrsdaten");
+        u8g2.print("4. Ihr Heim-WLAN auswählen und Passwort eingeben");
         y += lineHeight;
+
+        y += 10;
+        u8g2.setCursor(margin, y);
+        u8g2.print("5. Warten – MyStation verbindet sich und startet automatisch neu");
+        y += lineHeight;
+
+        u8g2.setFont(u8g2_font_helvB10_tf);
+        u8g2.setCursor(margin, 460);
+        u8g2.print("Hinweis: Nur 2,4-GHz-WLAN wird unterstützt. 5-GHz-Netzwerke werden nicht angezeigt.");
 
         // === QR CODES ON RIGHT SIDE ===
         const int16_t qrX = 540; // X position for QR codes (right side)
@@ -232,12 +230,12 @@ void DisplayManager::displayPhase1WifiSetup() {
         // QR Code 1: WiFi Connection
         int16_t qr1Y = 80;
         QRCodeHelper::drawQRCode(qrX, qr1Y, wifiQR, qrScale, qrVersion);
-        QRCodeHelper::drawQRLabel(qrX, qr1Y, qrSize, "1. " + apSSID, 15);
+        QRCodeHelper::drawQRLabel(qrX, qr1Y, qrSize, "1. WLAN verbinden", 15);
 
         // QR Code 2: Portal URL
         int16_t qr2Y = qr1Y + qrSize + 60; // Space between QR codes
         QRCodeHelper::drawQRCode(qrX, qr2Y, urlQR, qrScale, qrVersion);
-        QRCodeHelper::drawQRLabel(qrX, qr2Y, qrSize, "2. " + urlQR, 15);
+        QRCodeHelper::drawQRLabel(qrX, qr2Y, qrSize, "2. Seite öffnen", 15);
     } while (display.nextPage());
 
     ESP_LOGI(TAG, "Phase 1 WiFi setup instructions displayed with QR codes");
@@ -273,44 +271,44 @@ void DisplayManager::displayPhase2AppSetup() {
 
         // Draw title
         u8g2.setCursor(margin, y);
-        u8g2.print("EINRICHTUNG 2/2 : MyStation Anwendungskonfiguration");
+        u8g2.print("EINRICHTUNG 2/2 : MyStation konfigurieren");
 
         // Draw underline for title
         display.drawFastHLine(margin, y + 5, screenWidth - (2 * margin), GxEPD_BLACK);
 
-        y += lineHeight + 10; // Extra space after title
+        y += lineHeight + 5;
 
         // Draw instruction lines in German
-        u8g2.setFont(u8g2_font_helvB10_tf); // Regular 10pt for content
+        u8g2.setFont(u8g2_font_helvB10_tf);
 
-        y += 10; // Extra spacing
+        y += 10;
         u8g2.setCursor(margin, y);
-        u8g2.print("1. Verbinden Sie sich mit Ihrem WLAN");
+        u8g2.print("1. Smartphone/PC mit Ihrem Heim-WLAN verbinden");
         y += lineHeight;
 
         u8g2.setCursor(margin + 20, y);
-        u8g2.print("(nicht mit dem " + apSSID + " WLAN)");
+        u8g2.print("(nicht mit \"" + apSSID + "\")");
         y += lineHeight;
 
-        y += 10; // Extra spacing
+        y += 10;
         u8g2.setCursor(margin, y);
-        u8g2.print("2. QR-Code scannen oder angezeigte URL im Browser eingeben");
+        u8g2.print("2. QR-Code scannen oder URL im Browser öffnen");
         y += lineHeight;
 
-        y += 10; // Extra spacing
+        y += 10;
         u8g2.setCursor(margin, y);
-        u8g2.print("3. Konfigurieren Sie MyStation im Webbrowser");
+        u8g2.print("3. Haltestelle, Anzeigemodus und Intervalle einstellen");
         y += lineHeight;
 
-        y += 10; // Extra spacing
+        y += 10;
         u8g2.setCursor(margin, y);
-        u8g2.print("4. Speichern Sie die Konfiguration und warten Sie etwa 10 Sekunden.");
+        u8g2.print("4. \"Speichern\" drücken – MyStation startet automatisch neu");
         y += lineHeight;
 
-        y += 10; // Extra spacing
-        u8g2.setCursor(margin, y);
-        u8g2.print("MyStation startet automatisch neu");
-        y += lineHeight;
+        u8g2.setFont(u8g2_font_helvB10_tf);
+        u8g2.setCursor(margin, 462);
+        u8g2.print(
+            "Hinweis: Die Konfigurationsseite braucht einige Sekunden zum Laden (Standort und Haltestellen werden ermittelt).");
 
         // === QR CODE ON RIGHT SIDE ===
         const int16_t qrX = 540; // X position for QR code (right side)

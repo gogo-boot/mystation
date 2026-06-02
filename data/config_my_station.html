@@ -890,7 +890,7 @@
         if (!r.ok) throw new Error('Netzwerkfehler');
         return r.json();
       }).then(function(resp) {
-        alert('Konfiguration gespeichert!');
+        alert('Konfiguration gespeichert!\n\nMyStation startet jetzt neu. Sie können diese Seite schließen.');
         window.close();
       }).catch(function(e) {
         alert('Fehler beim Speichern: ' + e.message);

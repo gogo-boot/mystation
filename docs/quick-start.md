@@ -85,11 +85,13 @@ Device will:
 
 ### Automatic Location Detection
 
-The device will automatically:
+When the configuration page loads, it will automatically:
 
 1. **Detect location** using Google Geolocation API
 2. **Find nearby stops** using RMV transport API
 3. **Display found stops** in configuration interface
+
+This happens via an AJAX request (`/api/init`) after the page loads — a loading indicator is shown while data is fetched.
 
 ### Access Configuration Interface
 
