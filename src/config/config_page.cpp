@@ -16,47 +16,10 @@
 static const char* TAG = "CONFIG";
 
 void handleConfigPage(WebServer& server) {
-    String page(CONFIG_PAGE_HTML);
-
     ConfigPageData& pageData = ConfigPageData::getInstance();
-    // Replace reserved keywords
-    page.replace("{{LAT}}", String(pageData.getLatitude(), 6));
-    page.replace("{{LON}}", String(pageData.getLongitude(), 6));
-
-    // Build <option> list for stops, add manual entry option
-    String stopsHtml = "<option value=''>Bitte wählen...</option>";
-    for (size_t i = 0; i < pageData.getStopCount(); ++i) {
-        String encodedId = Util::urlEncode(pageData.getStopId(i));
-        stopsHtml += "<option value='" + encodedId + "'>" + pageData.getStopName(i) + "   (" +
-            pageData.getStopDistance(i) + "m)</option>";
-    }
-    stopsHtml += "<option value='__manual__'>Manuell eingeben...</option>";
-    if (pageData.getStopCount() == 0) stopsHtml = "<option>Keine Haltestellen gefunden</option>";
-    page.replace("{{STOPS}}", stopsHtml);
-
-    // Replace city, ssid, etc.
-    page.replace("{{CITY}}", pageData.getCityName());
-
-    // Replace configuration values with current settings from ConfigManager
     RTCConfigData& config = ConfigManager::getConfig();
-    page.replace("{{DISPLAY_MODE}}", String(config.displayMode));
-    page.replace("{{WEATHER_INTERVAL}}", String(config.weatherInterval));
-    page.replace("{{TRANSPORT_INTERVAL}}", String(config.transportInterval));
-    page.replace("{{TRANSPORT_ACTIVE_START}}", config.transportActiveStart);
-    page.replace("{{TRANSPORT_ACTIVE_END}}", config.transportActiveEnd);
-    page.replace("{{WALKING_TIME}}", String(config.walkingTime));
-    page.replace("{{SLEEP_START}}", config.sleepStart);
-    page.replace("{{SLEEP_END}}", config.sleepEnd);
-    page.replace("{{WEEKEND_MODE}}", config.weekendMode ? "checked" : "");
-    page.replace("{{WEEKEND_TRANSPORT_START}}", config.weekendTransportStart);
-    page.replace("{{WEEKEND_TRANSPORT_END}}", config.weekendTransportEnd);
-    page.replace("{{WEEKEND_SLEEP_START}}", config.weekendSleepStart);
-    page.replace("{{WEEKEND_SLEEP_END}}", config.weekendSleepEnd);
-    // Replace OTA configuration values
-    page.replace("{{OTA_ENABLED}}", config.otaEnabled ? "true" : "false");
-    page.replace("{{OTA_CHECK_TIME}}", config.otaCheckTime);
 
-    // Build JavaScript array for saved filters from ConfigManager
+    // Build filters JS array once
     std::vector<String> activeFilters = ConfigManager::getActiveFilters();
     String filtersJs = "[";
     for (size_t i = 0; i < activeFilters.size(); i++) {
@@ -64,9 +27,110 @@ void handleConfigPage(WebServer& server) {
         filtersJs += "\"" + activeFilters[i] + "\"";
     }
     filtersJs += "]";
-    page.replace("{{SAVED_FILTERS}}", filtersJs);
 
-    server.send(200, "text/html; charset=utf-8", page);
+    // Build stops HTML (may be empty if lazy-loaded)
+    String stopsHtml;
+    if (pageData.getStopCount() > 0) {
+        stopsHtml = "<option value=''>Bitte wählen...</option>";
+        for (size_t i = 0; i < pageData.getStopCount(); ++i) {
+            String encodedId = Util::urlEncode(pageData.getStopId(i));
+            stopsHtml += "<option value='" + encodedId + "'>" + pageData.getStopName(i) + "   (" +
+                pageData.getStopDistance(i) + "m)</option>";
+        }
+        stopsHtml += "<option value='__manual__'>Manuell eingeben...</option>";
+    } else {
+        stopsHtml = "<option value=''>Bitte wählen...</option><option value='__manual__'>Manuell eingeben...</option>";
+    }
+
+    // Start chunked response - no large heap allocation needed
+    server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+    server.send(200, "text/html; charset=utf-8", "");
+
+    // Stream HTML from PROGMEM, replacing {{VARS}} on the fly
+    const char* html = CONFIG_PAGE_HTML;
+    const size_t len = strlen_P(html);
+    const size_t CHUNK_SIZE = 512;
+    char buf[CHUNK_SIZE + 1];
+    size_t pos = 0;
+    size_t bufLen = 0;
+
+    while (pos < len) {
+        char c = pgm_read_byte(html + pos);
+
+        if (c == '{' && pos + 1 < len && pgm_read_byte(html + pos + 1) == '{') {
+            // Flush buffer before template var
+            if (bufLen > 0) {
+                buf[bufLen] = '\0';
+                server.sendContent(buf);
+                bufLen = 0;
+            }
+
+            // Extract variable name
+            pos += 2; // skip "{{"
+            char varName[32];
+            size_t varLen = 0;
+            while (pos < len && varLen < sizeof(varName) - 1) {
+                char vc = pgm_read_byte(html + pos);
+                if (vc == '}') {
+                    pos += 2; // skip "}}"
+                    break;
+                }
+                varName[varLen++] = vc;
+                pos++;
+            }
+            varName[varLen] = '\0';
+
+            // Look up replacement value
+            const char* val = nullptr;
+            String valStr;
+
+            if (strcmp(varName, "DISPLAY_MODE") == 0) { valStr = String(config.displayMode); }
+            else if (strcmp(varName, "WEATHER_INTERVAL") == 0) { valStr = String(config.weatherInterval); }
+            else if (strcmp(varName, "TRANSPORT_INTERVAL") == 0) { valStr = String(config.transportInterval); }
+            else if (strcmp(varName, "TRANSPORT_ACTIVE_START") == 0) { val = config.transportActiveStart; }
+            else if (strcmp(varName, "TRANSPORT_ACTIVE_END") == 0) { val = config.transportActiveEnd; }
+            else if (strcmp(varName, "WALKING_TIME") == 0) { valStr = String(config.walkingTime); }
+            else if (strcmp(varName, "SLEEP_START") == 0) { val = config.sleepStart; }
+            else if (strcmp(varName, "SLEEP_END") == 0) { val = config.sleepEnd; }
+            else if (strcmp(varName, "WEEKEND_MODE") == 0) { val = config.weekendMode ? "checked" : ""; }
+            else if (strcmp(varName, "WEEKEND_TRANSPORT_START") == 0) { val = config.weekendTransportStart; }
+            else if (strcmp(varName, "WEEKEND_TRANSPORT_END") == 0) { val = config.weekendTransportEnd; }
+            else if (strcmp(varName, "WEEKEND_SLEEP_START") == 0) { val = config.weekendSleepStart; }
+            else if (strcmp(varName, "WEEKEND_SLEEP_END") == 0) { val = config.weekendSleepEnd; }
+            else if (strcmp(varName, "OTA_ENABLED") == 0) { val = config.otaEnabled ? "true" : "false"; }
+            else if (strcmp(varName, "OTA_CHECK_TIME") == 0) { val = config.otaCheckTime; }
+            else if (strcmp(varName, "SAVED_FILTERS") == 0) { valStr = filtersJs; }
+            else if (strcmp(varName, "LAT") == 0) { valStr = String(pageData.getLatitude(), 6); }
+            else if (strcmp(varName, "LON") == 0) { valStr = String(pageData.getLongitude(), 6); }
+            else if (strcmp(varName, "CITY") == 0) { valStr = pageData.getCityName(); }
+            else if (strcmp(varName, "STOPS") == 0) { valStr = stopsHtml; }
+            else { valStr = ""; }
+
+            if (val) {
+                server.sendContent(val);
+            } else {
+                server.sendContent(valStr);
+            }
+        } else {
+            buf[bufLen++] = c;
+            pos++;
+            // Flush when buffer is full
+            if (bufLen >= CHUNK_SIZE) {
+                buf[bufLen] = '\0';
+                server.sendContent(buf);
+                bufLen = 0;
+            }
+        }
+    }
+
+    // Flush remaining buffer
+    if (bufLen > 0) {
+        buf[bufLen] = '\0';
+        server.sendContent(buf);
+    }
+
+    // End chunked response
+    server.sendContent("");
 }
 
 // Save configuration handler (POST /save_config)
