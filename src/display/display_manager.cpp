@@ -178,49 +178,44 @@ void DisplayManager::displayPhase1WifiSetup() {
 
         y += 10; // Extra spacing
         u8g2.setCursor(margin, y);
-        u8g2.print("1. Schalten Sie MyStation an");
+        u8g2.print("1. Mit dem MyStation-WLAN verbinden:");
+        y += lineHeight;
+
+        u8g2.setCursor(margin + 20, y);
+        u8g2.print("• QR-Code 1 scannen (verbindet automatisch)");
+        y += lineHeight;
+
+        u8g2.setCursor(margin + 20, y);
+        u8g2.print("• ODER manuell: WLAN \"" + apSSID + "\" wählen (kein Passwort)");
         y += lineHeight;
 
         y += 10; // Extra spacing
         u8g2.setCursor(margin, y);
-        u8g2.print(
-            "2. Mit Smartphone/PC mit dem MyStation-Netzwerk verbinden");
+        u8g2.print("2. Einrichtungsseite öffnen:");
         y += lineHeight;
 
         u8g2.setCursor(margin + 20, y);
-        u8g2.print("1. QR-Code scannen");
+        u8g2.print("• Seite öffnet sich automatisch");
+        y += lineHeight;
+
+        u8g2.setCursor(margin + 20, y);
+        u8g2.print("• Falls nicht: QR-Code 2 scannen oder http://10.0.1.1 im Browser öffnen");
         y += lineHeight;
 
         y += 10; // Extra spacing
         u8g2.setCursor(margin, y);
-        u8g2.print("3. Seite erscheint nicht automatisch?");
-        y += lineHeight;
-
-        u8g2.setCursor(margin + 20, y);
-        u8g2.print("ggf. 2. QR-Code scannen");
+        u8g2.print("3. Ihr Heim-WLAN auswählen und Passwort eingeben");
         y += lineHeight;
 
         y += 10; // Extra spacing
         u8g2.setCursor(margin, y);
-        u8g2.print("4. Wählen Sie Ihr WLAN aus");
-        y += lineHeight;
-
-        u8g2.setCursor(margin + 20, y);
-        u8g2.print("und geben Sie Ihre WLAN-Zugangsdaten ein");
-        y += lineHeight;
-
-        y += 10; // Extra spacing
-        u8g2.setCursor(margin, y);
-        u8g2.print("5. Warten Sie etwa 10 Sekunden");
-        y += lineHeight;
-
-        u8g2.setCursor(margin + 20, y);
-        u8g2.print("System prüft Internetverbindung und leitet nächsten Schritt ein");
+        u8g2.print("4. Warten – MyStation verbindet sich und startet automatisch neu");
         y += lineHeight;
 
         y += 20; // Extra spacing
+        u8g2.setFont(u8g2_font_helvR08_tf); // Smaller font for note
         u8g2.setCursor(margin, y);
-        u8g2.print("MyStation braucht die Internetverbindung für Zeit, Wetter- und Verkehrsdaten");
+        u8g2.print("Hinweis: Nur 2,4-GHz-WLAN wird unterstützt. 5-GHz-Netzwerke werden nicht angezeigt.");
         y += lineHeight;
 
         // === QR CODES ON RIGHT SIDE ===
@@ -232,12 +227,12 @@ void DisplayManager::displayPhase1WifiSetup() {
         // QR Code 1: WiFi Connection
         int16_t qr1Y = 80;
         QRCodeHelper::drawQRCode(qrX, qr1Y, wifiQR, qrScale, qrVersion);
-        QRCodeHelper::drawQRLabel(qrX, qr1Y, qrSize, "1. " + apSSID, 15);
+        QRCodeHelper::drawQRLabel(qrX, qr1Y, qrSize, "1. WLAN verbinden", 15);
 
         // QR Code 2: Portal URL
         int16_t qr2Y = qr1Y + qrSize + 60; // Space between QR codes
         QRCodeHelper::drawQRCode(qrX, qr2Y, urlQR, qrScale, qrVersion);
-        QRCodeHelper::drawQRLabel(qrX, qr2Y, qrSize, "2. " + urlQR, 15);
+        QRCodeHelper::drawQRLabel(qrX, qr2Y, qrSize, "2. Seite öffnen", 15);
     } while (display.nextPage());
 
     ESP_LOGI(TAG, "Phase 1 WiFi setup instructions displayed with QR codes");
