@@ -5,6 +5,9 @@
 #include <StreamUtils.h>
 #include "config/config_manager.h"
 #include "config/config_page_data.h"
+#include "api/google_api.h"
+#include "api/dwd_weather_api.h"
+#include "api/rmv_api.h"
 #include "util/util.h"
 #include "sec/aes_crypto.h"
 #include "util/sleep_utils.h"
@@ -13,47 +16,10 @@
 static const char* TAG = "CONFIG";
 
 void handleConfigPage(WebServer& server) {
-    String page(CONFIG_PAGE_HTML);
-
     ConfigPageData& pageData = ConfigPageData::getInstance();
-    // Replace reserved keywords
-    page.replace("{{LAT}}", String(pageData.getLatitude(), 6));
-    page.replace("{{LON}}", String(pageData.getLongitude(), 6));
-
-    // Build <option> list for stops, add manual entry option
-    String stopsHtml = "<option value=''>Bitte wählen...</option>";
-    for (size_t i = 0; i < pageData.getStopCount(); ++i) {
-        String encodedId = Util::urlEncode(pageData.getStopId(i));
-        stopsHtml += "<option value='" + encodedId + "'>" + pageData.getStopName(i) + "   (" +
-            pageData.getStopDistance(i) + "m)</option>";
-    }
-    stopsHtml += "<option value='__manual__'>Manuell eingeben...</option>";
-    if (pageData.getStopCount() == 0) stopsHtml = "<option>Keine Haltestellen gefunden</option>";
-    page.replace("{{STOPS}}", stopsHtml);
-
-    // Replace city, ssid, etc.
-    page.replace("{{CITY}}", pageData.getCityName());
-
-    // Replace configuration values with current settings from ConfigManager
     RTCConfigData& config = ConfigManager::getConfig();
-    page.replace("{{DISPLAY_MODE}}", String(config.displayMode));
-    page.replace("{{WEATHER_INTERVAL}}", String(config.weatherInterval));
-    page.replace("{{TRANSPORT_INTERVAL}}", String(config.transportInterval));
-    page.replace("{{TRANSPORT_ACTIVE_START}}", config.transportActiveStart);
-    page.replace("{{TRANSPORT_ACTIVE_END}}", config.transportActiveEnd);
-    page.replace("{{WALKING_TIME}}", String(config.walkingTime));
-    page.replace("{{SLEEP_START}}", config.sleepStart);
-    page.replace("{{SLEEP_END}}", config.sleepEnd);
-    page.replace("{{WEEKEND_MODE}}", config.weekendMode ? "checked" : "");
-    page.replace("{{WEEKEND_TRANSPORT_START}}", config.weekendTransportStart);
-    page.replace("{{WEEKEND_TRANSPORT_END}}", config.weekendTransportEnd);
-    page.replace("{{WEEKEND_SLEEP_START}}", config.weekendSleepStart);
-    page.replace("{{WEEKEND_SLEEP_END}}", config.weekendSleepEnd);
-    // Replace OTA configuration values
-    page.replace("{{OTA_ENABLED}}", config.otaEnabled ? "true" : "false");
-    page.replace("{{OTA_CHECK_TIME}}", config.otaCheckTime);
 
-    // Build JavaScript array for saved filters from ConfigManager
+    // Build filters JS array once
     std::vector<String> activeFilters = ConfigManager::getActiveFilters();
     String filtersJs = "[";
     for (size_t i = 0; i < activeFilters.size(); i++) {
@@ -61,9 +27,83 @@ void handleConfigPage(WebServer& server) {
         filtersJs += "\"" + activeFilters[i] + "\"";
     }
     filtersJs += "]";
-    page.replace("{{SAVED_FILTERS}}", filtersJs);
 
-    server.send(200, "text/html; charset=utf-8", page);
+    // Build stops HTML (may be empty if lazy-loaded)
+    String stopsHtml;
+    if (pageData.getStopCount() > 0) {
+        stopsHtml = "<option value=''>Bitte wählen...</option>";
+        for (size_t i = 0; i < pageData.getStopCount(); ++i) {
+            String encodedId = Util::urlEncode(pageData.getStopId(i));
+            stopsHtml += "<option value='" + encodedId + "'>" + pageData.getStopName(i) + "   (" +
+                pageData.getStopDistance(i) + "m)</option>";
+        }
+        stopsHtml += "<option value='__manual__'>Manuell eingeben...</option>";
+    } else {
+        stopsHtml = "<option value=''>Bitte wählen...</option><option value='__manual__'>Manuell eingeben...</option>";
+    }
+
+    // Start chunked response
+    server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+    server.send(200, "text/html; charset=utf-8", "");
+
+    // Stream HTML, replacing {{VARS}} on the fly
+    // On ESP32, PROGMEM is directly addressable - no pgm_read_byte needed
+    const char* html = CONFIG_PAGE_HTML;
+    const size_t len = strlen(html);
+    size_t pos = 0;
+
+    // Use a String as accumulator - send in ~2KB segments to minimize sendContent calls
+    String chunk;
+    chunk.reserve(2048);
+
+    while (pos < len) {
+        if (html[pos] == '{' && pos + 1 < len && html[pos + 1] == '{') {
+            // Extract variable name
+            pos += 2; // skip "{{"
+            const char* varStart = html + pos;
+            while (pos < len && html[pos] != '}') pos++;
+            String varName(varStart, html + pos - varStart);
+            if (pos < len) pos += 2; // skip "}}"
+
+            // Look up replacement value and append to chunk
+            if (varName == "DISPLAY_MODE") { chunk += String(config.displayMode); }
+            else if (varName == "WEATHER_INTERVAL") { chunk += String(config.weatherInterval); }
+            else if (varName == "TRANSPORT_INTERVAL") { chunk += String(config.transportInterval); }
+            else if (varName == "TRANSPORT_ACTIVE_START") { chunk += config.transportActiveStart; }
+            else if (varName == "TRANSPORT_ACTIVE_END") { chunk += config.transportActiveEnd; }
+            else if (varName == "WALKING_TIME") { chunk += String(config.walkingTime); }
+            else if (varName == "SLEEP_START") { chunk += config.sleepStart; }
+            else if (varName == "SLEEP_END") { chunk += config.sleepEnd; }
+            else if (varName == "WEEKEND_MODE") { chunk += config.weekendMode ? "checked" : ""; }
+            else if (varName == "WEEKEND_TRANSPORT_START") { chunk += config.weekendTransportStart; }
+            else if (varName == "WEEKEND_TRANSPORT_END") { chunk += config.weekendTransportEnd; }
+            else if (varName == "WEEKEND_SLEEP_START") { chunk += config.weekendSleepStart; }
+            else if (varName == "WEEKEND_SLEEP_END") { chunk += config.weekendSleepEnd; }
+            else if (varName == "OTA_ENABLED") { chunk += config.otaEnabled ? "true" : "false"; }
+            else if (varName == "OTA_CHECK_TIME") { chunk += config.otaCheckTime; }
+            else if (varName == "SAVED_FILTERS") { chunk += filtersJs; }
+            else if (varName == "LAT") { chunk += String(pageData.getLatitude(), 6); }
+            else if (varName == "LON") { chunk += String(pageData.getLongitude(), 6); }
+            else if (varName == "CITY") { chunk += pageData.getCityName(); }
+            else if (varName == "STOPS") { chunk += stopsHtml; }
+        } else {
+            chunk += html[pos];
+            pos++;
+        }
+
+        // Send when chunk reaches ~2KB
+        if (chunk.length() >= 2048) {
+            server.sendContent(chunk);
+            chunk = "";
+            chunk.reserve(2048);
+        }
+    }
+
+    // Send remaining content
+    if (chunk.length() > 0) {
+        server.sendContent(chunk);
+    }
+    server.sendContent(""); // End chunked response
 }
 
 // Save configuration handler (POST /save_config)
@@ -290,6 +330,47 @@ void handleStopAutocomplete(WebServer& server) {
     server.send(200, "application/json", out);
 }
 
+// AJAX handler for lazy-loading location + nearby stops (GET /api/init)
+// Called by browser on page load to avoid blocking the initial HTTP response
+void handleInit(WebServer& server) {
+    ESP_LOGI(TAG, "Handling /api/init - detecting location and nearby stops");
+
+    ConfigPageData& pageData = ConfigPageData::getInstance();
+
+    // Detect location via Google Geolocation API
+    float lat, lon;
+    bool locationOk = getLocationFromGoogle(lat, lon);
+
+    String cityName = "";
+    if (locationOk) {
+        cityName = getCityFromLatLon(lat, lon);
+        if (cityName.isEmpty()) cityName = "Unknown";
+        pageData.setLocation(lat, lon, cityName);
+
+        // Fetch nearby stops
+        getNearbyStops(lat, lon);
+    }
+
+    // Build JSON response
+    DynamicJsonDocument doc(2048);
+    doc["lat"] = locationOk ? lat : 0.0f;
+    doc["lon"] = locationOk ? lon : 0.0f;
+    doc["city"] = cityName;
+
+    JsonArray stopsArr = doc.createNestedArray("stops");
+    for (size_t i = 0; i < pageData.getStopCount(); ++i) {
+        JsonObject stop = stopsArr.createNestedObject();
+        stop["id"] = pageData.getStopId(i);
+        stop["name"] = pageData.getStopName(i);
+        stop["dist"] = pageData.getStopDistance(i);
+    }
+
+    String out;
+    serializeJson(doc, out);
+    server.send(200, "application/json", out);
+    ESP_LOGI(TAG, "/api/init complete: city=%s, stops=%d", cityName.c_str(), pageData.getStopCount());
+}
+
 // Global server reference for callback access
 static WebServer* g_server = nullptr;
 
@@ -310,6 +391,10 @@ void handleStopAutocompleteWrapper() {
     handleStopAutocomplete(*g_server);
 }
 
+void handleInitWrapper() {
+    handleInit(*g_server);
+}
+
 void setupWebServer(WebServer& server) {
     ESP_LOGI(TAG, "Setting up web server...");
     g_server = &server;
@@ -317,6 +402,7 @@ void setupWebServer(WebServer& server) {
     server.on("/save_config", HTTP_POST, handleSaveConfigWrapper);
     server.on("/api/city", HTTP_GET, handleCityAutocompleteWrapper);
     server.on("/api/stop", HTTP_GET, handleStopAutocompleteWrapper);
+    server.on("/api/init", HTTP_GET, handleInitWrapper);
     server.begin();
     ESP_LOGI("WEB_SERVER", "HTTP server started.");
 }

@@ -522,6 +522,56 @@
   </div>
 
   <script>
+    // Lazy-load location and stops from /api/init after page loads
+    (function() {
+      var stopSelect = document.getElementById('stop-select');
+      var cityDisplay = document.getElementById('city-display');
+      var latInput = document.getElementById('city-lat');
+      var lonInput = document.getElementById('city-lon');
+      var latDisplay = document.getElementById('lat-display');
+      var lonDisplay = document.getElementById('lon-display');
+
+      // Show loading state only if no data was pre-filled by server
+      if (!latInput.value || latInput.value === '0.000000') {
+        cityDisplay.textContent = 'Standort wird ermittelt...';
+        stopSelect.innerHTML = '<option value="">Haltestellen werden geladen...</option>';
+
+        fetch('/api/init')
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.lat && data.lon) {
+              latInput.value = data.lat;
+              lonInput.value = data.lon;
+              latDisplay.textContent = parseFloat(data.lat).toFixed(4);
+              lonDisplay.textContent = parseFloat(data.lon).toFixed(4);
+            }
+            if (data.city) {
+              cityDisplay.textContent = data.city;
+            }
+            if (data.stops && data.stops.length > 0) {
+              stopSelect.innerHTML = '<option value="">Bitte wählen...</option>';
+              data.stops.forEach(function(s) {
+                var opt = document.createElement('option');
+                opt.value = encodeURIComponent(s.id);
+                opt.textContent = s.name + '   (' + s.dist + 'm)';
+                stopSelect.appendChild(opt);
+              });
+              var manualOpt = document.createElement('option');
+              manualOpt.value = '__manual__';
+              manualOpt.textContent = 'Manuell eingeben...';
+              stopSelect.appendChild(manualOpt);
+            } else {
+              stopSelect.innerHTML = '<option>Keine Haltestellen gefunden</option>';
+            }
+          })
+          .catch(function(err) {
+            console.error('Init error:', err);
+            cityDisplay.textContent = 'Fehler bei Standorterkennung';
+            stopSelect.innerHTML = '<option>Fehler beim Laden</option>';
+          });
+      }
+    })();
+
     // OTA toggle functionality
     function toggleOTA(enabled) {
       var enabledBtn = document.getElementById('ota-enabled-btn');

@@ -4,4 +4,5 @@
 void handleConfigPage(WebServer& server);
 void handleSaveConfig(WebServer& server);
 void handleStopAutocomplete(WebServer& server);
+void handleInit(WebServer& server);
 void setupWebServer(WebServer& server);
