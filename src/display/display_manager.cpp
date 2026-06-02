@@ -217,11 +217,9 @@ void DisplayManager::displayPhase1WifiSetup() {
         u8g2.print("5. Warten – MyStation verbindet sich und startet automatisch neu");
         y += lineHeight;
 
-        y += 20; // Extra spacing
-        u8g2.setFont(u8g2_font_helvR08_tf); // Smaller font for note
-        u8g2.setCursor(margin, y);
+        u8g2.setFont(u8g2_font_helvB10_tf);
+        u8g2.setCursor(margin, 460);
         u8g2.print("Hinweis: Nur 2,4-GHz-WLAN wird unterstützt. 5-GHz-Netzwerke werden nicht angezeigt.");
-        y += lineHeight;
 
         // === QR CODES ON RIGHT SIDE ===
         const int16_t qrX = 540; // X position for QR codes (right side)
@@ -307,14 +305,10 @@ void DisplayManager::displayPhase2AppSetup() {
         u8g2.print("4. \"Speichern\" drücken – MyStation startet automatisch neu");
         y += lineHeight;
 
-        y += 20;
-        u8g2.setFont(u8g2_font_helvR08_tf); // Smaller font for hints
-        u8g2.setCursor(margin, y);
-        u8g2.print("Hinweis: Die Konfigurationsseite braucht einige Sekunden");
-        y += 14;
-        u8g2.setCursor(margin, y);
-        u8g2.print("zum Laden (Standort und Haltestellen werden ermittelt).");
-        y += lineHeight;
+        u8g2.setFont(u8g2_font_helvB10_tf);
+        u8g2.setCursor(margin, 462);
+        u8g2.print(
+            "Hinweis: Die Konfigurationsseite braucht einige Sekunden zum Laden (Standort und Haltestellen werden ermittelt).");
 
         // === QR CODE ON RIGHT SIDE ===
         const int16_t qrX = 540; // X position for QR code (right side)
