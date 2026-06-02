@@ -38,7 +38,7 @@ const char HTTP_SCRIPT[] PROGMEM = "<script>function c(l){"
 const char HTTP_HEAD_END[] PROGMEM = "</head><body class='{c}'><div class='wrap'>"; // {c} = _bodyclass
 // example of embedded logo, base64 encoded inline, No styling here
 // const char HTTP_ROOT_MAIN[]        PROGMEM = "<img title=' alt=' src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAADQElEQVRoQ+2YjW0VQQyE7Q6gAkgFkAogFUAqgFQAVACpAKiAUAFQAaECQgWECggVGH1PPrRvn3dv9/YkFOksoUhhfzwz9ngvKrc89JbnLxuA/63gpsCmwCADWwkNEji8fVNgotDM7osI/x777x5l9F6JyB8R4eeVql4P0y8yNsjM7KGIPBORp558T04A+CwiH1UVUItiUQmZ2XMReSEiAFgjAPBeVS96D+sCYGaUx4cFbLfmhSpnqnrZuqEJgJnd8cQplVLciAgX//Cf0ToIeOB9wpmloLQAwpnVmAXgdf6pwjpJIz+XNoeZQQZlODV9vhc1Tuf6owrAk/8qIhFbJH7eI3eEzsvydQEICqBEkZwiALfF70HyHPpqScPV5HFjeFu476SkRA0AzOfy4hYwstj2ZkDgaphE7m6XqnoS7Q0BOPs/sw0kDROzjdXcCMFCNwzIy0EcRcOvBACfh4k0wgOmBX4xjfmk4DKTS31hgNWIKBCI8gdzogTgjYjQWFMw+o9LzJoZ63GUmjWm2wGDc7EvDDOj/1IVMIyD9SUAL0WEhpriRlXv5je5S+U1i2N88zdPuoVkeB+ls4SyxCoP3kVm9jsjpEsBLoOBNC5U9SwpGdakFkviuFP1keblATkTENTYcxkzgxTKOI3jyDxqLkQT87pMA++H3XvJBYtsNbBN6vuXq5S737WqHkW1VgMQNXJ0RshMqbbT33sJ5kpHWymzcJjNTeJIymJZtSQd9NHQHS1vodoFoTMkfbJzpRnLzB2vi6BZAJxWaCr+62BC+jzAxVJb3dmmiLzLwZhZNPE5e880Suo2AZgB8e8idxherqUPnT3brBDTlPxO3Z66rVwIwySXugdNd+5ejhqp/+NmgIwGX3Py3QBmlEi54KlwmjkOytQ+iJrLJj23S4GkOeecg8G091no737qvRRdzE+HLALQoMTBbJgBsCj5RSWUlUVJiZ4SOljb05eLFWgoJ5oY6yTyJp62D39jDANoKKcSocPJD5dQYzlFAFZJflUArgTPZKZwLXAnHmerfJquUkKZEgyzqOb5TuDt1P3nwxobqwPocZA11m4A1mBx5IxNgRH21ti7KbAGiyNn3HoF/gJ0w05A8xclpwAAAABJRU5ErkJggg==' /><h1>{v}</h1><h3>WiFiManager</h3>";
-const char HTTP_ROOT_MAIN[] PROGMEM = "<h1>{t}</h1><h3>{v}</h3>";
+const char HTTP_ROOT_MAIN[] PROGMEM = "<h1>{t}</h1><h3>WLAN-Einrichtung</h3><p style='color:#555;font-size:0.9em;'>Wählen Sie Ihr Heim-WLAN (2,4 GHz) und geben Sie das Passwort ein.</p>";
 
 const char *const HTTP_PORTAL_MENU[] PROGMEM = {
 	           "<form action='/wifi'    method='get'><button>WiFi einrichten</button></form><br/>\n", // MENU_WIFI
@@ -65,7 +65,7 @@ const char HTTP_ITEM[] PROGMEM = "<div><a href='#p' onclick='c(this)' data-ssid=
 
 const char HTTP_FORM_START[] PROGMEM = "<form method='POST' action='{v}'>";
 const char HTTP_FORM_WIFI[] PROGMEM =
-	           "<label for='s'>SSID</label><input id='s' name='s' maxlength='32' autocorrect='off' autocapitalize='none' placeholder='{v}'><br/><label for='p'>Passwort</label><input id='p' name='p' maxlength='64' type='password' placeholder='{p}'><input type='checkbox' id='showpass' onclick='f()'> <label for='showpass'>Zeige Passwort</label><br/>";
+	           "<label for='s'>WLAN-Name (SSID)</label><input id='s' name='s' maxlength='32' autocorrect='off' autocapitalize='none' placeholder='{v}'><br/><label for='p'>WLAN-Passwort</label><input id='p' name='p' maxlength='64' type='password' placeholder='{p}'><input type='checkbox' id='showpass' onclick='f()'> <label for='showpass'>Passwort anzeigen</label><br/>";
 const char HTTP_FORM_WIFI_END[] PROGMEM = "";
 const char HTTP_FORM_STATIC_HEAD[] PROGMEM = "<hr><br/>";
 const char HTTP_FORM_END[] PROGMEM = "<br/><br/><button type='submit'>Speichern</button></form>";
@@ -77,7 +77,7 @@ const char HTTP_FORM_PARAM[] PROGMEM = "<br/><input id='{i}' name='{n}' maxlengt
 const char HTTP_SCAN_LINK[] PROGMEM =
 	           "<br/><form action='/wifi?refresh=1' method='POST'><button name='refresh' value='1'>Neu laden</button></form>";
 const char HTTP_SAVED[] PROGMEM =
-	           "<div class='msg'>Zugangsdaten speichern<br/>Versuche ESP mit dem Netzwerk zu verbinden.<br />Wenn dies fehlschlägt, stellen Sie die Verbindung zum AP wieder her, um es erneut zu versuchen.</div>";
+	           "<div class='msg S'><strong>WLAN-Daten gespeichert!</strong><br/><br/>MyStation verbindet sich jetzt mit Ihrem WLAN.<br/>Bitte warten – das Gerät startet automatisch neu und beginnt mit der Einrichtung.<br/><br/><small>Sie können diese Seite jetzt schließen.</small></div>";
 const char HTTP_PARAMSAVED[] PROGMEM = "<div class='msg S'>Gespeichert<br/></div>";
 const char HTTP_END[] PROGMEM = "</div></body></html>";
 const char HTTP_ERASEBTN[] PROGMEM =
@@ -86,13 +86,13 @@ const char HTTP_UPDATEBTN[] PROGMEM = "<br/><form action='/update' method='get'>
 const char HTTP_BACKBTN[] PROGMEM = "<hr><br/><form action='/' method='get'><button>Zurück</button></form>";
 
 const char HTTP_STATUS_ON[] PROGMEM =
-	           "<div class='msg S'><strong>Verbunden</strong> mit {v}<br/><em><small> mit IP {i}</small></em></div>";
+	           "<div class='msg S'><strong>✓ Verbunden</strong> mit {v}<br/><em><small>IP-Adresse: {i}</small></em></div>";
 const char HTTP_STATUS_OFF[] PROGMEM = "<div class='msg {c}'><strong>Nicht verbunden</strong> mit {v}{r}</div>";
 // {c=class} {v=ssid} {r=status_off}
-const char HTTP_STATUS_OFFPW[] PROGMEM = "<br/>Authentifizierungsfehler"; // STATION_WRONG_PASSWORD,  no eps32
-const char HTTP_STATUS_OFFNOAP[] PROGMEM = "<br/>AP nicht gefunden"; // WL_NO_SSID_AVAIL
-const char HTTP_STATUS_OFFFAIL[] PROGMEM = "<br/>Verbindung konnte nicht hergestellt werden"; // WL_CONNECT_FAILED
-const char HTTP_STATUS_NONE[] PROGMEM = "<div class='msg'>Kein AP gesetzt</div>";
+const char HTTP_STATUS_OFFPW[] PROGMEM = "<br/>Falsches Passwort"; // STATION_WRONG_PASSWORD,  no eps32
+const char HTTP_STATUS_OFFNOAP[] PROGMEM = "<br/>WLAN-Netzwerk nicht gefunden"; // WL_NO_SSID_AVAIL
+const char HTTP_STATUS_OFFFAIL[] PROGMEM = "<br/>Verbindung fehlgeschlagen – bitte erneut versuchen"; // WL_CONNECT_FAILED
+const char HTTP_STATUS_NONE[] PROGMEM = "<div class='msg'>Noch kein WLAN eingerichtet</div>";
 const char HTTP_BR[] PROGMEM = "<br/>";
 
 const char HTTP_STYLE[] PROGMEM = "<style>"
@@ -243,9 +243,9 @@ const char S_GET[] PROGMEM = "GET";
 const char S_POST[] PROGMEM = "POST";
 const char S_NA[] PROGMEM = "Unbekannt";
 const char S_passph[] PROGMEM = "********";
-const char S_titlewifisaved[] PROGMEM = "Zugangsdaten gespeichert";
+const char S_titlewifisaved[] PROGMEM = "WLAN verbunden";
 const char S_titlewifisettings[] PROGMEM = "Einstellungen gespeichert";
-const char S_titlewifi[] PROGMEM = "ESP Konfiguration";
+const char S_titlewifi[] PROGMEM = "MyStation WLAN-Einrichtung";
 const char S_titleinfo[] PROGMEM = "Info";
 const char S_titleparam[] PROGMEM = "Setup";
 const char S_titleparamsaved[] PROGMEM = "Setup gespeichert";
@@ -254,7 +254,7 @@ const char S_titlereset[] PROGMEM = "Zurücksetzen";
 const char S_titleerase[] PROGMEM = "Löschen";
 const char S_titleclose[] PROGMEM = "Schließen";
 const char S_options[] PROGMEM = "Optionen";
-const char S_nonetworks[] PROGMEM = "Keine Netzwerke gefunden. Aktualisieren, um erneut zu suchen.";
+const char S_nonetworks[] PROGMEM = "Keine WLAN-Netzwerke gefunden. Bitte \"Neu laden\" drücken.";
 const char S_staticip[] PROGMEM = "Static IP";
 const char S_staticgw[] PROGMEM = "Static gateway";
 const char S_staticdns[] PROGMEM = "Static DNS";
