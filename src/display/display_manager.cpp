@@ -273,43 +273,47 @@ void DisplayManager::displayPhase2AppSetup() {
 
         // Draw title
         u8g2.setCursor(margin, y);
-        u8g2.print("EINRICHTUNG 2/2 : MyStation Anwendungskonfiguration");
+        u8g2.print("EINRICHTUNG 2/2 : MyStation konfigurieren");
 
         // Draw underline for title
         display.drawFastHLine(margin, y + 5, screenWidth - (2 * margin), GxEPD_BLACK);
 
-        y += lineHeight + 10; // Extra space after title
+        y += lineHeight + 5;
 
         // Draw instruction lines in German
-        u8g2.setFont(u8g2_font_helvB10_tf); // Regular 10pt for content
+        u8g2.setFont(u8g2_font_helvB10_tf);
 
-        y += 10; // Extra spacing
+        y += 10;
         u8g2.setCursor(margin, y);
-        u8g2.print("1. Verbinden Sie sich mit Ihrem WLAN");
+        u8g2.print("1. Smartphone/PC mit Ihrem Heim-WLAN verbinden");
         y += lineHeight;
 
         u8g2.setCursor(margin + 20, y);
-        u8g2.print("(nicht mit dem " + apSSID + " WLAN)");
+        u8g2.print("(nicht mit \"" + apSSID + "\")");
         y += lineHeight;
 
-        y += 10; // Extra spacing
+        y += 10;
         u8g2.setCursor(margin, y);
-        u8g2.print("2. QR-Code scannen oder angezeigte URL im Browser eingeben");
+        u8g2.print("2. QR-Code scannen oder URL im Browser öffnen");
         y += lineHeight;
 
-        y += 10; // Extra spacing
+        y += 10;
         u8g2.setCursor(margin, y);
-        u8g2.print("3. Konfigurieren Sie MyStation im Webbrowser");
+        u8g2.print("3. Haltestelle, Anzeigemodus und Intervalle einstellen");
         y += lineHeight;
 
-        y += 10; // Extra spacing
+        y += 10;
         u8g2.setCursor(margin, y);
-        u8g2.print("4. Speichern Sie die Konfiguration und warten Sie etwa 10 Sekunden.");
+        u8g2.print("4. \"Speichern\" drücken – MyStation startet automatisch neu");
         y += lineHeight;
 
-        y += 10; // Extra spacing
+        y += 20;
+        u8g2.setFont(u8g2_font_helvR08_tf); // Smaller font for hints
         u8g2.setCursor(margin, y);
-        u8g2.print("MyStation startet automatisch neu");
+        u8g2.print("Hinweis: Die Konfigurationsseite braucht einige Sekunden");
+        y += 14;
+        u8g2.setCursor(margin, y);
+        u8g2.print("zum Laden (Standort und Haltestellen werden ermittelt).");
         y += lineHeight;
 
         // === QR CODE ON RIGHT SIDE ===
