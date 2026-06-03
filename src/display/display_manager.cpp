@@ -437,12 +437,12 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
         y += lhSmall;
         u8g2.setCursor(margin, y);
         {
-            const char* modelName = "Automatisch";
-            if (strcmp(cfg.weatherModel, "icon_seamless") == 0) modelName = "Deutschland";
-            else if (strcmp(cfg.weatherModel, "ecmwf_ifs025") == 0) modelName = "Europa";
-            else if (strcmp(cfg.weatherModel, "meteofrance_seamless") == 0) modelName = "Frankreich";
-            else if (strcmp(cfg.weatherModel, "meteoswiss_icon_seamless") == 0) modelName = "Schweiz";
-            else if (strcmp(cfg.weatherModel, "italia_meteo_arpae_icon_2i") == 0) modelName = "Italien";
+            const char* modelName = "Auto";
+            if (strcmp(cfg.weatherModel, "icon_seamless") == 0) modelName = "Germany";
+            else if (strcmp(cfg.weatherModel, "ecmwf_ifs025") == 0) modelName = "Europe";
+            else if (strcmp(cfg.weatherModel, "meteofrance_seamless") == 0) modelName = "France";
+            else if (strcmp(cfg.weatherModel, "meteoswiss_icon_seamless") == 0) modelName = "Switzerland";
+            else if (strcmp(cfg.weatherModel, "italia_meteo_arpae_icon_2i") == 0) modelName = "Italy";
             u8g2.printf("Model   : %s", modelName);
         }
 
@@ -506,11 +506,11 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
         u8g2.setCursor(col2, ry);
         {
             int rssi = WiFi.RSSI();
-            const char* quality = "Sehr schwach";
-            if (rssi >= -50) quality = "Sehr gut";
-            else if (rssi >= -60) quality = "Gut";
-            else if (rssi >= -70) quality = "Mittel";
-            else if (rssi >= -80) quality = "Schwach";
+            const char* quality = "Very weak";
+            if (rssi >= -50) quality = "Excellent";
+            else if (rssi >= -60) quality = "Good";
+            else if (rssi >= -70) quality = "Fair";
+            else if (rssi >= -80) quality = "Weak";
             u8g2.printf("Signal  : %s (%d dBm)", quality, rssi);
         }
 
@@ -536,6 +536,7 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
             break;
         }
         u8g2.printf("Mode    : %s", modeName);
+        ry += lhSmall; // Spacer to align Sleep section with Weather on left
 
         // Sleep schedule ──────────────────────────────────────────────────
         u8g2.setFont(u8g2_font_helvB12_tf);
