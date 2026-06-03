@@ -23,8 +23,10 @@ namespace OTAManager {
      * - Runs OTA update task
      * - Updates last OTA check timestamp
      * - Device will restart if update is found and installed
+     *
+     * @return true if caller should skip normal rendering (up-to-date screen shown)
      */
-    void checkAndApplyUpdate();
+    bool checkAndApplyUpdate();
 
     /**
      * Mark that the user has explicitly requested an OTA update via button.

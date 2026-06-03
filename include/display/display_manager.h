@@ -38,6 +38,10 @@ public:
     static void displayErrorIfWifiConnectionError();
     static void displayErrorIfBatteryLow();
 
+    // === OTA Update Status ===
+    static void displayOTAProgress(const char* currentVersion, const char* targetVersion);
+    static void displayOTAUpToDate(const char* currentVersion);
+
     // Utility functions
     static void hibernate();
 

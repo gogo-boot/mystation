@@ -10,6 +10,7 @@
 #include <StreamUtils.h>
 #include "build_config.h"
 #include "ota/version_helper.h"
+#include "display/display_manager.h"
 
 static const char* TAG = "OTA_UPDATE";
 
@@ -136,10 +137,10 @@ static bool resolveFirmwareUrl(const char* originalUrl, char* outUrl, size_t out
 }
 
 
-void check_ota_update() {
+OTAResult check_ota_update() {
     ReleaseInfo release;
     if (!getLatestReleaseFromGitHub(release)) {
-        return;
+        return OTA_UPDATE_FAILED;
     }
 
     SemanticVersion current = SemanticVersion::parse(FIRMWARE_VERSION);
@@ -147,7 +148,7 @@ void check_ota_update() {
 
     if (!doUpdate) {
         ESP_LOGI(TAG, "Firmware is up to date (%s)", current.toString().c_str());
-        return;
+        return OTA_UP_TO_DATE;
     }
 
     ESP_LOGI(TAG, "Update available: %s -> %s",
@@ -176,18 +177,21 @@ void check_ota_update() {
 
     ESP_LOGI(TAG, "Starting OTA download from: %s", directUrl);
 
+    // Show update progress on display
+    DisplayManager::displayOTAProgress(current.toString().c_str(), release.version.toString().c_str());
+
     // Use direct OTA API for full control over the process
     esp_http_client_handle_t client = esp_http_client_init(&ota_client_config);
     if (!client) {
         ESP_LOGE(TAG, "Failed to init HTTP client for OTA");
-        return;
+        return OTA_UPDATE_FAILED;
     }
 
     esp_err_t err = esp_http_client_open(client, 0);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to open HTTP connection: %s", esp_err_to_name(err));
         esp_http_client_cleanup(client);
-        return;
+        return OTA_UPDATE_FAILED;
     }
 
     int content_length = esp_http_client_fetch_headers(client);
@@ -198,14 +202,14 @@ void check_ota_update() {
         ESP_LOGE(TAG, "Unexpected HTTP status: %d", status_code);
         esp_http_client_close(client);
         esp_http_client_cleanup(client);
-        return;
+        return OTA_UPDATE_FAILED;
     }
 
     if (content_length <= 0) {
         ESP_LOGE(TAG, "Invalid content length: %d", content_length);
         esp_http_client_close(client);
         esp_http_client_cleanup(client);
-        return;
+        return OTA_UPDATE_FAILED;
     }
 
     // Get the next OTA partition to write to
@@ -214,7 +218,7 @@ void check_ota_update() {
         ESP_LOGE(TAG, "Failed to get update partition");
         esp_http_client_close(client);
         esp_http_client_cleanup(client);
-        return;
+        return OTA_UPDATE_FAILED;
     }
     ESP_LOGI(TAG, "Writing to partition: %s (offset 0x%lx, size 0x%lx)",
              update_partition->label, update_partition->address, update_partition->size);
@@ -226,7 +230,7 @@ void check_ota_update() {
         ESP_LOGE(TAG, "esp_ota_begin failed: %s", esp_err_to_name(err));
         esp_http_client_close(client);
         esp_http_client_cleanup(client);
-        return;
+        return OTA_UPDATE_FAILED;
     }
     ESP_LOGI(TAG, "OTA begin OK, handle: 0x%lx", (unsigned long)ota_handle);
 
@@ -237,7 +241,7 @@ void check_ota_update() {
         esp_ota_abort(ota_handle);
         esp_http_client_close(client);
         esp_http_client_cleanup(client);
-        return;
+        return OTA_UPDATE_FAILED;
     }
 
     int total_read = 0;
@@ -250,7 +254,7 @@ void check_ota_update() {
             esp_ota_abort(ota_handle);
             esp_http_client_close(client);
             esp_http_client_cleanup(client);
-            return;
+            return OTA_UPDATE_FAILED;
         }
         total_read += read_len;
         if (total_read % 102400 < 4096) {
@@ -267,7 +271,7 @@ void check_ota_update() {
     if (read_len < 0) {
         ESP_LOGE(TAG, "HTTP read error: %d", read_len);
         esp_ota_abort(ota_handle);
-        return;
+        return OTA_UPDATE_FAILED;
     }
 
     ESP_LOGI(TAG, "Download complete: %d bytes", total_read);
@@ -276,20 +280,21 @@ void check_ota_update() {
     err = esp_ota_end(ota_handle);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "esp_ota_end failed: %s", esp_err_to_name(err));
-        return;
+        return OTA_UPDATE_FAILED;
     }
 
     // Set boot partition
     err = esp_ota_set_boot_partition(update_partition);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "esp_ota_set_boot_partition failed: %s", esp_err_to_name(err));
-        return;
+        return OTA_UPDATE_FAILED;
     }
 
     ESP_LOGI(TAG, "OTA OK – rebooting...");
     printf("OTA OK, restarting...\n");
     delay(500);
     esp_restart();
+    return OTA_UPDATE_FAILED; // unreachable, but satisfies compiler
 }
 
 

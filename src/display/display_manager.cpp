@@ -684,3 +684,58 @@ void DisplayManager::displayErrorIfBatteryLow() {
 
     ESP_LOGI(TAG, "Battery low error displayed");
 }
+
+// ===== OTA UPDATE STATUS =====
+
+void DisplayManager::displayOTAProgress(const char* currentVersion, const char* targetVersion) {
+    ESP_LOGI(TAG, "Displaying OTA progress: %s -> %s", currentVersion, targetVersion);
+
+    display.setFullWindow();
+    display.firstPage();
+    do {
+        display.fillScreen(GxEPD_WHITE);
+        u8g2.setForegroundColor(GxEPD_BLACK);
+        u8g2.setBackgroundColor(GxEPD_WHITE);
+
+        const int16_t margin = 20;
+        int16_t y = 200;
+
+        u8g2.setFont(u8g2_font_helvB18_tf);
+        u8g2.setCursor(margin, y);
+        u8g2.print("Firmware-Update");
+
+        y += 40;
+        u8g2.setFont(u8g2_font_helvB10_tf);
+        u8g2.setCursor(margin, y);
+        u8g2.printf("%s  →  %s", currentVersion, targetVersion);
+
+        y += 40;
+        u8g2.setFont(u8g2_font_helvB10_tf);
+        u8g2.setCursor(margin, y);
+        u8g2.print("Bitte nicht ausschalten!");
+    } while (display.nextPage());
+}
+
+void DisplayManager::displayOTAUpToDate(const char* currentVersion) {
+    ESP_LOGI(TAG, "Displaying OTA up-to-date: %s", currentVersion);
+
+    display.setFullWindow();
+    display.firstPage();
+    do {
+        display.fillScreen(GxEPD_WHITE);
+        u8g2.setForegroundColor(GxEPD_BLACK);
+        u8g2.setBackgroundColor(GxEPD_WHITE);
+
+        const int16_t margin = 20;
+        int16_t y = 200;
+
+        u8g2.setFont(u8g2_font_helvB18_tf);
+        u8g2.setCursor(margin, y);
+        u8g2.print("Firmware ist aktuell");
+
+        y += 40;
+        u8g2.setFont(u8g2_font_helvB10_tf);
+        u8g2.setCursor(margin, y);
+        u8g2.printf("Version: %s", currentVersion);
+    } while (display.nextPage());
+}
