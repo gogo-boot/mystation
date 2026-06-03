@@ -394,35 +394,43 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
 #endif
         }
 
-        // ── Network ────────────────────────────────────────────────────────
+        // Battery ──────────────────────────────────────────────────────────
         u8g2.setFont(u8g2_font_helvB12_tf);
         y += lhBig;
         u8g2.setCursor(margin, y);
-        u8g2.print("Network");
+        u8g2.print("Battery");
         display.drawFastHLine(margin, y + 3, screenWidth / 2 - margin * 2, GxEPD_BLACK);
 
         u8g2.setFont(u8g2_font_helvB10_tf);
         y += lhSmall;
         u8g2.setCursor(margin, y);
-        u8g2.printf("SSID    : %s", cfg.ssid);
-        y += lhSmall;
-        u8g2.setCursor(margin, y);
-        u8g2.printf("IP      : %s", cfg.ipAddress);
-        y += lhSmall;
-        u8g2.setCursor(margin, y);
-        u8g2.printf("Signal  : %d dBm", WiFi.RSSI());
+#if SHOW_BATTERY_STATUS
+        if (batteryVoltage > 0.0f) {
+            u8g2.printf("Voltage : %.2f V", batteryVoltage);
+            y += lhSmall;
+            u8g2.setCursor(margin, y);
+            u8g2.printf("Level   : %d%%", batteryPercent);
+        } else {
+            u8g2.print("Not available");
+        }
+#else
+        u8g2.print("Not supported");
+#endif
 
-        // ── Location ───────────────────────────────────────────────────────
+        // ── Weather ────────────────────────────────────────────────────────
         u8g2.setFont(u8g2_font_helvB12_tf);
         y += lhBig;
         u8g2.setCursor(margin, y);
-        u8g2.print("Weather Location");
+        u8g2.print("Weather");
         display.drawFastHLine(margin, y + 3, screenWidth / 2 - margin * 2, GxEPD_BLACK);
 
         u8g2.setFont(u8g2_font_helvB10_tf);
         y += lhSmall;
         u8g2.setCursor(margin, y);
         u8g2.printf("City    : %s", cfg.cityName);
+        y += lhSmall;
+        u8g2.setCursor(margin, y);
+        u8g2.printf("Lat/Lon : %.5f / %.5f", cfg.latitude, cfg.longitude);
         y += lhSmall;
         u8g2.setCursor(margin, y);
         u8g2.printf("Interval: %d hour(s)", cfg.weatherInterval);
@@ -481,29 +489,22 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
         // Vertical divider
         display.drawFastVLine(screenWidth / 2, 50, screenHeight - 65, GxEPD_BLACK);
 
-        // Battery ──────────────────────────────────────────────────────────
+        // Network ──────────────────────────────────────────────────────────
         u8g2.setFont(u8g2_font_helvB12_tf);
         u8g2.setCursor(col2, ry);
-        u8g2.print("Battery");
+        u8g2.print("Network");
         display.drawFastHLine(col2, ry + 3, screenWidth / 2 - margin * 2, GxEPD_BLACK);
 
         u8g2.setFont(u8g2_font_helvB10_tf);
         ry += lhSmall;
         u8g2.setCursor(col2, ry);
-#if SHOW_BATTERY_STATUS
-        if (batteryVoltage > 0.0f) {
-            u8g2.printf("Voltage : %.2f V", batteryVoltage);
-            ry += lhSmall;
-            u8g2.setCursor(col2, ry);
-            u8g2.printf("Level   : %d%%", batteryPercent);
-            ry += lhSmall;
-            u8g2.setCursor(col2, ry);
-        } else {
-            u8g2.print("Not available");
-        }
-#else
-        u8g2.print("Not supported");
-#endif
+        u8g2.printf("SSID    : %s", cfg.ssid);
+        ry += lhSmall;
+        u8g2.setCursor(col2, ry);
+        u8g2.printf("IP      : %s", cfg.ipAddress);
+        ry += lhSmall;
+        u8g2.setCursor(col2, ry);
+        u8g2.printf("Signal  : %d dBm", WiFi.RSSI());
 
         // Display mode ────────────────────────────────────────────────────
         u8g2.setFont(u8g2_font_helvB12_tf);
