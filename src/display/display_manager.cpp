@@ -438,11 +438,11 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
         u8g2.setCursor(margin, y);
         {
             const char* modelName = "Auto";
-            if (strcmp(cfg.weatherModel, "icon_seamless") == 0) modelName = "Germany";
-            else if (strcmp(cfg.weatherModel, "ecmwf_ifs025") == 0) modelName = "Europe";
-            else if (strcmp(cfg.weatherModel, "meteofrance_seamless") == 0) modelName = "France";
-            else if (strcmp(cfg.weatherModel, "meteoswiss_icon_seamless") == 0) modelName = "Switzerland";
-            else if (strcmp(cfg.weatherModel, "italia_meteo_arpae_icon_2i") == 0) modelName = "Italy";
+            if (strcmp(cfg.weatherModel, "icon_seamless") == 0) modelName = "DWD ICON (Germany)";
+            else if (strcmp(cfg.weatherModel, "ecmwf_ifs025") == 0) modelName = "ECMWF (Europe)";
+            else if (strcmp(cfg.weatherModel, "meteofrance_seamless") == 0) modelName = "Meteo-France (France)";
+            else if (strcmp(cfg.weatherModel, "meteoswiss_icon_seamless") == 0) modelName = "MeteoSwiss (Switzerland)";
+            else if (strcmp(cfg.weatherModel, "italia_meteo_arpae_icon_2i") == 0) modelName = "ItaliaMeteo (Italy)";
             u8g2.printf("Model   : %s", modelName);
         }
 
