@@ -4,6 +4,7 @@
 #include "util/button_monitor.h"
 #include "util/button_manager.h"
 #include "config/config_manager.h"
+#include "config/pins.h"
 #include "ota/ota_manager.h"
 #include <esp_log.h>
 #include <nvs_flash.h>
@@ -23,6 +24,34 @@ namespace SystemInit {
         delay(1000);
     }
 
+    /**
+     * Wait until the specified button pin is released (HIGH) and stable.
+     *
+     * After a long press is detected, the button is still physically held LOW.
+     * When the user releases it, the mechanical contacts bounce — rapidly
+     * toggling between LOW and HIGH for a few milliseconds. This bounce can
+     * produce FALLING edges that trigger the button ISR, causing an unintended
+     * short-press action immediately after the long-press action.
+     *
+     * This function polls until the pin reads HIGH for a consecutive debounce
+     * period (50ms), ensuring all bounce has settled before the system attaches
+     * FALLING-edge interrupts.
+     */
+    static void waitForButtonRelease(gpio_num_t pin) {
+        constexpr unsigned long DEBOUNCE_MS = 50;
+        unsigned long stableStart = 0;
+
+        while (true) {
+            if (digitalRead(pin) == HIGH) {
+                if (stableStart == 0) stableStart = millis();
+                if (millis() - stableStart >= DEBOUNCE_MS) return;
+            } else {
+                stableStart = 0; // Still pressed or bouncing, reset
+            }
+            delay(5);
+        }
+    }
+
     void handleButtonLongPressActions() {
         uint8_t held = ButtonMonitor::detectLongPress(BUTTON_HOLD_DURATION_MS);
 
@@ -37,16 +66,13 @@ namespace SystemInit {
             nvs_flash_init();
             AppicationReset::performReset();
         } else if (held == BUTTON_2_HELD) {
-            // Button 2 only → Application Info mode.
-            // Inject as a synthetic button mode so handleWakeupMode() treats it
-            // identically to a short-press button wakeup: same temp-mode logic,
-            // same 2-minute timer, same expiry clearing.
             Serial.println("ℹ️  Application info mode triggered by Button 2 long press");
             ButtonManager::setSyntheticButtonMode(DISPLAY_MODE_APPLICATION_INFO);
+            waitForButtonRelease(Pins::GPIO_BUTTON_2);
         } else if (held == BUTTON_3_HELD) {
-            // Button 3 only → Trigger OTA update immediately on next onRunning()
             Serial.println("🚀 OTA update triggered by Button 3 long press");
             OTAManager::requestUpdateByUser();
+            waitForButtonRelease(Pins::GPIO_BUTTON_3);
         }
     }
 
