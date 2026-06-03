@@ -21,6 +21,7 @@ RTCConfigData ConfigManager::rtcConfig = {
     5, // walkingTime
     "22:30", // sleepStart
     "05:30", // sleepEnd
+    "", // weatherModel
     false, // weekendMode
     "08:00", // weekendTransportStart
     "20:00", // weekendTransportEnd

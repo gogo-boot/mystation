@@ -394,26 +394,34 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
 #endif
         }
 
-        // ── Network ────────────────────────────────────────────────────────
+        // Battery ──────────────────────────────────────────────────────────
         u8g2.setFont(u8g2_font_helvB12_tf);
         y += lhBig;
         u8g2.setCursor(margin, y);
-        u8g2.print("Network");
+        u8g2.print("Battery");
         display.drawFastHLine(margin, y + 3, screenWidth / 2 - margin * 2, GxEPD_BLACK);
 
         u8g2.setFont(u8g2_font_helvB10_tf);
         y += lhSmall;
         u8g2.setCursor(margin, y);
-        u8g2.printf("SSID    : %s", cfg.ssid);
-        y += lhSmall;
-        u8g2.setCursor(margin, y);
-        u8g2.printf("IP      : %s", cfg.ipAddress);
+#if SHOW_BATTERY_STATUS
+        if (batteryVoltage > 0.0f) {
+            u8g2.printf("Voltage : %.2f V", batteryVoltage);
+            y += lhSmall;
+            u8g2.setCursor(margin, y);
+            u8g2.printf("Level   : %d%%", batteryPercent);
+        } else {
+            u8g2.print("Not available");
+        }
+#else
+        u8g2.print("Not supported");
+#endif
 
-        // ── Location ───────────────────────────────────────────────────────
+        // ── Weather ────────────────────────────────────────────────────────
         u8g2.setFont(u8g2_font_helvB12_tf);
         y += lhBig;
         u8g2.setCursor(margin, y);
-        u8g2.print("Weather Location");
+        u8g2.print("Weather");
         display.drawFastHLine(margin, y + 3, screenWidth / 2 - margin * 2, GxEPD_BLACK);
 
         u8g2.setFont(u8g2_font_helvB10_tf);
@@ -426,6 +434,17 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
         y += lhSmall;
         u8g2.setCursor(margin, y);
         u8g2.printf("Interval: %d hour(s)", cfg.weatherInterval);
+        y += lhSmall;
+        u8g2.setCursor(margin, y);
+        {
+            const char* modelName = "Auto";
+            if (strcmp(cfg.weatherModel, "icon_seamless") == 0) modelName = "DWD ICON (Germany)";
+            else if (strcmp(cfg.weatherModel, "ecmwf_ifs025") == 0) modelName = "ECMWF (Europe)";
+            else if (strcmp(cfg.weatherModel, "meteofrance_seamless") == 0) modelName = "Meteo-France (France)";
+            else if (strcmp(cfg.weatherModel, "meteoswiss_icon_seamless") == 0) modelName = "MeteoSwiss (Switzerland)";
+            else if (strcmp(cfg.weatherModel, "italia_meteo_arpae_icon_2i") == 0) modelName = "ItaliaMeteo (Italy)";
+            u8g2.printf("Model   : %s", modelName);
+        }
 
         // ── Transport ──────────────────────────────────────────────────────
         u8g2.setFont(u8g2_font_helvB12_tf);
@@ -468,31 +487,32 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
         int16_t ry = 38 + lhBig + 8; // Reset to same start as left col
 
         // Vertical divider
-        display.drawFastVLine(screenWidth / 2, 50, screenHeight - 65, GxEPD_BLACK);
+        display.drawFastVLine(screenWidth / 2, 44, screenHeight - 20 - 44, GxEPD_BLACK);
 
-        // Battery ──────────────────────────────────────────────────────────
+        // Network ──────────────────────────────────────────────────────────
         u8g2.setFont(u8g2_font_helvB12_tf);
         u8g2.setCursor(col2, ry);
-        u8g2.print("Battery");
+        u8g2.print("Network");
         display.drawFastHLine(col2, ry + 3, screenWidth / 2 - margin * 2, GxEPD_BLACK);
 
         u8g2.setFont(u8g2_font_helvB10_tf);
         ry += lhSmall;
         u8g2.setCursor(col2, ry);
-#if SHOW_BATTERY_STATUS
-        if (batteryVoltage > 0.0f) {
-            u8g2.printf("Voltage : %.2f V", batteryVoltage);
-            ry += lhSmall;
-            u8g2.setCursor(col2, ry);
-            u8g2.printf("Level   : %d%%", batteryPercent);
-            ry += lhSmall;
-            u8g2.setCursor(col2, ry);
-        } else {
-            u8g2.print("Not available");
+        u8g2.printf("SSID    : %s", cfg.ssid);
+        ry += lhSmall;
+        u8g2.setCursor(col2, ry);
+        u8g2.printf("IP      : %s", cfg.ipAddress);
+        ry += lhSmall;
+        u8g2.setCursor(col2, ry);
+        {
+            int rssi = WiFi.RSSI();
+            const char* quality = "Very weak";
+            if (rssi >= -50) quality = "Excellent";
+            else if (rssi >= -60) quality = "Good";
+            else if (rssi >= -70) quality = "Fair";
+            else if (rssi >= -80) quality = "Weak";
+            u8g2.printf("Signal  : %s (%d dBm)", quality, rssi);
         }
-#else
-        u8g2.print("Not supported");
-#endif
 
         // Display mode ────────────────────────────────────────────────────
         u8g2.setFont(u8g2_font_helvB12_tf);
@@ -516,6 +536,7 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
             break;
         }
         u8g2.printf("Mode    : %s", modeName);
+        ry += lhSmall; // Spacer to align Sleep section with Weather on left
 
         // Sleep schedule ──────────────────────────────────────────────────
         u8g2.setFont(u8g2_font_helvB12_tf);

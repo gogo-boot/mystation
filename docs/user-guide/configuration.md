@@ -70,6 +70,23 @@ This controls how frequently MyStation checks for new weather data.
 
 > 🔋 Weather changes slowly. Checking every 3 hours is enough for most daily decisions.
 
+### Weather Model
+
+You can choose which weather model MyStation uses. Different models cover different regions
+and provide different forecast lengths.
+
+| Model                        | Forecast | Best for              |
+|------------------------------|----------|-----------------------|
+| **Automatisch** *(default)*  | 7 days   | Works everywhere      |
+| DWD ICON (Deutschland)       | 7 days   | Living in Germany     |
+| ECMWF (Europa)               | 7 days   | General Europe        |
+| Meteo-France (Frankreich)    | 4 days   | Living in France      |
+| MeteoSwiss (Schweiz)         | 5 days   | Living in Switzerland |
+| ItaliaMeteo (Italien)        | 3 days   | Living in Italy       |
+
+> 💡 If you choose a model with fewer than 7 days forecast, the missing days will simply
+> be left empty on the display. The "Automatisch" option works well for most users.
+
 ---
 
 ## Transport Settings

@@ -1,5 +1,6 @@
 #include "api/dwd_weather_api.h"
 #include "config/config_struct.h"
+#include "config/config_manager.h"
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include <esp_log.h>
@@ -94,6 +95,13 @@ bool getGeneralWeatherFull(float lat, float lon, WeatherInfo& weather) {
         "&hourly=temperature_2m,weather_code,precipitation_probability,precipitation,relative_humidity_2m" +
         "&current=temperature_2m,precipitation,weather_code" +
         "&timezone=auto&past_hours=0&forecast_hours=13";
+
+    // Append weather model if configured
+    RTCConfigData& config = ConfigManager::getConfig();
+    if (strlen(config.weatherModel) > 0) {
+        url += "&models=" + String(config.weatherModel);
+    }
+
     ESP_LOGI(TAG, "Fetching weather from: %s\n", url.c_str());
     HTTPClient http;
     http.begin(url);

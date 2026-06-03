@@ -292,6 +292,26 @@
       <div class="help-text">Wetter ändert sich nicht so schnell. 3 Stunden Intervall ist optimal für Batterielebensdauer.</div>
     </div>
 
+    <div class="config-item">
+      <div class="label">
+        Wettermodell
+        <span class="tooltip">ℹ️
+          <span class="tooltiptext">Wählen Sie ein Wettermodell. Einige Modelle liefern weniger als 7 Tage Vorhersage.</span>
+        </span>
+      </div>
+      <div class="config-row">
+        <select id="weather-model">
+          <option value="">Automatisch (Standard, 7 Tage)</option>
+          <option value="icon_seamless">DWD ICON - Deutschland (7 Tage)</option>
+          <option value="ecmwf_ifs025">ECMWF - Europa (7 Tage)</option>
+          <option value="meteofrance_seamless">Meteo-France - Frankreich (4 Tage)</option>
+          <option value="meteoswiss_icon_seamless">MeteoSwiss - Schweiz (5 Tage)</option>
+          <option value="italia_meteo_arpae_icon_2i">ItaliaMeteo - Italien (3 Tage)</option>
+        </select>
+      </div>
+      <div class="help-text">Hinweis: Einige Modelle liefern weniger als 7 Tage Vorhersage. Fehlende Tage werden leer angezeigt.</div>
+    </div>
+
     <!-- ÖPNV Configuration Section -->
     <div class="chapter" style="display: flex; align-items: center; justify-content: space-between;">
       <span>🚌 ÖPNV-Konfiguration</span>
@@ -842,6 +862,7 @@
       var filters = Array.from(filterChips).map(function(chip) { return chip.getAttribute('data-type'); });
 
       var weatherInterval = document.getElementById('weather-interval').value;
+      var weatherModel = document.getElementById('weather-model').value;
       var transportInterval = document.getElementById('transport-interval').value;
       var transportActiveStart = document.getElementById('transport-active-start').value;
       var transportActiveEnd = document.getElementById('transport-active-end').value;
@@ -867,6 +888,7 @@
         filters: filters,
         displayMode: parseInt(displayMode),
         weatherInterval: parseInt(weatherInterval),
+        weatherModel: weatherModel,
         transportInterval: parseInt(transportInterval),
         transportActiveStart: transportActiveStart,
         transportActiveEnd: transportActiveEnd,
@@ -1009,6 +1031,11 @@
       var weatherInterval = "{{WEATHER_INTERVAL}}";
       if (weatherInterval && document.getElementById('weather-interval')) {
         document.getElementById('weather-interval').value = weatherInterval;
+      }
+
+      var weatherModel = "{{WEATHER_MODEL}}";
+      if (document.getElementById('weather-model')) {
+        document.getElementById('weather-model').value = weatherModel;
       }
 
       var transportInterval = "{{TRANSPORT_INTERVAL}}";

@@ -21,6 +21,7 @@ RTC_DATA_ATTR RTCConfigData ConfigManager::rtcConfig = {
     5, // walkingTime
     "22:30", // sleepStart
     "05:30", // sleepEnd
+    "", // weatherModel - empty = auto/best_match
     false, // weekendMode
     "08:00", // weekendTransportStart
     "20:00", // weekendTransportEnd
@@ -93,6 +94,10 @@ bool ConfigManager::loadFromNVS(bool force = false) {
     copyString(rtcConfig.sleepStart, sleepStart, sizeof(rtcConfig.sleepStart));
     String sleepEnd = preferences.getString("sleepEnd", "05:30");
     copyString(rtcConfig.sleepEnd, sleepEnd, sizeof(rtcConfig.sleepEnd));
+
+    // Load weather model
+    String weatherModel = preferences.getString("weatherMdl", "");
+    copyString(rtcConfig.weatherModel, weatherModel, sizeof(rtcConfig.weatherModel));
 
     // Load weekend configuration
     rtcConfig.weekendMode = preferences.getBool("weekendMode", false);
@@ -188,6 +193,9 @@ bool ConfigManager::saveToNVS() {
     preferences.putString("transEnd", rtcConfig.transportActiveEnd);
     preferences.putString("sleepStart", rtcConfig.sleepStart);
     preferences.putString("sleepEnd", rtcConfig.sleepEnd);
+
+    // Save weather model
+    preferences.putString("weatherMdl", rtcConfig.weatherModel);
 
     // Save weekend configuration
     preferences.putBool("weekendMode", rtcConfig.weekendMode);
@@ -344,7 +352,7 @@ void ConfigManager::setDefaults() {
     strcpy(rtcConfig.sleepEnd, "05:30");
     rtcConfig.weekendMode = false;
     strcpy(rtcConfig.weekendTransportStart, "08:00");
-    strcpy(rtcConfig.weekendTransportEnd, "20:00");
+    strcpy(rtcConfig.weekendTransportEnd, "11:00");
     strcpy(rtcConfig.weekendSleepStart, "23:00");
     strcpy(rtcConfig.weekendSleepEnd, "07:00");
     rtcConfig.filterFlags = FILTER_R | FILTER_S | FILTER_U | FILTER_TRAM | FILTER_BUS | FILTER_FERRY;
@@ -431,23 +439,41 @@ void ConfigManager::updateFromJson(const JsonDocument& doc) {
     if (doc.containsKey("city")) strncpy(config.cityName, doc["city"].as<const char*>(), sizeof(config.cityName) - 1);
     if (doc.containsKey("cityLat")) config.latitude = doc["cityLat"].as<float>();
     if (doc.containsKey("cityLon")) config.longitude = doc["cityLon"].as<float>();
-    if (doc.containsKey("stopId")) strncpy(config.selectedStopId, doc["stopId"].as<const char*>(), sizeof(config.selectedStopId) - 1);
-    if (doc.containsKey("stopName")) strncpy(config.selectedStopName, doc["stopName"].as<const char*>(), sizeof(config.selectedStopName) - 1);
+    if (doc.containsKey("stopId")) strncpy(config.selectedStopId, doc["stopId"].as<const char*>(),
+                                           sizeof(config.selectedStopId) - 1);
+    if (doc.containsKey("stopName")) strncpy(config.selectedStopName, doc["stopName"].as<const char*>(),
+                                             sizeof(config.selectedStopName) - 1);
     if (doc.containsKey("displayMode")) config.displayMode = doc["displayMode"].as<uint8_t>();
     if (doc.containsKey("weatherInterval")) config.weatherInterval = doc["weatherInterval"].as<int>();
+    if (doc.containsKey("weatherModel")) strncpy(config.weatherModel, doc["weatherModel"].as<const char*>(),
+                                                 sizeof(config.weatherModel) - 1);
     if (doc.containsKey("transportInterval")) config.transportInterval = doc["transportInterval"].as<int>();
-    if (doc.containsKey("transportActiveStart")) strncpy(config.transportActiveStart, doc["transportActiveStart"].as<const char*>(), sizeof(config.transportActiveStart) - 1);
-    if (doc.containsKey("transportActiveEnd")) strncpy(config.transportActiveEnd, doc["transportActiveEnd"].as<const char*>(), sizeof(config.transportActiveEnd) - 1);
+    if (doc.containsKey("transportActiveStart")) strncpy(config.transportActiveStart,
+                                                         doc["transportActiveStart"].as<const char*>(),
+                                                         sizeof(config.transportActiveStart) - 1);
+    if (doc.containsKey("transportActiveEnd")) strncpy(config.transportActiveEnd,
+                                                       doc["transportActiveEnd"].as<const char*>(),
+                                                       sizeof(config.transportActiveEnd) - 1);
     if (doc.containsKey("walkingTime")) config.walkingTime = doc["walkingTime"].as<int>();
-    if (doc.containsKey("sleepStart")) strncpy(config.sleepStart, doc["sleepStart"].as<const char*>(), sizeof(config.sleepStart) - 1);
-    if (doc.containsKey("sleepEnd")) strncpy(config.sleepEnd, doc["sleepEnd"].as<const char*>(), sizeof(config.sleepEnd) - 1);
+    if (doc.containsKey("sleepStart")) strncpy(config.sleepStart, doc["sleepStart"].as<const char*>(),
+                                               sizeof(config.sleepStart) - 1);
+    if (doc.containsKey("sleepEnd")) strncpy(config.sleepEnd, doc["sleepEnd"].as<const char*>(),
+                                             sizeof(config.sleepEnd) - 1);
     if (doc.containsKey("weekendMode")) config.weekendMode = doc["weekendMode"].as<bool>();
-    if (doc.containsKey("weekendTransportStart")) strncpy(config.weekendTransportStart, doc["weekendTransportStart"].as<const char*>(), sizeof(config.weekendTransportStart) - 1);
-    if (doc.containsKey("weekendTransportEnd")) strncpy(config.weekendTransportEnd, doc["weekendTransportEnd"].as<const char*>(), sizeof(config.weekendTransportEnd) - 1);
-    if (doc.containsKey("weekendSleepStart")) strncpy(config.weekendSleepStart, doc["weekendSleepStart"].as<const char*>(), sizeof(config.weekendSleepStart) - 1);
-    if (doc.containsKey("weekendSleepEnd")) strncpy(config.weekendSleepEnd, doc["weekendSleepEnd"].as<const char*>(), sizeof(config.weekendSleepEnd) - 1);
+    if (doc.containsKey("weekendTransportStart")) strncpy(config.weekendTransportStart,
+                                                          doc["weekendTransportStart"].as<const char*>(),
+                                                          sizeof(config.weekendTransportStart) - 1);
+    if (doc.containsKey("weekendTransportEnd")) strncpy(config.weekendTransportEnd,
+                                                        doc["weekendTransportEnd"].as<const char*>(),
+                                                        sizeof(config.weekendTransportEnd) - 1);
+    if (doc.containsKey("weekendSleepStart")) strncpy(config.weekendSleepStart,
+                                                      doc["weekendSleepStart"].as<const char*>(),
+                                                      sizeof(config.weekendSleepStart) - 1);
+    if (doc.containsKey("weekendSleepEnd")) strncpy(config.weekendSleepEnd, doc["weekendSleepEnd"].as<const char*>(),
+                                                    sizeof(config.weekendSleepEnd) - 1);
     if (doc.containsKey("otaEnabled")) config.otaEnabled = doc["otaEnabled"].as<bool>();
-    if (doc.containsKey("otaCheckTime")) strncpy(config.otaCheckTime, doc["otaCheckTime"].as<const char*>(), sizeof(config.otaCheckTime) - 1);
+    if (doc.containsKey("otaCheckTime")) strncpy(config.otaCheckTime, doc["otaCheckTime"].as<const char*>(),
+                                                 sizeof(config.otaCheckTime) - 1);
 
     if (doc.containsKey("filters")) {
         std::vector<String> filterList;

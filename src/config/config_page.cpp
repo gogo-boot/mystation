@@ -68,6 +68,7 @@ void handleConfigPage(WebServer& server) {
             // Look up replacement value and append to chunk
             if (varName == "DISPLAY_MODE") { chunk += String(config.displayMode); }
             else if (varName == "WEATHER_INTERVAL") { chunk += String(config.weatherInterval); }
+            else if (varName == "WEATHER_MODEL") { chunk += config.weatherModel; }
             else if (varName == "TRANSPORT_INTERVAL") { chunk += String(config.transportInterval); }
             else if (varName == "TRANSPORT_ACTIVE_START") { chunk += config.transportActiveStart; }
             else if (varName == "TRANSPORT_ACTIVE_END") { chunk += config.transportActiveEnd; }
