@@ -41,6 +41,7 @@ const sidebars = {
             label: '⚙️ Core Systems',
             items: [
                 'developer-guide/display-system',
+                'developer-guide/button-system',
                 'developer-guide/battery-management',
             ],
         },

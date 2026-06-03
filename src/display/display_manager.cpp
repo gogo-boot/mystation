@@ -187,11 +187,11 @@ void DisplayManager::displayPhase1WifiSetup() {
         y += lineHeight;
 
         u8g2.setCursor(margin + 20, y);
-        u8g2.print("• QR-Code 1 scannen (verbindet automatisch)");
+        u8g2.print("- QR-Code 1 scannen (verbindet automatisch)");
         y += lineHeight;
 
         u8g2.setCursor(margin + 20, y);
-        u8g2.print("• ODER manuell: WLAN \"" + apSSID + "\" wählen (kein Passwort)");
+        u8g2.print("- ODER manuell: WLAN \"" + apSSID + "\" wählen (kein Passwort)");
         y += lineHeight;
 
         y += 10;
@@ -200,11 +200,11 @@ void DisplayManager::displayPhase1WifiSetup() {
         y += lineHeight;
 
         u8g2.setCursor(margin + 20, y);
-        u8g2.print("• Seite öffnet sich automatisch");
+        u8g2.print("- Seite öffnet sich automatisch");
         y += lineHeight;
 
         u8g2.setCursor(margin + 20, y);
-        u8g2.print("• Falls nicht: QR-Code 2 scannen oder http://10.0.1.1 im Browser öffnen");
+        u8g2.print("- Falls nicht: QR-Code 2 scannen oder http://10.0.1.1 im Browser öffnen");
         y += lineHeight;
 
         y += 10;
@@ -214,7 +214,7 @@ void DisplayManager::displayPhase1WifiSetup() {
 
         y += 10;
         u8g2.setCursor(margin, y);
-        u8g2.print("5. Warten – MyStation verbindet sich und startet automatisch neu");
+        u8g2.print("5. Warten - MyStation verbindet sich und startet automatisch neu");
         y += lineHeight;
 
         u8g2.setFont(u8g2_font_helvB10_tf);
@@ -302,7 +302,7 @@ void DisplayManager::displayPhase2AppSetup() {
 
         y += 10;
         u8g2.setCursor(margin, y);
-        u8g2.print("4. \"Speichern\" drücken – MyStation startet automatisch neu");
+        u8g2.print("4. \"Speichern\" drücken - MyStation startet automatisch neu");
         y += lineHeight;
 
         u8g2.setFont(u8g2_font_helvB10_tf);
@@ -363,7 +363,7 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
         u8g2.setFont(u8g2_font_helvB18_tf);
         int16_t y = 38;
         u8g2.setCursor(margin, y);
-        u8g2.print("MyStation – Device Info");
+        u8g2.print("MyStation - Device Info");
         display.drawFastHLine(margin, y + 6, screenWidth - 2 * margin, GxEPD_BLACK);
 
         // ── LEFT COLUMN ────────────────────────────────────────────────────
@@ -707,7 +707,7 @@ void DisplayManager::displayOTAProgress(const char* currentVersion, const char* 
         y += 40;
         u8g2.setFont(u8g2_font_helvB10_tf);
         u8g2.setCursor(margin, y);
-        u8g2.printf("%s  →  %s", currentVersion, targetVersion);
+        u8g2.printf("%s  ->  %s", currentVersion, targetVersion);
 
         y += 40;
         u8g2.setFont(u8g2_font_helvB10_tf);
