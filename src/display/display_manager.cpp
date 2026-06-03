@@ -438,11 +438,11 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
         u8g2.setCursor(margin, y);
         {
             const char* modelName = "Automatisch";
-            if (strcmp(cfg.weatherModel, "icon_seamless") == 0) modelName = "DWD ICON";
-            else if (strcmp(cfg.weatherModel, "ecmwf_ifs025") == 0) modelName = "ECMWF";
-            else if (strcmp(cfg.weatherModel, "meteofrance_seamless") == 0) modelName = "Meteo-France";
-            else if (strcmp(cfg.weatherModel, "meteoswiss_icon_seamless") == 0) modelName = "MeteoSwiss";
-            else if (strcmp(cfg.weatherModel, "italia_meteo_arpae_icon_2i") == 0) modelName = "ItaliaMeteo";
+            if (strcmp(cfg.weatherModel, "icon_seamless") == 0) modelName = "Deutschland";
+            else if (strcmp(cfg.weatherModel, "ecmwf_ifs025") == 0) modelName = "Europa";
+            else if (strcmp(cfg.weatherModel, "meteofrance_seamless") == 0) modelName = "Frankreich";
+            else if (strcmp(cfg.weatherModel, "meteoswiss_icon_seamless") == 0) modelName = "Schweiz";
+            else if (strcmp(cfg.weatherModel, "italia_meteo_arpae_icon_2i") == 0) modelName = "Italien";
             u8g2.printf("Model   : %s", modelName);
         }
 
@@ -504,7 +504,15 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
         u8g2.printf("IP      : %s", cfg.ipAddress);
         ry += lhSmall;
         u8g2.setCursor(col2, ry);
-        u8g2.printf("Signal  : %d dBm", WiFi.RSSI());
+        {
+            int rssi = WiFi.RSSI();
+            const char* quality = "Sehr schwach";
+            if (rssi >= -50) quality = "Sehr gut";
+            else if (rssi >= -60) quality = "Gut";
+            else if (rssi >= -70) quality = "Mittel";
+            else if (rssi >= -80) quality = "Schwach";
+            u8g2.printf("Signal  : %s (%d dBm)", quality, rssi);
+        }
 
         // Display mode ────────────────────────────────────────────────────
         u8g2.setFont(u8g2_font_helvB12_tf);
