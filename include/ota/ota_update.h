@@ -12,10 +12,17 @@ extern char rcv_buffer[200];
 extern const char server_cert_pem_start[] asm("_binary_cert_github_bundle_pem_start");
 extern const char server_cert_pem_end[] asm("_binary_cert_github_bundle_pem_end");
 
+// OTA result codes
+enum OTAResult {
+    OTA_UP_TO_DATE,
+    OTA_UPDATE_FAILED
+    // Note: successful update reboots the device, so no "success" value needed
+};
+
 // Function declarations
 esp_err_t _http_event_handler(esp_http_client_event_t* evt);
 
-void check_ota_update();
+OTAResult check_ota_update();
 
 // Release information structure
 struct ReleaseInfo {

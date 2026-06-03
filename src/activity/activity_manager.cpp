@@ -121,7 +121,11 @@ void ActivityManager::onRunning() {
     ButtonManager::checkAndRestartIfButtonPressed();
 
     // OTA Update Check by checking scheduled time with RTC clock time
-    OTAManager::checkAndApplyUpdate();
+    if (OTAManager::checkAndApplyUpdate()) {
+        // "Up to date" screen is shown — skip normal rendering, sleep 2 min
+        setNextActivityLifecycle(Lifecycle::ON_STOP);
+        return;
+    }
 
     // Check if button was pressed during OTA check
     ButtonManager::checkAndRestartIfButtonPressed();

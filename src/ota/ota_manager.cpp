@@ -3,6 +3,8 @@
 #include "util/timing_manager.h"
 #include "ota/ota_manager.h"
 #include "ota/ota_update.h"
+#include "display/display_manager.h"
+#include "build_config.h"
 #include <ctime>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -19,25 +21,25 @@ static const char* TAG = "OTA_MANAGER";
 // so the caller will never be unblocked in that case.
 
 static TaskHandle_t s_callerTask = nullptr;
+static OTAResult s_otaResult = OTA_UPDATE_FAILED;
 
 static void otaTask(void* param) {
-    check_ota_update();
+    s_otaResult = check_ota_update();
 
     // Notify the caller that OTA finished without a reboot (no update / error)
-    // Use a local copy of the handle in case of race conditions
     TaskHandle_t caller = s_callerTask;
-    s_callerTask = nullptr; // clear before notify to prevent double-notify
+    s_callerTask = nullptr;
 
     if (caller != nullptr) {
         xTaskNotifyGive(caller);
     }
 
-    // Delete this task
     vTaskDelete(nullptr);
 }
 
-static void runOtaInDedicatedTask() {
+static OTAResult runOtaInDedicatedTask() {
     s_callerTask = xTaskGetCurrentTaskHandle();
+    s_otaResult = OTA_UPDATE_FAILED;
 
     BaseType_t created = xTaskCreate(
         otaTask,
@@ -50,16 +52,15 @@ static void runOtaInDedicatedTask() {
 
     if (created != pdPASS) {
         ESP_LOGE(TAG, "Failed to create OTA task – running inline (may stack overflow)");
-        check_ota_update();
-        return;
+        return check_ota_update();
     }
 
     // Block indefinitely; if OTA succeeds the device reboots and we never wake.
     ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+    return s_otaResult;
 }
 
 // Set to true when the user explicitly triggers OTA via Button 3 long press.
-// Lives in normal RAM — valid only within the current boot, not across deep sleep.
 static bool userRequestedUpdate = false;
 
 namespace OTAManager {
@@ -69,7 +70,6 @@ namespace OTAManager {
     }
 
     bool shouldCheckForUpdate() {
-        // User explicitly triggered OTA via button — bypass schedule and config flag
         if (userRequestedUpdate) {
             ESP_LOGI(TAG, "User-requested OTA update – bypassing schedule check");
             return true;
@@ -77,20 +77,17 @@ namespace OTAManager {
 
         RTCConfigData& config = ConfigManager::getConfig();
 
-        // Check if OTA is enabled
         if (!config.otaEnabled) {
             ESP_LOGD(TAG, "OTA automatic updates are disabled");
             return false;
         }
 
-        // Get current time
         tm timeinfo = {};
         if (!TimeManager::getCurrentLocalTime(timeinfo)) {
             ESP_LOGW(TAG, "Failed to get current time for OTA check");
             return false;
         }
 
-        // Parse configured OTA check time (format: "HH:MM")
         int configHour = 0;
         int configMinute = 0;
         if (sscanf(config.otaCheckTime, "%d:%d", &configHour, &configMinute) != 2) {
@@ -98,11 +95,9 @@ namespace OTAManager {
             return false;
         }
 
-        // Get current time
         int currentHour = timeinfo.tm_hour;
         int currentMinute = timeinfo.tm_min;
 
-        // Check if current time is within 1 minute tolerance of configured time
         bool isTimeMatch = (currentHour == configHour &&
             abs(currentMinute - configMinute) <= 1);
 
@@ -117,24 +112,38 @@ namespace OTAManager {
         return false;
     }
 
-    void checkAndApplyUpdate() {
-        if (shouldCheckForUpdate()) {
-            ESP_LOGI(TAG, "Starting OTA update check...");
-
-            // Reset user-request flag before running so normal scheduling
-            // is not affected if the OTA check completes without a restart
-            userRequestedUpdate = false;
-
-            runOtaInDedicatedTask();
-
-            // Mark OTA check timestamp to prevent repeated checks
-            time_t now;
-            time(&now);
-            TimingManager::setLastOTACheck((uint32_t)now);
-
-            // Note: If update is found and installed, device will restart
-            // If no update or update fails, execution continues normally
+    bool checkAndApplyUpdate() {
+        if (!shouldCheckForUpdate()) {
+            return false;
         }
+
+        ESP_LOGI(TAG, "Starting OTA update check...");
+        bool wasUserRequest = userRequestedUpdate;
+        userRequestedUpdate = false;
+
+        OTAResult result = runOtaInDedicatedTask();
+
+        // Mark OTA check timestamp
+        time_t now;
+        time(&now);
+        TimingManager::setLastOTACheck((uint32_t)now);
+
+        // Show display feedback only for user-triggered requests
+        if (wasUserRequest && result == OTA_UP_TO_DATE) {
+            DisplayManager::displayOTAUpToDate(FIRMWARE_VERSION);
+
+            // Set temporary mode so device sleeps ~120s then returns to configured display
+            RTCConfigData& config = ConfigManager::getConfig();
+            config.inTemporaryMode = true;
+            config.temporaryDisplayMode = config.displayMode;
+            time_t t;
+            time(&t);
+            config.temporaryModeActivationTime = (uint32_t)t;
+
+            return true; // Signal caller to skip normal rendering
+        }
+
+        return false;
     }
 } // namespace OTAManager
 
