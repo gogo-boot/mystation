@@ -487,7 +487,7 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
         int16_t ry = 38 + lhBig + 8; // Reset to same start as left col
 
         // Vertical divider
-        display.drawFastVLine(screenWidth / 2, 50, screenHeight - 65, GxEPD_BLACK);
+        display.drawFastVLine(screenWidth / 2, 44, screenHeight - 20 - 44, GxEPD_BLACK);
 
         // Network ──────────────────────────────────────────────────────────
         u8g2.setFont(u8g2_font_helvB12_tf);
