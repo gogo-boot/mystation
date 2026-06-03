@@ -361,6 +361,63 @@ void ConfigManager::loadConfig() {
 
 ---
 
+## NVS Config Version (OTA Migration Safety)
+
+### Problem
+
+When new firmware adds, renames, or changes NVS keys, devices updating via OTA may have
+stale or incompatible configuration. While NVS key-value storage is inherently forward-compatible
+(new keys simply get defaults), structural changes can still cause issues.
+
+### Solution
+
+A `CURRENT_CONFIG_VERSION` integer is stored in NVS under the key `cfgVersion`. On every boot,
+`loadFromNVS()` compares the saved version against the compiled-in version:
+
+```cpp
+static constexpr int CURRENT_CONFIG_VERSION = 1;
+
+// In loadFromNVS():
+int savedVersion = preferences.getInt("cfgVersion", 0);
+if (savedVersion < CURRENT_CONFIG_VERSION) {
+    preferences.clear();  // Reset all NVS config
+    preferences.putInt("cfgVersion", CURRENT_CONFIG_VERSION);
+}
+```
+
+### When to Increment
+
+| Change Type | Action | Example |
+|-------------|--------|---------|
+| Add new NVS key | No increment needed | Adding `weatherMdl` — defaults to `""` |
+| Rename existing key | Increment + clear | `weatherInt` → `wInterval` |
+| Change value semantics | Increment + clear | Interval unit minutes → seconds |
+| Remove critical key | Increment + clear | Removing a required field |
+
+### What Happens After Version Bump
+
+1. Device updates firmware via OTA and reboots
+2. `loadFromNVS()` detects `cfgVersion` mismatch
+3. NVS is cleared (all settings lost)
+4. Device enters configuration mode (Phase 1 or Phase 2)
+5. User reconfigures via web interface
+
+### Version History
+
+| Version | Firmware | Change |
+|---------|----------|--------|
+| 0 | < v0.7.0 | No versioning (legacy devices) |
+| 1 | v0.7.0+ | Initial versioned config, added `weatherMdl` |
+
+### Best Practices
+
+- Only increment for truly breaking NVS changes
+- Adding a new key with a default does **not** require an increment
+- Document every version bump in the table above
+- `saveToNVS()` always writes `cfgVersion` to ensure it's set after configuration
+
+---
+
 ## Summary
 
 ### Why This Complexity?
