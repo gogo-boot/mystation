@@ -408,6 +408,9 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
         y += lhSmall;
         u8g2.setCursor(margin, y);
         u8g2.printf("IP      : %s", cfg.ipAddress);
+        y += lhSmall;
+        u8g2.setCursor(margin, y);
+        u8g2.printf("Signal  : %d dBm", WiFi.RSSI());
 
         // ── Location ───────────────────────────────────────────────────────
         u8g2.setFont(u8g2_font_helvB12_tf);
@@ -422,10 +425,18 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
         u8g2.printf("City    : %s", cfg.cityName);
         y += lhSmall;
         u8g2.setCursor(margin, y);
-        u8g2.printf("Lat/Lon : %.5f / %.5f", cfg.latitude, cfg.longitude);
+        u8g2.printf("Interval: %d hour(s)", cfg.weatherInterval);
         y += lhSmall;
         u8g2.setCursor(margin, y);
-        u8g2.printf("Interval: %d hour(s)", cfg.weatherInterval);
+        {
+            const char* modelName = "Automatisch";
+            if (strcmp(cfg.weatherModel, "icon_seamless") == 0) modelName = "DWD ICON";
+            else if (strcmp(cfg.weatherModel, "ecmwf_ifs025") == 0) modelName = "ECMWF";
+            else if (strcmp(cfg.weatherModel, "meteofrance_seamless") == 0) modelName = "Meteo-France";
+            else if (strcmp(cfg.weatherModel, "meteoswiss_icon_seamless") == 0) modelName = "MeteoSwiss";
+            else if (strcmp(cfg.weatherModel, "italia_meteo_arpae_icon_2i") == 0) modelName = "ItaliaMeteo";
+            u8g2.printf("Model   : %s", modelName);
+        }
 
         // ── Transport ──────────────────────────────────────────────────────
         u8g2.setFont(u8g2_font_helvB12_tf);
