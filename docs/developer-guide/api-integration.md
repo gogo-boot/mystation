@@ -119,6 +119,26 @@ Already configured in `src/api/dwd_weather_api.cpp`:
 - Historical weather data
 - No registration required
 
+#### Configurable Weather Models:
+
+Users can select a weather model in the configuration page. The `&models=` parameter is
+appended to the Open-Meteo API URL when a specific model is chosen.
+
+| User Label | API Value | Forecast | Resolution | Region |
+|---|---|---|---|---|
+| Automatisch (Standard) | *(omitted)* | 7 days | varies | Global |
+| DWD ICON (Deutschland) | `icon_seamless` | 7 days | 2-11 km | Germany |
+| ECMWF (Europa) | `ecmwf_ifs025` | 7 days | 25 km | Europe |
+| Meteo-France (Frankreich) | `meteofrance_seamless` | 4 days | 1-25 km | France |
+| MeteoSwiss (Schweiz) | `meteoswiss_icon_seamless` | 5 days | 1-2 km | Switzerland |
+| ItaliaMeteo (Italien) | `italia_meteo_arpae_icon_2i` | 3 days | 2 km | Italy |
+
+**Note**: Some models provide fewer than 7 days of daily forecast. The display gracefully
+handles this by rendering only the available days (remaining space is left empty).
+
+The JSON response format is identical regardless of model selection — only the data
+coverage and resolution differ.
+
 ---
 
 ### 4. OpenStreetMap Nominatim API

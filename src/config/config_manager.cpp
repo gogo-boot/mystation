@@ -21,6 +21,7 @@ RTC_DATA_ATTR RTCConfigData ConfigManager::rtcConfig = {
     5, // walkingTime
     "22:30", // sleepStart
     "05:30", // sleepEnd
+    "", // weatherModel - empty = auto/best_match
     false, // weekendMode
     "08:00", // weekendTransportStart
     "20:00", // weekendTransportEnd
@@ -93,6 +94,10 @@ bool ConfigManager::loadFromNVS(bool force = false) {
     copyString(rtcConfig.sleepStart, sleepStart, sizeof(rtcConfig.sleepStart));
     String sleepEnd = preferences.getString("sleepEnd", "05:30");
     copyString(rtcConfig.sleepEnd, sleepEnd, sizeof(rtcConfig.sleepEnd));
+
+    // Load weather model
+    String weatherModel = preferences.getString("weatherMdl", "");
+    copyString(rtcConfig.weatherModel, weatherModel, sizeof(rtcConfig.weatherModel));
 
     // Load weekend configuration
     rtcConfig.weekendMode = preferences.getBool("weekendMode", false);
@@ -188,6 +193,9 @@ bool ConfigManager::saveToNVS() {
     preferences.putString("transEnd", rtcConfig.transportActiveEnd);
     preferences.putString("sleepStart", rtcConfig.sleepStart);
     preferences.putString("sleepEnd", rtcConfig.sleepEnd);
+
+    // Save weather model
+    preferences.putString("weatherMdl", rtcConfig.weatherModel);
 
     // Save weekend configuration
     preferences.putBool("weekendMode", rtcConfig.weekendMode);
@@ -435,6 +443,7 @@ void ConfigManager::updateFromJson(const JsonDocument& doc) {
     if (doc.containsKey("stopName")) strncpy(config.selectedStopName, doc["stopName"].as<const char*>(), sizeof(config.selectedStopName) - 1);
     if (doc.containsKey("displayMode")) config.displayMode = doc["displayMode"].as<uint8_t>();
     if (doc.containsKey("weatherInterval")) config.weatherInterval = doc["weatherInterval"].as<int>();
+    if (doc.containsKey("weatherModel")) strncpy(config.weatherModel, doc["weatherModel"].as<const char*>(), sizeof(config.weatherModel) - 1);
     if (doc.containsKey("transportInterval")) config.transportInterval = doc["transportInterval"].as<int>();
     if (doc.containsKey("transportActiveStart")) strncpy(config.transportActiveStart, doc["transportActiveStart"].as<const char*>(), sizeof(config.transportActiveStart) - 1);
     if (doc.containsKey("transportActiveEnd")) strncpy(config.transportActiveEnd, doc["transportActiveEnd"].as<const char*>(), sizeof(config.transportActiveEnd) - 1);

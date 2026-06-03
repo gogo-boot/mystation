@@ -34,6 +34,9 @@ struct RTCConfigData {
     char sleepStart[6]; // 6 bytes ("HH:MM")
     char sleepEnd[6]; // 6 bytes ("HH:MM")
 
+    // Weather model (Open-Meteo &models= parameter, empty = auto/best_match)
+    char weatherModel[32]; // 32 bytes
+
     // Weekend configuration
     bool weekendMode; // 1 byte
     char weekendTransportStart[6]; // 6 bytes ("HH:MM")
