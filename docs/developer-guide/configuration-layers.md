@@ -394,6 +394,22 @@ if (savedVersion < CURRENT_CONFIG_VERSION) {
 | Change value semantics | Increment + clear | Interval unit minutes → seconds |
 | Remove critical key | Increment + clear | Removing a required field |
 
+> **Why is adding a new NVS key safe but changing the RTC struct is not?**
+>
+> **NVS** is a key-value store — each key is stored independently. Adding `weatherMdl` between
+> `sleepEnd` and `weekendMode` in the *code* doesn't change how NVS stores them. Old devices
+> simply don't have that key yet, so `preferences.getString("weatherMdl", "")` returns the
+> default. No corruption.
+>
+> **RTC memory** (`RTC_DATA_ATTR`) is a raw binary struct. Field order determines the memory
+> layout. Adding a 32-byte field shifts everything after it. However, this is **safe for OTA**
+> because OTA triggers a full reboot (not a deep sleep wake). On full reboot, `wakeupCount == 1`,
+> so `loadFromNVS()` always runs and repopulates the struct from NVS — the stale RTC layout
+> is never read.
+>
+> RTC struct changes would only be dangerous if a device could somehow deep-sleep-wake into
+> new firmware without rebooting, which is not possible with OTA.
+
 ### What Happens After Version Bump
 
 1. Device updates firmware via OTA and reboots
