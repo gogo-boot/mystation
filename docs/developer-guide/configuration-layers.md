@@ -361,6 +361,120 @@ void ConfigManager::loadConfig() {
 
 ---
 
+## NVS Config Version (OTA Migration Safety)
+
+### Problem
+
+When new firmware adds, renames, or changes NVS keys, devices updating via OTA may have
+stale or incompatible configuration. While NVS key-value storage is inherently forward-compatible
+(new keys simply get defaults), structural changes can still cause issues.
+
+### Solution
+
+A `CURRENT_CONFIG_VERSION` integer is stored in NVS under the key `cfgVersion`. On every boot,
+`loadFromNVS()` compares the saved version against the compiled-in version:
+
+```cpp
+static constexpr int CURRENT_CONFIG_VERSION = 1;
+
+// In loadFromNVS():
+int savedVersion = preferences.getInt("cfgVersion", 0);
+if (savedVersion < CURRENT_CONFIG_VERSION) {
+    preferences.clear();  // Reset all NVS config
+    preferences.putInt("cfgVersion", CURRENT_CONFIG_VERSION);
+}
+```
+
+### When to Increment
+
+| Change Type | Action | Example |
+|-------------|--------|---------|
+| Add new NVS key | No increment needed | Adding `weatherMdl` — defaults to `""` |
+| Rename existing key | Increment + clear | `weatherInt` → `wInterval` |
+| Change value semantics | Increment + clear | Interval unit minutes → seconds |
+| Remove critical key | Increment + clear | Removing a required field |
+
+> **Why is adding a new NVS key safe but changing the RTC struct is not?**
+>
+> **NVS** is a key-value store — each key is stored independently. Adding `weatherMdl` between
+> `sleepEnd` and `weekendMode` in the *code* doesn't change how NVS stores them. Old devices
+> simply don't have that key yet, so `preferences.getString("weatherMdl", "")` returns the
+> default. No corruption.
+>
+> **RTC memory** (`RTC_DATA_ATTR`) is a raw binary struct. Field order determines the memory
+> layout. Adding a 32-byte field shifts everything after it. However, this is **safe for OTA**
+> because OTA triggers a full reboot (not a deep sleep wake). On full reboot, `wakeupCount == 1`,
+> so `loadFromNVS()` always runs and repopulates the struct from NVS — the stale RTC layout
+> is never read.
+>
+> RTC struct changes would only be dangerous if a device could somehow deep-sleep-wake into
+> new firmware without rebooting, which is not possible with OTA.
+
+### What Happens After Version Bump
+
+1. Device updates firmware via OTA and reboots
+2. `loadFromNVS()` detects `cfgVersion` mismatch
+3. NVS is cleared (all settings lost)
+4. Device enters configuration mode (Phase 1 or Phase 2)
+5. User reconfigures via web interface
+
+### Version History
+
+| Version | Firmware | Change |
+|---------|----------|--------|
+| 0 | < v0.7.0 | No versioning (legacy devices) |
+| 1 | v0.7.0+ | Initial versioned config, added `weatherMdl` |
+
+### Best Practices
+
+- Only increment for truly breaking NVS changes
+- Adding a new key with a default does **not** require an increment
+- Document every version bump in the table above
+- `saveToNVS()` always writes `cfgVersion` to ensure it's set after configuration
+
+### Testing Config Version Migration
+
+To verify the NVS clear works correctly without creating a real OTA release:
+
+1. **Flash current firmware** (debug build) and configure the device normally:
+   ```bash
+   pio run -e esp32-s3-e1001-debug -t upload
+   ```
+
+2. **Configure the device** — set stop, weather model, intervals, etc.
+
+3. **Bump the version** in `src/config/config_manager.cpp`:
+   ```cpp
+   static constexpr int CURRENT_CONFIG_VERSION = 2; // was 1
+   ```
+
+4. **Flash again** and monitor serial output:
+   ```bash
+   pio run -e esp32-s3-e1001-debug -t upload && pio device monitor
+   ```
+
+5. **Expected serial output:**
+   ```
+   [WARN][CONFIG_MANAGER] NVS config version 1 < 2 — clearing NVS for clean migration
+   [INFO][MAIN] Configuration Phase: 2 (App Setup)
+   ```
+
+6. **Verify:**
+   - WiFi still connects (credentials stored in separate namespace) ✅
+   - Device enters Phase 2 configuration mode (app settings cleared) ✅
+   - All app settings reset to defaults ✅
+
+7. **Revert** the version change when done:
+   ```bash
+   # Reset to original version
+   sed -i '' 's/CURRENT_CONFIG_VERSION = 2/CURRENT_CONFIG_VERSION = 1/' src/config/config_manager.cpp
+   ```
+
+> **Tip:** For debug builds, increase `delay()` in `initSerialConnector()` to 3000ms
+> if you need more time for the serial monitor to connect before boot logs appear.
+
+---
+
 ## Summary
 
 ### Why This Complexity?

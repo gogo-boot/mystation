@@ -43,6 +43,11 @@ ConfigManager& ConfigManager::getInstance() {
     return instance;
 }
 
+// NVS config version — increment when NVS layout changes in a breaking way.
+// Version history:
+//   1 = initial versioned config (v0.7.0+, added weatherModel field)
+static constexpr int CURRENT_CONFIG_VERSION = 1;
+
 // It loads the configuration from NVS into RTC memory.
 bool ConfigManager::loadFromNVS(bool force = false) {
     extern unsigned long wakeupCount;
@@ -51,6 +56,18 @@ bool ConfigManager::loadFromNVS(bool force = false) {
     if (wakeupCount != 1 && !force) {
         ESP_LOGI(TAG, "Fast wake: Using RTC config after deep sleep");
         return true;
+    }
+
+    // --- Config version check (read-write) ---
+    if (preferences.begin("mystation", false)) {
+        int savedVersion = preferences.getInt("cfgVersion", 0);
+        if (savedVersion < CURRENT_CONFIG_VERSION) {
+            ESP_LOGW(TAG, "NVS config version %d < %d — clearing NVS for clean migration",
+                     savedVersion, CURRENT_CONFIG_VERSION);
+            preferences.clear();
+            preferences.putInt("cfgVersion", CURRENT_CONFIG_VERSION);
+        }
+        preferences.end();
     }
 
     if (!preferences.begin("mystation", true)) {
@@ -168,6 +185,9 @@ bool ConfigManager::saveToNVS() {
         ESP_LOGE(TAG, "Failed to open NVS for writing");
         return false;
     }
+
+    // Store config version
+    preferences.putInt("cfgVersion", CURRENT_CONFIG_VERSION);
 
     // Save location data
     preferences.putFloat("lat", rtcConfig.latitude);

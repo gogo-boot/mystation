@@ -730,10 +730,25 @@ void DisplayManager::displayOTAProgress(const char* currentVersion, const char* 
         u8g2.setCursor(margin, y);
         u8g2.printf("%s  ->  %s", currentVersion, targetVersion);
 
+        // Detect breaking change (major version bump)
+        int curMajor = 0, tgtMajor = 0;
+        sscanf(currentVersion[0] == 'v' ? currentVersion + 1 : currentVersion, "%d", &curMajor);
+        sscanf(targetVersion[0] == 'v' ? targetVersion + 1 : targetVersion, "%d", &tgtMajor);
+        bool breakingChange = (tgtMajor > curMajor);
+
         y += 40;
         u8g2.setFont(u8g2_font_helvB10_tf);
         u8g2.setCursor(margin, y);
         u8g2.print("Bitte nicht ausschalten!");
+
+        if (breakingChange) {
+            y += 30;
+            u8g2.setCursor(margin, y);
+            u8g2.print("Wichtig: Nach dem Update wird das Geraet");
+            y += 18;
+            u8g2.setCursor(margin, y);
+            u8g2.print("zurueckgesetzt. Bitte neu konfigurieren.");
+        }
     } while (display.nextPage());
 }
 
