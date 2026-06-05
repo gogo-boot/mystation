@@ -416,6 +416,47 @@ if (savedVersion < CURRENT_CONFIG_VERSION) {
 - Document every version bump in the table above
 - `saveToNVS()` always writes `cfgVersion` to ensure it's set after configuration
 
+### Testing Config Version Migration
+
+To verify the NVS clear works correctly without creating a real OTA release:
+
+1. **Flash current firmware** (debug build) and configure the device normally:
+   ```bash
+   pio run -e esp32-s3-e1001-debug -t upload
+   ```
+
+2. **Configure the device** — set stop, weather model, intervals, etc.
+
+3. **Bump the version** in `src/config/config_manager.cpp`:
+   ```cpp
+   static constexpr int CURRENT_CONFIG_VERSION = 2; // was 1
+   ```
+
+4. **Flash again** and monitor serial output:
+   ```bash
+   pio run -e esp32-s3-e1001-debug -t upload && pio device monitor
+   ```
+
+5. **Expected serial output:**
+   ```
+   [WARN][CONFIG_MANAGER] NVS config version 1 < 2 — clearing NVS for clean migration
+   [INFO][MAIN] Configuration Phase: 2 (App Setup)
+   ```
+
+6. **Verify:**
+   - WiFi still connects (credentials stored in separate namespace) ✅
+   - Device enters Phase 2 configuration mode (app settings cleared) ✅
+   - All app settings reset to defaults ✅
+
+7. **Revert** the version change when done:
+   ```bash
+   # Reset to original version
+   sed -i '' 's/CURRENT_CONFIG_VERSION = 2/CURRENT_CONFIG_VERSION = 1/' src/config/config_manager.cpp
+   ```
+
+> **Tip:** For debug builds, increase `delay()` in `initSerialConnector()` to 3000ms
+> if you need more time for the serial monitor to connect before boot logs appear.
+
 ---
 
 ## Summary
