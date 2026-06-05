@@ -46,6 +46,14 @@ void MyWiFiManager::setupWiFiAccessPointAndRestart(WiFiManager& wm) {
     wm.setTitle("MyStation WiFi Setup");
     wm.setCountry("DE");
 
+    // Redirect root page to /wifi so captive portal shows SSID list immediately
+    wm.setWebServerCallback([&wm]() {
+        wm.server->on("/", HTTP_GET, [&wm]() {
+            wm.server->sendHeader("Location", "/wifi", true);
+            wm.server->send(302, "text/plain", "");
+        });
+    });
+
     // Start AP and wait for WiFi configuration
     String apName = Util::getUniqueSSID("MyStation");
     ESP_LOGI(TAG, "Starting AP with SSID: %s", apName.c_str());
