@@ -83,12 +83,6 @@ const config = {
                 items: [
                     {
                         type: 'docSidebar',
-                        sidebarId: 'userSidebar',
-                        position: 'left',
-                        label: 'User Guide',
-                    },
-                    {
-                        type: 'docSidebar',
                         sidebarId: 'developerSidebar',
                         position: 'left',
                         label: 'Developer Guide',
@@ -124,11 +118,11 @@ const config = {
                         items: [
                             {
                                 label: 'Quick Start',
-                                to: '/docs/user-guide/quick-start',
+                                href: 'https://gogo-boot.github.io/mystation-landing/docs/user-guide/quick-start',
                             },
                             {
                                 label: 'Troubleshooting',
-                                to: '/docs/user-guide/troubleshooting',
+                                href: 'https://gogo-boot.github.io/mystation-landing/docs/user-guide/troubleshooting',
                             },
                         ],
                     },
