@@ -40,9 +40,8 @@ static String renderConfigPageHtml() {
             stopsHtml += "<option value='" + encodedId + "'>" + pageData.getStopName(i) + "   (" +
                 pageData.getStopDistance(i) + "m)</option>";
         }
-        stopsHtml += "<option value='__manual__'>Manuell eingeben...</option>";
     } else {
-        stopsHtml = "<option value=''>Bitte wählen...</option><option value='__manual__'>Manuell eingeben...</option>";
+        stopsHtml = "<option value=''>Bitte wählen...</option>";
     }
 
     // Build full page with template replacement
