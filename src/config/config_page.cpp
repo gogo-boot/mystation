@@ -15,11 +15,14 @@
 
 static const char* TAG = "CONFIG";
 
-void handleConfigPage(WebServer& server) {
+// Pre-rendered config page HTML (built once at server start)
+static String g_renderedPage;
+
+static String renderConfigPageHtml() {
     ConfigPageData& pageData = ConfigPageData::getInstance();
     RTCConfigData& config = ConfigManager::getConfig();
 
-    // Build filters JS array once
+    // Build filters JS array
     std::vector<String> activeFilters = ConfigManager::getActiveFilters();
     String filtersJs = "[";
     for (size_t i = 0; i < activeFilters.size(); i++) {
@@ -42,69 +45,54 @@ void handleConfigPage(WebServer& server) {
         stopsHtml = "<option value=''>Bitte wählen...</option><option value='__manual__'>Manuell eingeben...</option>";
     }
 
-    // Start chunked response
-    server.setContentLength(CONTENT_LENGTH_UNKNOWN);
-    server.send(200, "text/html; charset=utf-8", "");
-
-    // Stream HTML, replacing {{VARS}} on the fly
-    // On ESP32, PROGMEM is directly addressable - no pgm_read_byte needed
+    // Build full page with template replacement
     const char* html = CONFIG_PAGE_HTML;
     const size_t len = strlen(html);
     size_t pos = 0;
 
-    // Use a String as accumulator - send in ~2KB segments to minimize sendContent calls
-    String chunk;
-    chunk.reserve(2048);
+    String page;
+    page.reserve(len + 1024);
 
     while (pos < len) {
         if (html[pos] == '{' && pos + 1 < len && html[pos + 1] == '{') {
-            // Extract variable name
-            pos += 2; // skip "{{"
+            pos += 2;
             const char* varStart = html + pos;
             while (pos < len && html[pos] != '}') pos++;
             String varName(varStart, html + pos - varStart);
-            if (pos < len) pos += 2; // skip "}}"
+            if (pos < len) pos += 2;
 
-            // Look up replacement value and append to chunk
-            if (varName == "DISPLAY_MODE") { chunk += String(config.displayMode); }
-            else if (varName == "WEATHER_INTERVAL") { chunk += String(config.weatherInterval); }
-            else if (varName == "WEATHER_MODEL") { chunk += config.weatherModel; }
-            else if (varName == "TRANSPORT_INTERVAL") { chunk += String(config.transportInterval); }
-            else if (varName == "TRANSPORT_ACTIVE_START") { chunk += config.transportActiveStart; }
-            else if (varName == "TRANSPORT_ACTIVE_END") { chunk += config.transportActiveEnd; }
-            else if (varName == "WALKING_TIME") { chunk += String(config.walkingTime); }
-            else if (varName == "SLEEP_START") { chunk += config.sleepStart; }
-            else if (varName == "SLEEP_END") { chunk += config.sleepEnd; }
-            else if (varName == "WEEKEND_MODE") { chunk += config.weekendMode ? "checked" : ""; }
-            else if (varName == "WEEKEND_TRANSPORT_START") { chunk += config.weekendTransportStart; }
-            else if (varName == "WEEKEND_TRANSPORT_END") { chunk += config.weekendTransportEnd; }
-            else if (varName == "WEEKEND_SLEEP_START") { chunk += config.weekendSleepStart; }
-            else if (varName == "WEEKEND_SLEEP_END") { chunk += config.weekendSleepEnd; }
-            else if (varName == "OTA_ENABLED") { chunk += config.otaEnabled ? "true" : "false"; }
-            else if (varName == "OTA_CHECK_TIME") { chunk += config.otaCheckTime; }
-            else if (varName == "SAVED_FILTERS") { chunk += filtersJs; }
-            else if (varName == "LAT") { chunk += String(pageData.getLatitude(), 6); }
-            else if (varName == "LON") { chunk += String(pageData.getLongitude(), 6); }
-            else if (varName == "CITY") { chunk += pageData.getCityName(); }
-            else if (varName == "STOPS") { chunk += stopsHtml; }
+            if (varName == "DISPLAY_MODE") { page += String(config.displayMode); }
+            else if (varName == "WEATHER_INTERVAL") { page += String(config.weatherInterval); }
+            else if (varName == "WEATHER_MODEL") { page += config.weatherModel; }
+            else if (varName == "TRANSPORT_INTERVAL") { page += String(config.transportInterval); }
+            else if (varName == "TRANSPORT_ACTIVE_START") { page += config.transportActiveStart; }
+            else if (varName == "TRANSPORT_ACTIVE_END") { page += config.transportActiveEnd; }
+            else if (varName == "WALKING_TIME") { page += String(config.walkingTime); }
+            else if (varName == "SLEEP_START") { page += config.sleepStart; }
+            else if (varName == "SLEEP_END") { page += config.sleepEnd; }
+            else if (varName == "WEEKEND_MODE") { page += config.weekendMode ? "checked" : ""; }
+            else if (varName == "WEEKEND_TRANSPORT_START") { page += config.weekendTransportStart; }
+            else if (varName == "WEEKEND_TRANSPORT_END") { page += config.weekendTransportEnd; }
+            else if (varName == "WEEKEND_SLEEP_START") { page += config.weekendSleepStart; }
+            else if (varName == "WEEKEND_SLEEP_END") { page += config.weekendSleepEnd; }
+            else if (varName == "OTA_ENABLED") { page += config.otaEnabled ? "true" : "false"; }
+            else if (varName == "OTA_CHECK_TIME") { page += config.otaCheckTime; }
+            else if (varName == "SAVED_FILTERS") { page += filtersJs; }
+            else if (varName == "LAT") { page += String(pageData.getLatitude(), 6); }
+            else if (varName == "LON") { page += String(pageData.getLongitude(), 6); }
+            else if (varName == "CITY") { page += pageData.getCityName(); }
+            else if (varName == "STOPS") { page += stopsHtml; }
         } else {
-            chunk += html[pos];
+            page += html[pos];
             pos++;
         }
-
-        // Send when chunk reaches ~2KB
-        if (chunk.length() >= 2048) {
-            server.sendContent(chunk);
-            chunk = "";
-            chunk.reserve(2048);
-        }
     }
 
-    // Send remaining content
-    if (chunk.length() > 0) {
-        server.sendContent(chunk);
-    }
-    server.sendContent(""); // End chunked response
+    return page;
+}
+
+void handleConfigPage(WebServer& server) {
+    server.send(200, "text/html; charset=utf-8", g_renderedPage);
 }
 
 // Save configuration handler (POST /save_config)
@@ -399,6 +387,11 @@ void handleInitWrapper() {
 void setupWebServer(WebServer& server) {
     ESP_LOGI(TAG, "Setting up web server...");
     g_server = &server;
+
+    // Pre-render config page once (avoids slow char-by-char template processing per request)
+    g_renderedPage = renderConfigPageHtml();
+    ESP_LOGI(TAG, "Config page pre-rendered: %d bytes", g_renderedPage.length());
+
     server.on("/", handleConfigPageWrapper);
     server.on("/save_config", HTTP_POST, handleSaveConfigWrapper);
     server.on("/api/city", HTTP_GET, handleCityAutocompleteWrapper);
