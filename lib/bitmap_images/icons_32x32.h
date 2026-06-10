@@ -5,10 +5,7 @@
 #include "32x32/Battery_3_32x32.h"
 #include "32x32/Battery_4_32x32.h"
 #include "32x32/Battery_5_32x32.h"
-#include "32x32/battery_alert_0deg_32x32.h"
-#include "32x32/battery_charging_full_90deg_32x32.h"
 #include "32x32/refresh_32x32.h"
-#include "32x32/RMV_Logo_32x32.h"
 #include "32x32/wi_0_day_sunny_32x32.h"
 #include "32x32/wi_1_day_sunny_overcast_32x32.h"
 #include "32x32/wi_45_day_fog_32x32.h"
@@ -44,5 +41,4 @@
 #include "32x32/wifi_3_bar_32x32.h"
 #include "32x32/wifi_32x32.h"
 #include "32x32/wifi_off_32x32.h"
-#include "32x32/wifi_x_32x32.h"
 #endif

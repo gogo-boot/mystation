@@ -5,10 +5,7 @@
 #include "24x24/Battery_3_24x24.h"
 #include "24x24/Battery_4_24x24.h"
 #include "24x24/Battery_5_24x24.h"
-#include "24x24/battery_alert_0deg_24x24.h"
-#include "24x24/battery_charging_full_90deg_24x24.h"
 #include "24x24/refresh_24x24.h"
-#include "24x24/RMV_Logo_24x24.h"
 #include "24x24/wi_0_day_sunny_24x24.h"
 #include "24x24/wi_1_day_sunny_overcast_24x24.h"
 #include "24x24/wi_45_day_fog_24x24.h"
@@ -44,5 +41,4 @@
 #include "24x24/wifi_24x24.h"
 #include "24x24/wifi_3_bar_24x24.h"
 #include "24x24/wifi_off_24x24.h"
-#include "24x24/wifi_x_24x24.h"
 #endif

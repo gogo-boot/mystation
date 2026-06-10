@@ -169,8 +169,8 @@ void TransportDisplay::drawFullScreenTransportSection(const DepartureData& depar
     dateTime = statusText + dateTime;
     int16_t dateTimeWidth = TextUtils::getTextWidth(dateTime);
 
-    const int16_t iconWidth = 16;
-    const int16_t iconSpacing = 4; // Spacing between icons
+    const int16_t iconWidth = 24;
+    const int16_t iconSpacing = 5; // Spacing between icons
     int16_t iconX = rightMargin; // Start from right edge and work backwards
 
     // Battery icon (rightmost)
@@ -179,7 +179,7 @@ void TransportDisplay::drawFullScreenTransportSection(const DepartureData& depar
         if (batteryLevel > 0) {
             iconX -= iconWidth;
             icon_name batteryIcon = CommonFooter::getBatteryIcon();
-            display.drawInvertedBitmap(iconX, currentY, getBitmap(batteryIcon, 16), 16, 16, GxEPD_BLACK);
+            display.drawInvertedBitmap(iconX, currentY, getBitmap(batteryIcon, 24), 24, 24, GxEPD_BLACK);
             iconX -= iconSpacing;
         }
     }
@@ -187,12 +187,12 @@ void TransportDisplay::drawFullScreenTransportSection(const DepartureData& depar
     // WiFi icon
     iconX -= iconWidth;
     icon_name wifiIcon = CommonFooter::getWiFiIcon();
-    display.drawInvertedBitmap(iconX, currentY, getBitmap(wifiIcon, 16), 16, 16, GxEPD_BLACK);
+    display.drawInvertedBitmap(iconX, currentY, getBitmap(wifiIcon, 24), 24, 24, GxEPD_BLACK);
     iconX -= iconSpacing;
 
     // Refresh icon
     iconX -= iconWidth;
-    display.drawInvertedBitmap(iconX, currentY, getBitmap(refresh, 16), 16, 16, GxEPD_BLACK);
+    display.drawInvertedBitmap(iconX, currentY, getBitmap(refresh, 24), 24, 24, GxEPD_BLACK);
 
     // Time (left of all icons)
     iconX -= (iconSpacing + dateTimeWidth);
