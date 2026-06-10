@@ -112,36 +112,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     default:
       return nullptr;
     }
-  case RMV_Logo:
-    switch (size) {
-    case 16: return RMV_Logo_16x16;
-    case 24: return RMV_Logo_24x24;
-    case 32: return RMV_Logo_32x32;
-    case 48: return RMV_Logo_48x48;
-    case 64: return RMV_Logo_64x64;
-    default:
-      return nullptr;
-    }
-  case battery_alert_0deg:
-    switch (size) {
-    case 16: return battery_alert_0deg_16x16;
-    case 24: return battery_alert_0deg_24x24;
-    case 32: return battery_alert_0deg_32x32;
-    case 48: return battery_alert_0deg_48x48;
-    case 64: return battery_alert_0deg_64x64;
-    default:
-      return nullptr;
-    }
-  case battery_charging_full_90deg:
-    switch (size) {
-    case 16: return battery_charging_full_90deg_16x16;
-    case 24: return battery_charging_full_90deg_24x24;
-    case 32: return battery_charging_full_90deg_32x32;
-    case 48: return battery_charging_full_90deg_48x48;
-    case 64: return battery_charging_full_90deg_64x64;
-    default:
-      return nullptr;
-    }
   case refresh:
     switch (size) {
     case 16: return refresh_16x16;
@@ -499,16 +469,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     case 32: return wifi_off_32x32;
     case 48: return wifi_off_48x48;
     case 64: return wifi_off_64x64;
-    default:
-      return nullptr;
-    }
-  case wifi_x:
-    switch (size) {
-    case 16: return wifi_x_16x16;
-    case 24: return wifi_x_24x24;
-    case 32: return wifi_x_32x32;
-    case 48: return wifi_x_48x48;
-    case 64: return wifi_x_64x64;
     default:
       return nullptr;
     }
