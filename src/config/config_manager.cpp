@@ -4,6 +4,9 @@
 
 static const char* TAG = "CONFIG_MGR";
 
+// Static member definitions
+Preferences ConfigManager::preferences;
+
 // RTC memory allocation - define the static member with defaults
 RTC_DATA_ATTR RTCConfigData ConfigManager::rtcConfig = {
     DISPLAY_MODE_HALF_AND_HALF, // displayMode - default to half and half

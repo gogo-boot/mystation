@@ -145,6 +145,7 @@ void handleSaveConfig(WebServer& server) {
 #endif
 
     server.send(200, "application/json", "{\"status\":\"ok\"}");
+    delay(500); // Allow response to flush before sleep
     enterDeepSleep(1);
 }
 
@@ -369,33 +370,29 @@ void handleInit(WebServer& server) {
     ESP_LOGI(TAG, "/api/init complete: city=%s, stops=%d", cityName.c_str(), pageData.getStopCount());
 }
 
-// Global server reference for callback access
-static WebServer* g_server = nullptr;
-
 // Callback wrapper functions
 void handleConfigPageWrapper() {
-    handleConfigPage(*g_server);
+    handleConfigPage(server);
 }
 
 void handleSaveConfigWrapper() {
-    handleSaveConfig(*g_server);
+    handleSaveConfig(server);
 }
 
 void handleCityAutocompleteWrapper() {
-    handleCityAutocomplete(*g_server);
+    handleCityAutocomplete(server);
 }
 
 void handleStopAutocompleteWrapper() {
-    handleStopAutocomplete(*g_server);
+    handleStopAutocomplete(server);
 }
 
 void handleInitWrapper() {
-    handleInit(*g_server);
+    handleInit(server);
 }
 
 void setupWebServer(WebServer& server) {
     ESP_LOGI(TAG, "Setting up web server...");
-    g_server = &server;
 
     // Pre-render config page once (avoids slow char-by-char template processing per request)
     g_renderedPage = renderConfigPageHtml();

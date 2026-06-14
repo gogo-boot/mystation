@@ -157,7 +157,7 @@ public:
 
 private:
     ConfigManager() = default;
-    Preferences preferences;
+    static Preferences preferences;
 
     static RTCConfigData rtcConfig;
 
