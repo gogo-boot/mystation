@@ -42,7 +42,7 @@ struct WeatherInfo {
     int hourlyForecastCount;
 
     // Daily forecast
-    WeatherDailyForecast dailyForecast[7]; // 14-day forecast
+    WeatherDailyForecast dailyForecast[7]; // 7-day forecast
     int dailyForecastCount;
 };
 

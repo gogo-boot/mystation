@@ -2,6 +2,7 @@
 #include "display/text_utils.h"
 #include "util/time_manager.h"
 #include "util/battery_manager.h"
+#include "util/timing_manager.h"
 #include <icons.h>
 #include <WiFi.h>
 #include "global_instances.h"

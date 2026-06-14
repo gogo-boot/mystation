@@ -170,8 +170,8 @@ bool getGeneralWeatherFull(float lat, float lon, WeatherInfo& weather) {
 
 
                 int count = 0;
-                // Max 14-day forecast
-                for (size_t i = 0; i < times.size() && count < 14; ++i) {
+                // Max 7-day forecast (array size is 7)
+                for (size_t i = 0; i < times.size() && count < 7; ++i) {
                     safeStringCopy(weather.dailyForecast[count].time, times[i].as<String>(), TIME_STRING_LENGTH);
 
                     // Extract sunrise/sunset times
