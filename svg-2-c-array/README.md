@@ -4,41 +4,64 @@ Converts SVG icons into C header files containing bitmap arrays for the e-paper 
 
 The `svg/` directory is the **single source of truth** for all icon images.
 
-## Pipeline
+## How It Works
+
+The pipeline converts vector icons into embedded binary data that the ESP32 can render on the e-paper display.
+
+### Step 1: SVG → PNG (Inkscape)
+
+Each SVG is rasterized at multiple fixed sizes (24, 32, 48, 64 pixels).
+Inkscape renders with a white background since the e-paper display is monochrome (black/white).
 
 ```
-svg/*.svg  →  png/<size>/*.png  →  lib/bitmap_images/<size>x<size>/*.h
-                (Inkscape)              (png_to_header.py)
+svg/wi-0-day-sunny.svg  →  png/24x24/wi-0-day-sunny.png
+                        →  png/32x32/wi-0-day-sunny.png
+                        →  png/48x48/wi-0-day-sunny.png
+                        →  png/64x64/wi-0-day-sunny.png
+```
 
-                                  →  lib/bitmap_images/icons_NxN.h
-                                  →  lib/bitmap_images/icons.h
-                                       (final_generate_icons_h.py)
+### Step 2: PNG → C Header (`png_to_header.py`)
+
+Each PNG is converted to a C array of bytes stored in `PROGMEM` (flash memory).
+The script:
+1. Opens the PNG and converts to grayscale
+2. Applies a threshold (pixel > 127 = white/1, else black/0)
+3. Packs 8 pixels into each byte (MSB first)
+4. Writes the byte array as a C header file
+
+The variable name is derived from the filename (hyphens become underscores):
+
+```
+png/64x64/wi-0-day-sunny.png  →  lib/bitmap_images/64x64/wi_0_day_sunny_64x64.h
+```
+
+The generated header looks like:
+```c
+// 64 x 64
+const unsigned char wi_0_day_sunny_64x64[] PROGMEM = {
+  0xff, 0xff, 0xe0, 0x07, ...
+};
+```
+
+### Step 3: Generate Index (`final_generate_icons_h.py`)
+
+This script scans `lib/bitmap_images/` and generates:
+
+1. **`icons_NxN.h`** (one per size) — include lists for all headers at that size
+2. **`icons.h`** — a unified header containing:
+   - An `icon_name_t` enum with all icon names
+   - A `getBitmap(icon, size)` function that dispatches to the correct array
+
+This allows application code to reference icons by name and size:
+```c
+const unsigned char* bmp = getBitmap(wi_0_day_sunny, 64);
+display.drawBitmap(x, y, bmp, 64, 64, GxEPD_BLACK);
 ```
 
 ## Dependencies
 
 - **Inkscape** — SVG to PNG rasterization (`brew install inkscape`)
-- **Python 3** with **Pillow** — PNG to C-array conversion
-
-## Makefile Targets
-
-| Target | Command | When to Use |
-|--------|---------|-------------|
-| `all` (default) | `make` | Added/removed/changed SVGs — clean rebuild from scratch |
-| `headers-<N>` | `make headers-64` | Generate only one size (e.g. testing a new icon at 64px) |
-| `icons` | `make icons` | Regenerate `icons_NxN.h` + `icons.h` without re-rasterizing PNGs |
-| `clean` | `make clean` | Delete PNG cache and venv completely |
-
-### When to use `make` vs scripts directly
-
-- **`make`** — the standard command. Always does a clean rebuild: removes stale PNGs,
-  re-rasterizes all SVGs, regenerates all headers, and rebuilds `icons.h`.
-  This ensures no orphaned files from deleted SVGs remain.
-- **`make icons`** — use after manually deleting stale header files from `lib/bitmap_images/`,
-  or after adding a manually-created header (not from SVG). Skips Inkscape entirely.
-- **`python3 final_generate_icons_h.py`** — same as `make icons`, use when you don't have
-  `make` available or want to run it from a different directory.
-- **`bash svg_to_headers.sh 64`** — use to test a single size before running the full pipeline.
+- **Python 3** — runs conversion scripts (venv created automatically by Makefile)
 
 ## Usage
 
@@ -46,11 +69,30 @@ svg/*.svg  →  png/<size>/*.png  →  lib/bitmap_images/<size>x<size>/*.h
 make
 ```
 
-That's it. The Makefile automatically creates a Python venv, installs Pillow, runs all
-conversions, and generates `icons.h`. Inkscape must be installed separately (`brew install inkscape`).
+That's it. The Makefile automatically:
+1. Creates a Python venv and installs Pillow (first run only)
+2. Deletes old PNG cache (prevents stale orphans from deleted SVGs)
+3. Rasterizes all SVGs at all sizes via Inkscape
+4. Converts all PNGs to C header files
+5. Regenerates `icons_NxN.h` and `icons.h`
 
 > **Do NOT run `make -j`** — Inkscape has a bug with parallel conversions.
 > https://gitlab.com/inkscape/inkscape/-/issues/4716
+
+## Makefile Targets
+
+| Target | Command | What it does |
+|--------|---------|--------------|
+| `all` (default) | `make` | Full clean rebuild — the standard command |
+| `icons` | `make icons` | Only regenerate `icons.h` + `icons_NxN.h` (no Inkscape, fast) |
+| `clean` | `make clean` | Delete PNG cache and venv |
+
+### When to use `make` vs `make icons`
+
+- **`make`** — use whenever SVGs are added, removed, or changed. Always does a full
+  clean rebuild so no orphaned files from deleted SVGs remain.
+- **`make icons`** — use when you only need to regenerate the index files (e.g. after
+  manually deleting a stale header from `lib/bitmap_images/`). Skips Inkscape entirely.
 
 ## Adding a New Icon
 
@@ -80,3 +122,5 @@ Icons in `svg/` remain licensed under their original agreements:
   Source: https://fonts.google.com/icons
 - **WiFi Icons** (`wifi*.svg`) — [MIT](http://opensource.org/licenses/mit-license.html)
   Source: https://github.com/phosphor-icons/homepage
+- **Misc Icons** (`refresh.svg`, etc.) — [MIT](http://opensource.org/licenses/mit-license.html)
+  Source: https://tabler.io/icons

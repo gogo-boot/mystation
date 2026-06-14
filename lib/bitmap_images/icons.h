@@ -5,7 +5,6 @@
 
 #include <cstddef>
 
-#include "icons_16x16.h"
 #include "icons_24x24.h"
 #include "icons_32x32.h"
 #include "icons_48x48.h"
@@ -63,7 +62,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
   switch (icon) {
   case Battery_1:
     switch (size) {
-    case 16: return Battery_1_16x16;
     case 24: return Battery_1_24x24;
     case 32: return Battery_1_32x32;
     case 48: return Battery_1_48x48;
@@ -73,7 +71,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case Battery_2:
     switch (size) {
-    case 16: return Battery_2_16x16;
     case 24: return Battery_2_24x24;
     case 32: return Battery_2_32x32;
     case 48: return Battery_2_48x48;
@@ -83,7 +80,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case Battery_3:
     switch (size) {
-    case 16: return Battery_3_16x16;
     case 24: return Battery_3_24x24;
     case 32: return Battery_3_32x32;
     case 48: return Battery_3_48x48;
@@ -93,7 +89,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case Battery_4:
     switch (size) {
-    case 16: return Battery_4_16x16;
     case 24: return Battery_4_24x24;
     case 32: return Battery_4_32x32;
     case 48: return Battery_4_48x48;
@@ -103,7 +98,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case Battery_5:
     switch (size) {
-    case 16: return Battery_5_16x16;
     case 24: return Battery_5_24x24;
     case 32: return Battery_5_32x32;
     case 48: return Battery_5_48x48;
@@ -113,7 +107,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case refresh:
     switch (size) {
-    case 16: return refresh_16x16;
     case 24: return refresh_24x24;
     case 32: return refresh_32x32;
     case 48: return refresh_48x48;
@@ -123,7 +116,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_0_day_sunny:
     switch (size) {
-    case 16: return wi_0_day_sunny_16x16;
     case 24: return wi_0_day_sunny_24x24;
     case 32: return wi_0_day_sunny_32x32;
     case 48: return wi_0_day_sunny_48x48;
@@ -133,7 +125,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_1_day_sunny_overcast:
     switch (size) {
-    case 16: return wi_1_day_sunny_overcast_16x16;
     case 24: return wi_1_day_sunny_overcast_24x24;
     case 32: return wi_1_day_sunny_overcast_32x32;
     case 48: return wi_1_day_sunny_overcast_48x48;
@@ -143,7 +134,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_45_day_fog:
     switch (size) {
-    case 16: return wi_45_day_fog_16x16;
     case 24: return wi_45_day_fog_24x24;
     case 32: return wi_45_day_fog_32x32;
     case 48: return wi_45_day_fog_48x48;
@@ -153,7 +143,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_51_rain_mix:
     switch (size) {
-    case 16: return wi_51_rain_mix_16x16;
     case 24: return wi_51_rain_mix_24x24;
     case 32: return wi_51_rain_mix_32x32;
     case 48: return wi_51_rain_mix_48x48;
@@ -163,7 +152,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_56_rain_mix:
     switch (size) {
-    case 16: return wi_56_rain_mix_16x16;
     case 24: return wi_56_rain_mix_24x24;
     case 32: return wi_56_rain_mix_32x32;
     case 48: return wi_56_rain_mix_48x48;
@@ -173,7 +161,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_61_rain:
     switch (size) {
-    case 16: return wi_61_rain_16x16;
     case 24: return wi_61_rain_24x24;
     case 32: return wi_61_rain_32x32;
     case 48: return wi_61_rain_48x48;
@@ -183,7 +170,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_66_rain_mix:
     switch (size) {
-    case 16: return wi_66_rain_mix_16x16;
     case 24: return wi_66_rain_mix_24x24;
     case 32: return wi_66_rain_mix_32x32;
     case 48: return wi_66_rain_mix_48x48;
@@ -193,7 +179,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_71_snow_wind:
     switch (size) {
-    case 16: return wi_71_snow_wind_16x16;
     case 24: return wi_71_snow_wind_24x24;
     case 32: return wi_71_snow_wind_32x32;
     case 48: return wi_71_snow_wind_48x48;
@@ -203,7 +188,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_77_day_snow_wind:
     switch (size) {
-    case 16: return wi_77_day_snow_wind_16x16;
     case 24: return wi_77_day_snow_wind_24x24;
     case 32: return wi_77_day_snow_wind_32x32;
     case 48: return wi_77_day_snow_wind_48x48;
@@ -213,7 +197,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_81_showers:
     switch (size) {
-    case 16: return wi_81_showers_16x16;
     case 24: return wi_81_showers_24x24;
     case 32: return wi_81_showers_32x32;
     case 48: return wi_81_showers_48x48;
@@ -223,7 +206,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_85_snow_wind:
     switch (size) {
-    case 16: return wi_85_snow_wind_16x16;
     case 24: return wi_85_snow_wind_24x24;
     case 32: return wi_85_snow_wind_32x32;
     case 48: return wi_85_snow_wind_48x48;
@@ -233,7 +215,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_95_thunderstorm:
     switch (size) {
-    case 16: return wi_95_thunderstorm_16x16;
     case 24: return wi_95_thunderstorm_24x24;
     case 32: return wi_95_thunderstorm_32x32;
     case 48: return wi_95_thunderstorm_48x48;
@@ -243,7 +224,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_99_thunderstorm:
     switch (size) {
-    case 16: return wi_99_thunderstorm_16x16;
     case 24: return wi_99_thunderstorm_24x24;
     case 32: return wi_99_thunderstorm_32x32;
     case 48: return wi_99_thunderstorm_48x48;
@@ -253,7 +233,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_cloud_down:
     switch (size) {
-    case 16: return wi_cloud_down_16x16;
     case 24: return wi_cloud_down_24x24;
     case 32: return wi_cloud_down_32x32;
     case 48: return wi_cloud_down_48x48;
@@ -263,7 +242,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_moon_alt_full:
     switch (size) {
-    case 16: return wi_moon_alt_full_16x16;
     case 24: return wi_moon_alt_full_24x24;
     case 32: return wi_moon_alt_full_32x32;
     case 48: return wi_moon_alt_full_48x48;
@@ -273,7 +251,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_moon_alt_third_quarter:
     switch (size) {
-    case 16: return wi_moon_alt_third_quarter_16x16;
     case 24: return wi_moon_alt_third_quarter_24x24;
     case 32: return wi_moon_alt_third_quarter_32x32;
     case 48: return wi_moon_alt_third_quarter_48x48;
@@ -283,7 +260,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_moon_alt_waning_crescent_4:
     switch (size) {
-    case 16: return wi_moon_alt_waning_crescent_4_16x16;
     case 24: return wi_moon_alt_waning_crescent_4_24x24;
     case 32: return wi_moon_alt_waning_crescent_4_32x32;
     case 48: return wi_moon_alt_waning_crescent_4_48x48;
@@ -293,7 +269,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_moon_alt_waning_crescent_5:
     switch (size) {
-    case 16: return wi_moon_alt_waning_crescent_5_16x16;
     case 24: return wi_moon_alt_waning_crescent_5_24x24;
     case 32: return wi_moon_alt_waning_crescent_5_32x32;
     case 48: return wi_moon_alt_waning_crescent_5_48x48;
@@ -303,7 +278,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_moon_alt_waning_crescent_6:
     switch (size) {
-    case 16: return wi_moon_alt_waning_crescent_6_16x16;
     case 24: return wi_moon_alt_waning_crescent_6_24x24;
     case 32: return wi_moon_alt_waning_crescent_6_32x32;
     case 48: return wi_moon_alt_waning_crescent_6_48x48;
@@ -313,7 +287,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_moon_alt_waning_gibbous_1:
     switch (size) {
-    case 16: return wi_moon_alt_waning_gibbous_1_16x16;
     case 24: return wi_moon_alt_waning_gibbous_1_24x24;
     case 32: return wi_moon_alt_waning_gibbous_1_32x32;
     case 48: return wi_moon_alt_waning_gibbous_1_48x48;
@@ -323,7 +296,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_moon_alt_waning_gibbous_2:
     switch (size) {
-    case 16: return wi_moon_alt_waning_gibbous_2_16x16;
     case 24: return wi_moon_alt_waning_gibbous_2_24x24;
     case 32: return wi_moon_alt_waning_gibbous_2_32x32;
     case 48: return wi_moon_alt_waning_gibbous_2_48x48;
@@ -333,7 +305,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_moon_alt_waning_gibbous_3:
     switch (size) {
-    case 16: return wi_moon_alt_waning_gibbous_3_16x16;
     case 24: return wi_moon_alt_waning_gibbous_3_24x24;
     case 32: return wi_moon_alt_waning_gibbous_3_32x32;
     case 48: return wi_moon_alt_waning_gibbous_3_48x48;
@@ -343,7 +314,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_moon_alt_waning_gibbous_4:
     switch (size) {
-    case 16: return wi_moon_alt_waning_gibbous_4_16x16;
     case 24: return wi_moon_alt_waning_gibbous_4_24x24;
     case 32: return wi_moon_alt_waning_gibbous_4_32x32;
     case 48: return wi_moon_alt_waning_gibbous_4_48x48;
@@ -353,7 +323,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_moon_alt_waning_gibbous_5:
     switch (size) {
-    case 16: return wi_moon_alt_waning_gibbous_5_16x16;
     case 24: return wi_moon_alt_waning_gibbous_5_24x24;
     case 32: return wi_moon_alt_waning_gibbous_5_32x32;
     case 48: return wi_moon_alt_waning_gibbous_5_48x48;
@@ -363,7 +332,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_moon_alt_waning_gibbous_6:
     switch (size) {
-    case 16: return wi_moon_alt_waning_gibbous_6_16x16;
     case 24: return wi_moon_alt_waning_gibbous_6_24x24;
     case 32: return wi_moon_alt_waning_gibbous_6_32x32;
     case 48: return wi_moon_alt_waning_gibbous_6_48x48;
@@ -373,7 +341,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_moon_full:
     switch (size) {
-    case 16: return wi_moon_full_16x16;
     case 24: return wi_moon_full_24x24;
     case 32: return wi_moon_full_32x32;
     case 48: return wi_moon_full_48x48;
@@ -383,7 +350,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_strong_wind:
     switch (size) {
-    case 16: return wi_strong_wind_16x16;
     case 24: return wi_strong_wind_24x24;
     case 32: return wi_strong_wind_32x32;
     case 48: return wi_strong_wind_48x48;
@@ -393,7 +359,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_sunrise:
     switch (size) {
-    case 16: return wi_sunrise_16x16;
     case 24: return wi_sunrise_24x24;
     case 32: return wi_sunrise_32x32;
     case 48: return wi_sunrise_48x48;
@@ -403,7 +368,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_sunset:
     switch (size) {
-    case 16: return wi_sunset_16x16;
     case 24: return wi_sunset_24x24;
     case 32: return wi_sunset_32x32;
     case 48: return wi_sunset_48x48;
@@ -413,7 +377,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wi_time_5:
     switch (size) {
-    case 16: return wi_time_5_16x16;
     case 24: return wi_time_5_24x24;
     case 32: return wi_time_5_32x32;
     case 48: return wi_time_5_48x48;
@@ -423,7 +386,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wifi:
     switch (size) {
-    case 16: return wifi_16x16;
     case 24: return wifi_24x24;
     case 32: return wifi_32x32;
     case 48: return wifi_48x48;
@@ -433,7 +395,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wifi_1_bar:
     switch (size) {
-    case 16: return wifi_1_bar_16x16;
     case 24: return wifi_1_bar_24x24;
     case 32: return wifi_1_bar_32x32;
     case 48: return wifi_1_bar_48x48;
@@ -443,7 +404,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wifi_2_bar:
     switch (size) {
-    case 16: return wifi_2_bar_16x16;
     case 24: return wifi_2_bar_24x24;
     case 32: return wifi_2_bar_32x32;
     case 48: return wifi_2_bar_48x48;
@@ -453,7 +413,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wifi_3_bar:
     switch (size) {
-    case 16: return wifi_3_bar_16x16;
     case 24: return wifi_3_bar_24x24;
     case 32: return wifi_3_bar_32x32;
     case 48: return wifi_3_bar_48x48;
@@ -463,7 +422,6 @@ inline const unsigned char* getBitmap(icon_name_t icon, size_t size)
     }
   case wifi_off:
     switch (size) {
-    case 16: return wifi_off_16x16;
     case 24: return wifi_off_24x24;
     case 32: return wifi_off_32x32;
     case 48: return wifi_off_48x48;

@@ -1,4 +1,4 @@
-SIZES := 16 24 32 48 64
+SIZES := 24 32 48 64
 VENV := venv
 PYTHON := $(VENV)/bin/python3
 
