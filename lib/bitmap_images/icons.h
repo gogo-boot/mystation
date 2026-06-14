@@ -56,7 +56,6 @@ typedef enum icon_name {
   wifi_2_bar,
   wifi_3_bar,
   wifi_off,
-  wifi_x,
 } icon_name_t;
 
 inline const unsigned char* getBitmap(icon_name_t icon, size_t size)

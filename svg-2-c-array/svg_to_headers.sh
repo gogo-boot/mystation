@@ -1,78 +1,45 @@
 #!/bin/bash
-# Scalar vector icons to Adafruit GFX format script for esp32-weather-epd.
-# Copyright (C) 2022-2025  Luke Marzen
+# SVG to C-array header conversion for MyStation e-paper icons.
+# Converts SVG files to PNGs via Inkscape, then to C header bitmap arrays.
 #
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# Usage: bash svg_to_headers.sh <size>
+# Example: bash svg_to_headers.sh 64
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# Output: ../lib/bitmap_images/<size>x<size>/*.h
 
-mkdir -p icons
-mkdir -p png
+set -e
 
-SVG_FILES="./svg/*.svg"
-PNG_PATH="./png/${1}x${1}"
-PNG_FILES="${PNG_PATH}/*.png"
-HEADER_PATH="./icons/${1}x${1}"
-HEADER="./icons/icons_${1}x${1}.h"
+if [ -z "$1" ]; then
+  echo "Usage: bash svg_to_headers.sh <size>"
+  echo "Example: bash svg_to_headers.sh 64"
+  exit 1
+fi
 
-# echo "Cleaning old files..."
-# if [ -e "$PNG_PATH" ];then rm -rf "$PNG_PATH" ; fi
-# if [ -e "$HEADER_PATH" ];then rm -rf "$HEADER_PATH" ; fi
-# if [ -e "$HEADER" ];then rm "$HEADER" ; fi
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PYTHON="${PYTHON:-$SCRIPT_DIR/venv/bin/python3}"
+SVG_FILES="$SCRIPT_DIR/svg/*.svg"
+PNG_PATH="$SCRIPT_DIR/png/${1}x${1}"
+HEADER_PATH="$SCRIPT_DIR/../lib/bitmap_images/${1}x${1}"
 
-# arguments 1($1) determines the resolution of the output images
-# IMAGES MUST HAVE A TOTAL NUMBER OF PIXELS THAT IS DIVISIBLE BY 8
-# For sqaure images:
-# x = original dimension of icon
-# y = desired dimension of icon
-# z = density
-# In this case we are scaling by 0.25 for better image quality
-# ImageMagick default density is 96
-# z = 96 * y / (0.25 * x)
-
+# Step 1: Convert SVG to PNG (skip if already done)
 if [ ! -e "$PNG_PATH" ]; then
-  mkdir $PNG_PATH
-  for f in $SVG_FILES
-  do
-    echo "Converting .svg to .png for $f..."
-
-    # use mogrify to convert to png
-    # SVG_SIZE=$(identify -format '%w' $f)
-    # DENSITY=$(bc -l <<< "96 * $1 / $SVG_SIZE")
-    # mogrify -format png -path $PNG_PATH -colorspace sRGB -density $DENSITY $f
-
-    # using inkscape to convert to png because mogrify was being troublesome
+  mkdir -p "$PNG_PATH"
+  for f in $SVG_FILES; do
+    echo "Converting .svg to .png: $(basename $f)..."
     out="$PNG_PATH/$(basename $f .svg).png"
-    inkscape -w ${1} -h ${1} $f -o $out --export-background="#ffffff"
+    inkscape -w ${1} -h ${1} "$f" -o "$out" --export-background="#ffffff"
   done
 fi
 
-if [ ! -e "$HEADER_PATH" ]; then
-  mkdir $HEADER_PATH
-  for f in $PNG_FILES
-  do
-    echo "Generating header for $f..."
-    out="${HEADER_PATH}/$(basename $f .png | tr -s -c [:alnum:] _)${1}x${1}.h"
-    python3 png_to_header.py -i $f -o $out
-  done
+# Step 2: Convert PNG to C header files
+mkdir -p "$HEADER_PATH"
+for f in "$PNG_PATH"/*.png; do
+  header_name="$(basename $f .png | tr -s -c '[:alnum:]' '_')_${1}x${1}.h"
+  out="$HEADER_PATH/$header_name"
+  if [ ! -e "$out" ]; then
+    echo "Generating header: $header_name..."
+    $PYTHON "$SCRIPT_DIR/png_to_header.py" -i "$f" -o "$out"
+  fi
+done
 
-  echo "Generating include statements..."
-  echo "#ifndef __ICONS_${1}x${1}_H__" > $HEADER
-  echo "#define __ICONS_${1}x${1}_H__" >> $HEADER
-  for f in ${HEADER_PATH}/*.h
-  do
-      echo "#include \"${1}x${1}/$(basename $f)\"" >> $HEADER
-  done
-  echo "#endif" >> $HEADER
-fi
-
-echo "Done."
+echo "Done (${1}x${1})."

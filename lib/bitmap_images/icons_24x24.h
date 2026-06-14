@@ -37,8 +37,8 @@
 #include "24x24/wi_sunset_24x24.h"
 #include "24x24/wi_time_5_24x24.h"
 #include "24x24/wifi_1_bar_24x24.h"
-#include "24x24/wifi_2_bar_24x24.h"
 #include "24x24/wifi_24x24.h"
+#include "24x24/wifi_2_bar_24x24.h"
 #include "24x24/wifi_3_bar_24x24.h"
 #include "24x24/wifi_off_24x24.h"
 #endif

@@ -1,19 +1,22 @@
-#SIZES := 16 24 32 48 64 96 128 160 196
 SIZES := 16 24 32 48 64
+VENV := venv
+PYTHON := $(VENV)/bin/python3
 
-# Generate the list of target directories based on sizes
-TARGETS := $(foreach size, $(SIZES), icons/$(size)x$(size))
+TARGETS := $(foreach size,$(SIZES),headers-$(size))
 
-.PHONY: all clean final
+.PHONY: all clean $(TARGETS) icons
 
-all: $(TARGETS) final
+all: $(TARGETS) icons
 
-icons/%:
-	bash ./svg_to_headers.sh $(word 1, $(subst x, ,$*))
+$(VENV)/bin/activate:
+	python3 -m venv $(VENV)
+	$(VENV)/bin/pip install --quiet pillow
 
-final: $(TARGETS)
-	python3 final_generate_icons_h.py
+headers-%: $(VENV)/bin/activate
+	PYTHON=$(PYTHON) bash ./svg_to_headers.sh $*
+
+icons: $(TARGETS)
+	$(PYTHON) final_generate_icons_h.py
 
 clean:
-	rm -rf png icons
-
+	rm -rf png

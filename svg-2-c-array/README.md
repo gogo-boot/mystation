@@ -1,104 +1,81 @@
-## SVG to C Header Conversion Guide
+# SVG to C Header Conversion
 
-This guide explains how to convert SVG files into C header files containing bitmap arrays for use with the AdafruitGFX library.
+Converts SVG icons into C header files containing bitmap arrays for the e-paper display (AdafruitGFX `PROGMEM` format).
 
----
+The `svg/` directory is the **single source of truth** for all icon images.
 
-### Overview
+## Pipeline
 
-The script `svg_to_headers.sh` will:
-- Convert SVG files in the `./svg` directory to PNGs of the specified size
-- Convert those PNGs to C header files, each containing a bitmap array
-- Output the header files in a new directory: `./icons`
+```
+svg/*.svg  →  png/<size>/*.png  →  lib/bitmap_images/<size>x<size>/*.h
+                (Inkscape)              (png_to_header.py)
 
-**To use the new icons in your PlatformIO project:**
-Manually move the generated `icons` folder to `/lib/bitmap_images`.
-
----
-
-### Usage
-
-```sh
-bash svg_to_headers.sh <size_of_output_image>
+                                  →  lib/bitmap_images/icons_NxN.h
+                                  →  lib/bitmap_images/icons.h
+                                       (final_generate_icons_h.py)
 ```
 
----
+## Dependencies
 
-### Dependencies
+- **Inkscape** — SVG to PNG rasterization (`brew install inkscape`)
+- **Python 3** with **Pillow** — PNG to C-array conversion
 
-- **Inkscape**: Used via CLI to convert SVG to PNG
-- **Python3**: To run `png_to_header.py` (in this folder)
-- **Pillow**: Python image library (install in venv, see below)
+## Makefile Targets
 
----
+| Target | Command | When to Use |
+|--------|---------|-------------|
+| `all` (default) | `make` | Added/removed/changed SVGs — runs full pipeline |
+| `headers-<N>` | `make headers-64` | Generate only one size (e.g. testing a new icon at 64px) |
+| `icons` | `make icons` | Regenerate `icons_NxN.h` + `icons.h` without re-rasterizing PNGs |
+| `clean` | `make clean` | Delete PNG cache to force full re-rasterization next run |
 
-### Regenerating All Icons
+### When to use `make` vs scripts directly
 
-1. **Create a virtual environment:**
-   ```sh
-   python3 -m venv venv
-   ```
-2. **Activate the virtual environment:**
-   ```sh
-   source venv/bin/activate
-   ```
-3. **Install Pillow inside the venv:**
-   ```sh
-   pip install pillow
-   ```
-4. **Run the make command:**
-   ```sh
-   make
-   ```
-5. **Move generated Icons**
-   ```sh
-   mv icons/* ../lib/bitmap_images
-   ```
+- **`make`** — the standard command. Use it whenever SVGs change. It converts all SVGs
+  to PNGs (skipping already-converted ones), generates headers, and rebuilds `icons.h`.
+- **`make icons`** — use after manually deleting stale header files from `lib/bitmap_images/`,
+  or after adding a manually-created header (not from SVG). Skips Inkscape entirely.
+- **`python3 final_generate_icons_h.py`** — same as `make icons`, use when you don't have
+  `make` available or want to run it from a different directory.
+- **`bash svg_to_headers.sh 64`** — use to test a single size before running the full pipeline.
 
-**Note:**
-- Do NOT run `make -j`. Inkscape has a known bug when running SVG to PNG conversions in parallel. See: https://gitlab.com/inkscape/inkscape/-/issues/4716
+## Usage
 
----
+```sh
+make
+```
 
-### License Notice
+That's it. The Makefile automatically creates a Python venv, installs Pillow, runs all
+conversions, and generates `icons.h`. Inkscape must be installed separately (`brew install inkscape`).
 
-The icons in the `svg` sub-directory remain licensed under their original license agreements. See citations below for more details.
+> **Do NOT run `make -j`** — Inkscape has a bug with parallel conversions.
+> https://gitlab.com/inkscape/inkscape/-/issues/4716
 
----
+## Adding a New Icon
 
-### Citations
+1. Place the SVG file in `svg/`
+2. Run `make`
+3. Verify: `pio run`
 
-**Weather Icons (`wi-*.svg`)**
-- Source: https://github.com/erikflowers/weather-icons
-- Weather Icons: SIL OFL 1.1 (http://scripts.sil.org/OFL)
-- Code: MIT License (http://opensource.org/licenses/mit-license.html)
-- Documentation: CC BY 3.0 (http://creativecommons.org/licenses/by/3.0)
+## File Naming
 
-**Battery Icons (`battery*.svg`) & Visibility Icon (`visibility_icon.svg`)**
-- Source: https://fonts.google.com/icons
-- License: Apache License 2.0 (https://www.apache.org/licenses/LICENSE-2.0.txt)
+- SVG filenames may use hyphens: `wi-0-day-sunny.svg`
+- The conversion replaces all non-alphanumeric chars with `_`: → `wi_0_day_sunny_64x64.h`
+- **Do NOT create duplicates** that differ only by hyphen/underscore (e.g. `wifi-off.svg` and `wifi_off.svg` collide)
 
-**House Icon (`house.svg`)**
-- Source: https://seekicon.com/free-icon/house_16
-- License: MIT License (http://opensource.org/licenses/mit-license.html)
+## Enum-Only Icons
 
-**WiFi Icons (`wifi*.svg`), Warning Alert (`warning_icon.svg`, `error_icon.svg`)**
-- Source: https://github.com/phosphor-icons/homepage
-- License: MIT License (http://opensource.org/licenses/mit-license.html)
+Some icon names are referenced in code but don't have SVG sources yet (placeholders).
+These are listed in `ENUM_ONLY_ICONS` in `final_generate_icons_h.py`. They appear in the
+enum so the code compiles, but `getBitmap()` returns `nullptr` for them.
 
-**House Icon (`house.svg`) and Derived Icons**
-- Source: https://seekicon.com/free-icon/house_16
-- License: MIT License (http://opensource.org/licenses/mit-license.html)
-- Derived icons (`house_temperature.svg`, `house_humidity.svg`, `house_rainsdrops.svg`) created by transforming icons from https://github.com/erikflowers/weather-icons with `house.svg` and are licensed under SIL OFL 1.1 (http://scripts.sil.org/OFL)
+## License
 
-**Ionizing Radiation Symbol (`ionizing_radiation_symbol.svg`)**
-- Source: https://svgsilh.com/image/309911.html
-- License: CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
+Icons in `svg/` remain licensed under their original agreements:
 
-**Biological Hazard Symbol (`biological_hazard_symbol.svg`)**
-- Source: https://svgsilh.com/image/37775.html
-- License: CC0 1.0 (https://creativecommons.org/publicdomain/zero/1.0/)
-
-**Wind Direction Icons (`meteorological_wind_direction_**deg.svg`)**
-- Source: https://www.onlinewebfonts.com/icon/251550
-- License: CC BY 3.0 (http://creativecommons.org/licenses/by/3.0)
+- **Weather Icons** (`wi-*.svg`) — [SIL OFL 1.1](http://scripts.sil.org/OFL) / [MIT](http://opensource.org/licenses/mit-license.html)
+  Source: https://github.com/erikflowers/weather-icons
+- **Battery Icons** (`Battery*.svg`) — [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0.txt)
+  Source: https://fonts.google.com/icons
+- **WiFi Icons** (`wifi*.svg`) — [MIT](http://opensource.org/licenses/mit-license.html)
+  Source: https://github.com/phosphor-icons/homepage
