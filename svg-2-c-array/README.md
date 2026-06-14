@@ -24,15 +24,16 @@ svg/*.svg  →  png/<size>/*.png  →  lib/bitmap_images/<size>x<size>/*.h
 
 | Target | Command | When to Use |
 |--------|---------|-------------|
-| `all` (default) | `make` | Added/removed/changed SVGs — runs full pipeline |
+| `all` (default) | `make` | Added/removed/changed SVGs — clean rebuild from scratch |
 | `headers-<N>` | `make headers-64` | Generate only one size (e.g. testing a new icon at 64px) |
 | `icons` | `make icons` | Regenerate `icons_NxN.h` + `icons.h` without re-rasterizing PNGs |
-| `clean` | `make clean` | Delete PNG cache to force full re-rasterization next run |
+| `clean` | `make clean` | Delete PNG cache and venv completely |
 
 ### When to use `make` vs scripts directly
 
-- **`make`** — the standard command. Use it whenever SVGs change. It converts all SVGs
-  to PNGs (skipping already-converted ones), generates headers, and rebuilds `icons.h`.
+- **`make`** — the standard command. Always does a clean rebuild: removes stale PNGs,
+  re-rasterizes all SVGs, regenerates all headers, and rebuilds `icons.h`.
+  This ensures no orphaned files from deleted SVGs remain.
 - **`make icons`** — use after manually deleting stale header files from `lib/bitmap_images/`,
   or after adding a manually-created header (not from SVG). Skips Inkscape entirely.
 - **`python3 final_generate_icons_h.py`** — same as `make icons`, use when you don't have

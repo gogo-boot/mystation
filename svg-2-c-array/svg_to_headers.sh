@@ -21,25 +21,22 @@ SVG_FILES="$SCRIPT_DIR/svg/*.svg"
 PNG_PATH="$SCRIPT_DIR/png/${1}x${1}"
 HEADER_PATH="$SCRIPT_DIR/../lib/bitmap_images/${1}x${1}"
 
-# Step 1: Convert SVG to PNG (skip if already done)
-if [ ! -e "$PNG_PATH" ]; then
-  mkdir -p "$PNG_PATH"
-  for f in $SVG_FILES; do
-    echo "Converting .svg to .png: $(basename $f)..."
-    out="$PNG_PATH/$(basename $f .svg).png"
-    inkscape -w ${1} -h ${1} "$f" -o "$out" --export-background="#ffffff"
-  done
-fi
+# Step 1: Convert SVG to PNG
+mkdir -p "$PNG_PATH"
+for f in $SVG_FILES; do
+  echo "Converting .svg to .png: $(basename $f)..."
+  out="$PNG_PATH/$(basename $f .svg).png"
+  inkscape -w ${1} -h ${1} "$f" -o "$out" --export-background="#ffffff"
+done
 
 # Step 2: Convert PNG to C header files
+rm -rf "$HEADER_PATH"
 mkdir -p "$HEADER_PATH"
 for f in "$PNG_PATH"/*.png; do
-  header_name="$(basename $f .png | tr -s -c '[:alnum:]' '_')_${1}x${1}.h"
+  header_name="$(basename $f .png | tr -s -c '[:alnum:]\n' '_')_${1}x${1}.h"
   out="$HEADER_PATH/$header_name"
-  if [ ! -e "$out" ]; then
-    echo "Generating header: $header_name..."
-    $PYTHON "$SCRIPT_DIR/png_to_header.py" -i "$f" -o "$out"
-  fi
+  echo "Generating header: $header_name..."
+  $PYTHON "$SCRIPT_DIR/png_to_header.py" -i "$f" -o "$out"
 done
 
 echo "Done (${1}x${1})."
