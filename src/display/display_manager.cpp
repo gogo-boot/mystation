@@ -379,7 +379,8 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
         u8g2.printf("Version : %s", FIRMWARE_VERSION);
         y += lhSmall;
         u8g2.setCursor(margin, y);
-        u8g2.printf("Board   : %s", boardName);
+        uint32_t chipId = (uint32_t)ESP.getEfuseMac() & 0xFFFFFF;
+        u8g2.printf("Board   : %s [%06X]", boardName, chipId);
         y += lhSmall;
         u8g2.setCursor(margin, y);
         {
