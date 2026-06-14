@@ -104,7 +104,7 @@ void handleSaveConfig(WebServer& server) {
     ConfigManager& configMgr = ConfigManager::getInstance();
 
     // Parse JSON body
-    DynamicJsonDocument doc(1024);
+    JsonDocument doc;
     DeserializationError err = deserializeJson(doc, server.arg("plain"));
     if (err) {
         server.send(400, "text/plain", "Invalid JSON");
@@ -112,7 +112,7 @@ void handleSaveConfig(WebServer& server) {
     }
 
     // Decode stopId if present
-    if (doc.containsKey("stopId")) {
+    if (doc["stopId"].is<const char*>()) {
         String stopId = doc["stopId"].as<String>();
         doc["stopId"] = Util::urlDecode(stopId);
     }
@@ -172,16 +172,16 @@ void handleCityAutocomplete(WebServer& server) {
         ESP_LOGD(TAG, "Nominatim response: %s", payload.c_str());
 
         // Parse the response and extract city, lat, lon
-        DynamicJsonDocument docIn(4096);
+        JsonDocument docIn;
         DeserializationError error = deserializeJson(docIn, payload);
 
         if (!error) {
-            DynamicJsonDocument docOut(2048);
+            JsonDocument docOut;
             JsonArray outArray = docOut.to<JsonArray>();
 
             JsonArray results = docIn.as<JsonArray>();
             for (JsonObject result : results) {
-                JsonObject city = outArray.createNestedObject();
+                JsonObject city = outArray.add<JsonObject>();
 
                 // Get display name or city name
                 String displayName = result["display_name"].as<String>();
@@ -189,13 +189,13 @@ void handleCityAutocomplete(WebServer& server) {
                 String lon = result["lon"].as<String>();
                 // Try to extract city name from address
                 String cityName = displayName;
-                if (result.containsKey("address")) {
+                if (result["address"].is<JsonObject>()) {
                     JsonObject addr = result["address"];
-                    if (addr.containsKey("city")) {
+                    if (addr["city"].is<const char*>()) {
                         cityName = addr["city"].as<String>();
-                    } else if (addr.containsKey("town")) {
+                    } else if (addr["town"].is<const char*>()) {
                         cityName = addr["town"].as<String>();
-                    } else if (addr.containsKey("village")) {
+                    } else if (addr["village"].is<const char*>()) {
                         cityName = addr["village"].as<String>();
                     }
                 }
@@ -266,7 +266,7 @@ void handleStopAutocomplete(WebServer& server) {
     }
 
     // Create JSON filter to only parse "id" and "name" fields
-    StaticJsonDocument<128> stationFilter;
+    JsonDocument stationFilter;
     stationFilter["stopLocationOrCoordLocation"][0]["StopLocation"]["id"] = true;
     stationFilter["stopLocationOrCoordLocation"][0]["StopLocation"]["name"] = true;
 
@@ -278,7 +278,7 @@ void handleStopAutocomplete(WebServer& server) {
     Stream& response = http.header("Transfer-Encoding") == "chunked" ? decodedStream : rawStream;
 
     // Use smaller JSON document since we're only extracting id and name
-    DynamicJsonDocument docIn(2048); // Reduced from 4096
+    JsonDocument docIn; // Reduced from 4096
     DeserializationOption::NestingLimit nestingLimit(15);
 
     // Parse with filter to minimize memory usage
@@ -299,14 +299,14 @@ void handleStopAutocomplete(WebServer& server) {
     http.end();
 
     // Build compact output with only id and name
-    DynamicJsonDocument docOut(1024); // Reduced from 2048
+    JsonDocument docOut; // Reduced from 2048
     JsonArray outArray = docOut.to<JsonArray>();
 
     JsonArray locations = docIn["stopLocationOrCoordLocation"];
     for (JsonVariantConst item : locations) {
         JsonObjectConst stopLoc = item["StopLocation"];
         if (!stopLoc.isNull()) {
-            JsonObject stop = outArray.createNestedObject();
+            JsonObject stop = outArray.add<JsonObject>();
             stop["name"] = stopLoc["name"].as<String>();
             stop["id"] = stopLoc["id"].as<String>();
         }
@@ -340,14 +340,14 @@ void handleInit(WebServer& server) {
     }
 
     // Build JSON response
-    DynamicJsonDocument doc(2048);
+    JsonDocument doc;
     doc["lat"] = locationOk ? lat : 0.0f;
     doc["lon"] = locationOk ? lon : 0.0f;
     doc["city"] = cityName;
 
-    JsonArray stopsArr = doc.createNestedArray("stops");
+    JsonArray stopsArr = doc["stops"].to<JsonArray>();
     for (size_t i = 0; i < pageData.getStopCount(); ++i) {
-        JsonObject stop = stopsArr.createNestedObject();
+        JsonObject stop = stopsArr.add<JsonObject>();
         stop["id"] = pageData.getStopId(i);
         stop["name"] = pageData.getStopName(i);
         stop["dist"] = pageData.getStopDistance(i);

@@ -18,7 +18,7 @@ static const char* TAG = "RMV_API";
 const size_t JSON_CAPACITY = 10240; // 10KB - safer for API responses
 
 namespace {
-    StaticJsonDocument<256> departureFilter;
+    JsonDocument departureFilter;
 
     void initDepartureFilter() {
         departureFilter["Departure"][0]["time"] = true;
@@ -111,7 +111,7 @@ void getNearbyStops(float lat, float lon) {
     if (httpCode > 0) {
         String payload = http.getString();
         ESP_LOGD(TAG, "Nearby stops response: %s", payload.c_str());
-        DynamicJsonDocument doc(8192); // Use heap, not stack
+        JsonDocument doc;
         DeserializationError error = deserializeJson(doc, payload);
         if (!error) {
             stations.clear();
@@ -145,7 +145,7 @@ void getNearbyStops(float lat, float lon) {
 }
 
 // Populate departure data from JSON document
-bool populateDepartureData(const DynamicJsonDocument& doc, DepartureData& departData) {
+bool populateDepartureData(const JsonDocument& doc, DepartureData& departData) {
     ESP_LOGI(TAG, "Populating departure data from JSON response");
 
     // Clear existing departures
@@ -286,7 +286,7 @@ bool getDepartureFromRMV(const char* stopId, DepartureData& departData) {
     // Choose the stream based on the Transfer-Encoding header
     Stream& response = http.header("Transfer-Encoding") == "chunked" ? decodedStream : rawStream;
 
-    DynamicJsonDocument doc(JSON_CAPACITY);
+    JsonDocument doc;
     DeserializationOption::NestingLimit nestingLimit(20);
 
     // Always check for memory errors
@@ -310,8 +310,7 @@ bool getDepartureFromRMV(const char* stopId, DepartureData& departData) {
 #endif
 
     // Check actual memory usage
-    ESP_LOGI(TAG, "Memory used: %u/%u bytes", doc.memoryUsage(), doc.capacity());
-    ESP_LOGI(TAG, "Free heap: %u bytes", ESP.getFreeHeap());
+    ESP_LOGI(TAG, "Memory used: %u bytes, Free heap: %u bytes", doc.memoryUsage(), ESP.getFreeHeap());
 
     // Set basic departure data
     departData.stopId = String(stopId);

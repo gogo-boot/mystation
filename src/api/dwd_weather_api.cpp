@@ -23,16 +23,17 @@ String getCityFromLatLon(float lat, float lon) {
     int httpCode = http.GET();
     String city = "";
     if (httpCode == HTTP_CODE_OK) {
-        DynamicJsonDocument doc(2048);
-        DeserializationError error = deserializeJson(doc, http.getStream());
-        if (!error && doc.containsKey("address")) {
-            if (doc["address"].containsKey("city")) {
+        String payload = http.getString();
+        JsonDocument doc;
+        DeserializationError error = deserializeJson(doc, payload);
+        if (!error && doc["address"].is<JsonObject>()) {
+            if (doc["address"]["city"].is<const char*>()) {
                 city = doc["address"]["city"].as<String>();
-            } else if (doc["address"].containsKey("town")) {
+            } else if (doc["address"]["town"].is<const char*>()) {
                 city = doc["address"]["town"].as<String>();
-            } else if (doc["address"].containsKey("village")) {
+            } else if (doc["address"]["village"].is<const char*>()) {
                 city = doc["address"]["village"].as<String>();
-            } else if (doc["address"].containsKey("county")) {
+            } else if (doc["address"]["county"].is<const char*>()) {
                 city = doc["address"]["county"].as<String>();
             }
         }
@@ -105,11 +106,12 @@ bool getGeneralWeatherFull(float lat, float lon, WeatherInfo& weather) {
     http.begin(url);
     int httpCode = http.GET();
     if (httpCode > 0) {
-        DynamicJsonDocument doc(8192);
-        DeserializationError error = deserializeJson(doc, http.getStream());
+        String payload = http.getString();
+        JsonDocument doc;
+        DeserializationError error = deserializeJson(doc, payload);
         if (!error) {
             // Parse current weather
-            if (doc.containsKey("current")) {
+            if (doc["current"].is<JsonObject>()) {
                 JsonObject current = doc["current"];
                 safeStringCopy(weather.time, current["time"].as<String>(), TIME_STRING_LENGTH);
                 weather.temperature = current["temperature_2m"].as<float>();
@@ -118,7 +120,7 @@ bool getGeneralWeatherFull(float lat, float lon, WeatherInfo& weather) {
             }
 
             // Parse hourly forecast
-            if (doc.containsKey("hourly")) {
+            if (doc["hourly"].is<JsonObject>()) {
                 JsonObject hourly = doc["hourly"];
 
                 JsonArray times = hourly["time"];
@@ -143,7 +145,7 @@ bool getGeneralWeatherFull(float lat, float lon, WeatherInfo& weather) {
             }
 
             // Parse daily data
-            if (doc.containsKey("daily")) {
+            if (doc["daily"].is<JsonObject>()) {
                 JsonObject daily = doc["daily"];
 
                 JsonArray times = daily["time"];

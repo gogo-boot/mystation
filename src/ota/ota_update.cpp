@@ -299,7 +299,7 @@ OTAResult check_ota_update() {
 
 
 namespace {
-    StaticJsonDocument<256> releaseFilter;
+    JsonDocument releaseFilter;
 
     void initReleaseFilter() {
         releaseFilter["tag_name"] = true;
@@ -340,8 +340,7 @@ bool getLatestReleaseFromGitHub(ReleaseInfo& releaseInfo) {
     ChunkDecodingStream decodedStream(http.getStream());
     Stream& response = http.header("Transfer-Encoding") == "chunked" ? decodedStream : rawStream;
 
-    const size_t JSON_CAPACITY = 4096;
-    DynamicJsonDocument doc(JSON_CAPACITY);
+    JsonDocument doc;
     DeserializationOption::NestingLimit nestingLimit(10);
 
     DeserializationError error = deserializeJson(
@@ -351,16 +350,13 @@ bool getLatestReleaseFromGitHub(ReleaseInfo& releaseInfo) {
 
     if (error) {
         ESP_LOGE(TAG, "JSON parse failed: %s", error.c_str());
-        if (error == DeserializationError::NoMemory) {
-            ESP_LOGE(TAG, "Increase JSON_CAPACITY (current: %d)", JSON_CAPACITY);
-        }
         http.end();
         return false;
     }
 
     http.end();
 
-    ESP_LOGI(TAG, "Memory used: %u/%u bytes", doc.memoryUsage(), doc.capacity());
+    ESP_LOGI(TAG, "Memory used: %u bytes", doc.memoryUsage());
 
     // Parse tag_name
     const char* tag_name = doc["tag_name"];

@@ -33,4 +33,4 @@ extern std::vector<Station> stations;
 
 void getNearbyStops(float lat, float lon);
 bool getDepartureFromRMV(const char* stopId, DepartureData& departData);
-bool populateDepartureData(const DynamicJsonDocument& doc, DepartureData& departData);
+bool populateDepartureData(const JsonDocument& doc, DepartureData& departData);
