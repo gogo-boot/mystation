@@ -82,8 +82,18 @@ static String renderConfigPageHtml() {
             else if (varName == "CITY") { page += pageData.getCityName(); }
             else if (varName == "STOPS") { page += stopsHtml; }
         } else {
-            page += html[pos];
-            pos++;
+            // Block copy until next '{{' or end
+            const char* search = html + pos;
+            const char* end = html + len;
+            const char* next = search;
+            while (next < end - 1) {
+                if (next[0] == '{' && next[1] == '{') break;
+                next++;
+            }
+            if (next >= end - 1) next = end;
+            size_t blockLen = next - search;
+            page.concat(search, blockLen);
+            pos += blockLen;
         }
     }
 
