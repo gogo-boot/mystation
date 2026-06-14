@@ -3,7 +3,7 @@
 #define TIME_STRING_LENGTH 17      // "2025-08-25T22:00" + null terminator
 #define TIME_SHORT_LENGTH 6        // "22:00" + null terminator
 
-struct WeatherHoulyForecast {
+struct WeatherHourlyForecast {
     char time[TIME_STRING_LENGTH];
     float temperature;
     int weatherCode;
@@ -38,7 +38,7 @@ struct WeatherInfo {
     int weatherCode;
 
     // Hourly forecast
-    WeatherHoulyForecast hourlyForecast[13]; // 1hour past and 12-hour forecast
+    WeatherHourlyForecast hourlyForecast[13]; // 1hour past and 12-hour forecast
     int hourlyForecastCount;
 
     // Daily forecast

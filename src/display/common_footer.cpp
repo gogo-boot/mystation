@@ -2,6 +2,7 @@
 #include "display/text_utils.h"
 #include "util/time_manager.h"
 #include "util/battery_manager.h"
+#include "util/timing_manager.h"
 #include <icons.h>
 #include <WiFi.h>
 #include "global_instances.h"
@@ -35,7 +36,7 @@ void CommonFooter::drawFooter(int16_t x, int16_t y, int16_t h, uint8_t elements)
     }
 
     DEBUG_ONLY(
-        String sleepTime = "Sleep Time: " + String(TimingManager::getNextSleepDurationSeconds()) + "s";;
+        String sleepTime = "Sleep Time: " + String(TimingManager::getNextSleepDurationSeconds()) + "s";
         TextUtils::printTextAtWithMargin(currentX, footerY, sleepTime);
     );
 }
