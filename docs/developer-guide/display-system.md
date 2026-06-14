@@ -41,4 +41,47 @@
 ## Update Performance
 
 - **Full Screen**: Complete redraw (~2-3 seconds)
-- **Partial Updates**: It is not working with U8g2 font library. It is under development.
+- **Partial Updates**: Not currently possible (see below)
+
+---
+
+## Weather Data in RTC Memory
+
+### Why Weather Is Cached in RTC
+
+```
+Wake Cycle 1: Fetch Weather + Fetch Transport → Display → Sleep
+Wake Cycle 2: RTC Weather (cached) + Fetch Transport → Display → Sleep
+Wake Cycle 3: RTC Weather (cached) + Fetch Transport → Display → Sleep
+Wake Cycle 4: Fetch Weather (interval expired) + Fetch Transport → Display → Sleep
+```
+
+Weather data (`WeatherInfo`) is stored in RTC memory because:
+
+- **Weather updates are infrequent** (every 1-3 hours), while transport updates are frequent (every 5-10 minutes)
+- **Avoids redundant API calls** — on most wake cycles, only transport data is fetched
+- **Saves power** — one fewer HTTPS request per wake cycle reduces WiFi-on time by ~1-2 seconds
+- **Required for display** — the half-and-half mode needs both weather and transport data every cycle
+
+---
+
+## Future Improvement: Partial Display Update
+
+Partial display update would allow refreshing only the transport section while keeping the weather section untouched:
+
+```
+Full refresh:     [Weather ████████ | Transport ████████]  ← full flash, 2-3s
+Partial refresh:  [Weather (unchanged) | Transport ████]  ← no flash on left, <1s
+```
+
+**Benefits:**
+
+- Faster visible update (~0.5s vs 2-3s)
+- No full-screen flash on every transport update
+- Better user experience
+
+**Current Blocker:**
+
+The U8g2 font rendering library does not support partial display updates with GxEPD2.
+The partial update window must avoid any U8g2-rendered text, which is used throughout both sections.
+A workaround (rendering fonts to a buffer, then using GxEPD2's native partial update) has not yet been implemented.
