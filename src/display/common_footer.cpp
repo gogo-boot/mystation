@@ -2,12 +2,10 @@
 #include "display/text_utils.h"
 #include "util/time_manager.h"
 #include "util/battery_manager.h"
-#include <esp_log.h>
 #include <icons.h>
 #include <WiFi.h>
 #include "global_instances.h"
 #include "build_config.h"
-#include "util/timing_manager.h"
 
 static const char* TAG = "COMMON_FOOTER";
 
@@ -24,7 +22,7 @@ void CommonFooter::drawFooter(int16_t x, int16_t y, int16_t h, uint8_t elements)
     }
     // Draw refresh icon if requested
     if (elements & FOOTER_REFRESH) {
-        drawRefreshIcon(currentX, y);
+        drawRefreshIcon(currentX, footerY);
     }
     // Draw WiFi status if requested
     if (elements & FOOTER_WIFI) {
@@ -61,8 +59,9 @@ String CommonFooter::getTimeString() {
 
 void CommonFooter::drawWiFiStatus(int16_t& currentX, int16_t y) {
     icon_name wifiIcon = getWiFiIcon();
-    display.drawInvertedBitmap(currentX, y, getBitmap(wifiIcon, 16), 16, 16, GxEPD_BLACK);
-    currentX += 20; // Move right
+    int16_t iconY = y - 7; // Center 24px icon with text baseline (adjust ±px if needed)
+    display.drawInvertedBitmap(currentX, iconY, getBitmap(wifiIcon, 24), 24, 24, GxEPD_BLACK);
+    currentX += 28; // Move right
 }
 
 icon_name CommonFooter::getWiFiIcon() {
@@ -100,8 +99,9 @@ void CommonFooter::drawBatteryStatus(int16_t& currentX, int16_t y) {
     }
 
     icon_name batteryIcon = getBatteryIcon();
-    display.drawInvertedBitmap(currentX, y, getBitmap(batteryIcon, 16), 16, 16, GxEPD_BLACK);
-    currentX += 20; // Move right
+    int16_t iconY = y - 7; // Center 24px icon with text baseline (adjust ±px if needed)
+    display.drawInvertedBitmap(currentX, iconY, getBitmap(batteryIcon, 24), 24, 24, GxEPD_BLACK);
+    currentX += 28; // Move right
 }
 
 void CommonFooter::drawBatteryText(int16_t& currentX, int16_t y) {
@@ -153,6 +153,7 @@ icon_name CommonFooter::getBatteryIcon() {
 }
 
 void CommonFooter::drawRefreshIcon(int16_t& currentX, int16_t y) {
-    display.drawInvertedBitmap(currentX, y, getBitmap(refresh, 16), 16, 16, GxEPD_BLACK);
-    currentX += 20; // Move right
+    int16_t iconY = y - 7; // Center 24px icon with text baseline (adjust ±px if needed)
+    display.drawInvertedBitmap(currentX, iconY, getBitmap(refresh, 24), 24, 24, GxEPD_BLACK);
+    currentX += 28; // Move right
 }
