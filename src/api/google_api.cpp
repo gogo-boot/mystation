@@ -8,12 +8,12 @@
 static const char* TAG = "GOOGLE_API";
 
 String buildWifiJson() {
-    StaticJsonDocument<1024> doc;
+    JsonDocument doc;
     doc["considerIp"] = false;
-    JsonArray aps = doc.createNestedArray("wifiAccessPoints");
+    JsonArray aps = doc["wifiAccessPoints"].to<JsonArray>();
     int n = WiFi.scanNetworks();
     for (int i = 0; i < n; ++i) {
-        JsonObject ap = aps.createNestedObject();
+        JsonObject ap = aps.add<JsonObject>();
         ap["macAddress"] = WiFi.BSSIDstr(i);
         ap["signalStrength"] = WiFi.RSSI(i);
         ap["signalToNoiseRatio"] = 0;
@@ -40,7 +40,7 @@ bool getLocationFromGoogle(float& lat, float& lon) {
     if (httpCode > 0) {
         String payload = http.getString();
         ESP_LOGD(TAG, "Google geolocation response: %s", payload.c_str());
-        DynamicJsonDocument doc(1024);
+        JsonDocument doc;
         DeserializationError error = deserializeJson(doc, payload);
         if (!error) {
             lat = doc["location"]["lat"];

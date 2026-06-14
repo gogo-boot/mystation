@@ -27,8 +27,6 @@
  * - Manual resets
  */
 
-#define ARDUINOJSON_DECODE_NESTING_LIMIT 1000
-
 #include <Arduino.h>
 
 #include "activity/activity_manager.h"
