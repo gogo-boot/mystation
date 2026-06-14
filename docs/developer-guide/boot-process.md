@@ -45,7 +45,9 @@ but can skip phases or branch based on conditions.
 
 - If Phase 2 (app setup needed): start configuration web server, transition to ON_LOOP
 - Check for OTA update (if scheduled time matches)
-- Fetch data from APIs and render display (Phase 3: Complete)
+- Fetch data from APIs (Phase 3: Complete)
+- Disconnect WiFi (saves ~100mA during display rendering)
+- Render display
 
 ### ON_LOOP: Web Server Mode
 
