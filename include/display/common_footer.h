@@ -19,6 +19,9 @@ public:
     // Cache WiFi state before turning WiFi off (call before WiFi.disconnect())
     static void cacheWiFiState();
 
+    // Get cached RSSI value (valid after cacheWiFiState() is called)
+    static int32_t getCachedRSSI() { return cachedRSSI; }
+
     // Helper functions to get icon names (for reuse in other display contexts)
     static icon_name getWiFiIcon();
     static icon_name getBatteryIcon();

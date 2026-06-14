@@ -6,6 +6,7 @@
 #include "display/transport_display.h"
 #include "display/weather_general_half.h"
 #include "display/weather_general_full.h"
+#include "display/common_footer.h"
 #include "display/qr_code_helper.h"
 #include "util/util.h"
 
@@ -505,7 +506,7 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
         ry += lhSmall;
         u8g2.setCursor(col2, ry);
         {
-            int rssi = WiFi.RSSI();
+            int rssi = CommonFooter::getCachedRSSI();
             const char* quality = "Very weak";
             if (rssi >= -50) quality = "Excellent";
             else if (rssi >= -60) quality = "Good";
