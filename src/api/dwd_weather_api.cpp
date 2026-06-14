@@ -23,10 +23,8 @@ String getCityFromLatLon(float lat, float lon) {
     int httpCode = http.GET();
     String city = "";
     if (httpCode == HTTP_CODE_OK) {
-        String payload = http.getString();
-        ESP_LOGD("DWD_CITY", "Nominatim payload: %s", payload.c_str());
         DynamicJsonDocument doc(2048);
-        DeserializationError error = deserializeJson(doc, payload);
+        DeserializationError error = deserializeJson(doc, http.getStream());
         if (!error && doc.containsKey("address")) {
             if (doc["address"].containsKey("city")) {
                 city = doc["address"]["city"].as<String>();
@@ -107,9 +105,8 @@ bool getGeneralWeatherFull(float lat, float lon, WeatherInfo& weather) {
     http.begin(url);
     int httpCode = http.GET();
     if (httpCode > 0) {
-        String payload = http.getString();
         DynamicJsonDocument doc(8192);
-        DeserializationError error = deserializeJson(doc, payload);
+        DeserializationError error = deserializeJson(doc, http.getStream());
         if (!error) {
             // Parse current weather
             if (doc.containsKey("current")) {

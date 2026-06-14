@@ -106,6 +106,7 @@ void getNearbyStops(float lat, float lon) {
     }
     ESP_LOGI(TAG, "Requesting nearby stops: %s", urlForLog.c_str());
     http.begin(url);
+    http.setTimeout(10000);
     int httpCode = http.GET();
     if (httpCode > 0) {
         String payload = http.getString();
@@ -263,6 +264,7 @@ bool getDepartureFromRMV(const char* stopId, DepartureData& departData) {
     ESP_LOGI(TAG, "Walking time: %d minutes, departure time filter: %s", config.walkingTime, departureTime.c_str());
 
     http.begin(url);
+    http.setTimeout(10000);
 
     const char* keys[] = {"Transfer-Encoding"};
     http.collectHeaders(keys, 1);
@@ -301,10 +303,11 @@ bool getDepartureFromRMV(const char* stopId, DepartureData& departData) {
 
     http.end();
 
-    // Pretty print to string
+#if CORE_DEBUG_LEVEL >= 4
     String prettyJson;
     serializeJsonPretty(doc, prettyJson);
     ESP_LOGD(TAG, "JSON Document (pretty):\n%s", prettyJson.c_str());
+#endif
 
     // Check actual memory usage
     ESP_LOGI(TAG, "Memory used: %u/%u bytes", doc.memoryUsage(), doc.capacity());

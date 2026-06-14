@@ -53,7 +53,7 @@ void ActivityManager::onInit() {
     SystemInit::handleButtonLongPressActions();
     SystemInit::initDisplay();
     SystemInit::initFont();
-    BatteryManager::init();;
+    BatteryManager::init();
 #if SHOW_BATTERY_STATUS
     float batteryVoltage = BatteryManager::getBatteryVoltage();
     // 0V means no battery connected (USB-only power) — skip the check

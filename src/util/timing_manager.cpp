@@ -373,7 +373,7 @@ uint16_t TimingManager::getCurrentMin() {
     time_t now = GET_CURRENT_TIME();
     tm timeInfo;
     localtime_r(&now, &timeInfo);
-    return timeInfo.tm_hour * 60 + timeInfo.tm_min;;
+    return timeInfo.tm_hour * 60 + timeInfo.tm_min;
 }
 
 uint16_t TimingManager::getSleepStartMin() {
