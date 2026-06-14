@@ -33,7 +33,7 @@ bool getLocationFromGoogle(float& lat, float& lon) {
     String url = "https://www.googleapis.com/geolocation/v1/geolocate?key=" + String(
         AESCrypto::getGoogleAPIKey().c_str());
 
-    ESP_LOGI(TAG, "Requesting location from Google: %s", url.c_str());
+    ESP_LOGI(TAG, "Requesting location from Google Geolocation API");
     http.begin(url);
     http.addHeader("Content-Type", "application/json");
     int httpCode = http.POST(wifiJson);
