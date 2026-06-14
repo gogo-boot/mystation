@@ -87,9 +87,11 @@ information.
 | PlatformIO    | Latest  | Build system       |
 | Arduino-ESP32 | 6.5.0   | Framework          |
 | WiFiManager   | 2.0.17  | WiFi configuration |
-| ArduinoJson   | 6.21.4  | JSON parsing       |
+| ArduinoJson   | 7.4.3   | JSON parsing       |
 | GxEPD2        | 1.6.4   | E-paper driver     |
 | U8g2          | 1.8.0   | Font rendering     |
+| StreamUtils   | 1.9.0   | Streaming JSON     |
+| QRCode        | 0.0.1   | QR code generation |
 
 ### APIs
 
@@ -117,10 +119,10 @@ See [Boot Process](boot-process.md) for details.
 Normal operation follows this pattern:
 
 ```
-Wake Up → Connect WiFi → Fetch Data → Update Display → Deep Sleep
-  ↑                                                          │
-  └──────────────────────────────────────────────────────────┘
-                    (Configured interval)
+Wake Up → Connect WiFi → Fetch Data → Disconnect WiFi → Update Display → Deep Sleep
+  ↑                                                                            │
+  └────────────────────────────────────────────────────────────────────────────┘
+                              (Configured interval)
 ```
 
 ### Display Modes
@@ -151,6 +153,7 @@ See [Configuration Layers](configuration-layers.md) for data structures.
 mystation/
 ├── src/                 # Source code
 │   ├── main.cpp        # Entry point
+│   ├── activity/       # Lifecycle manager
 │   ├── api/            # API clients
 │   ├── config/         # Configuration
 │   ├── display/        # Display rendering
@@ -158,11 +161,15 @@ mystation/
 │   ├── sec/            # Security (AES)
 │   └── util/           # Utilities
 ├── include/            # Header files (mirrors src/)
-├── lib/                # Libraries
+├── lib/                # Libraries (bitmap icons)
 ├── test/               # Unit tests
+├── cert/               # TLS certificates (OTA)
 ├── data/               # HTML source (embedded in firmware at build time)
+├── partition/          # Custom partition tables
+├── svg-2-c-array/      # SVG to C-array icon pipeline
 ├── tools/              # Build scripts (embed_html.py)
 ├── docs/               # Documentation
+├── website/            # Docusaurus documentation site
 └── platformio.ini      # Build configuration
 ```
 

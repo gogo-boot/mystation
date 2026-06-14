@@ -41,7 +41,6 @@ cd mystation
 
 # Build and upload with PlatformIO
 pio run --target upload
-pio run --target uploadfs
 ```
 
 ### 3. Device Configuration
@@ -146,14 +145,26 @@ Switch modes using physical buttons or web interface.
 ├── docs/                   # Documentation
 ├── include/               # Header files
 │   ├── api/              # API interfaces
-│   ├── config/           # Configuration
+│   ├── config/           # Configuration & pin definitions
+│   ├── display/          # Display headers
+│   ├── ota/              # OTA update headers
 │   └── util/             # Utilities
 ├── src/                  # Source code
+│   ├── activity/        # Lifecycle manager
 │   ├── api/             # API implementations
 │   ├── config/          # Configuration management
 │   ├── display/         # Display rendering
+│   ├── ota/             # OTA firmware updates
+│   ├── sec/             # AES encryption
+│   ├── util/            # WiFi, timing, battery, buttons
 │   └── main.cpp         # Main application
+├── lib/                 # Libraries (bitmap icons)
+├── cert/                # TLS certificates (OTA)
+├── partition/           # Custom partition tables
+├── svg-2-c-array/       # SVG to C-array icon pipeline
 ├── test/                # Unit tests
+├── tools/               # Build scripts
+├── website/             # Docusaurus documentation site
 └── platformio.ini       # Build configuration
 ```
 
