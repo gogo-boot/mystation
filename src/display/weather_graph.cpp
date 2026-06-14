@@ -258,7 +258,7 @@ void WeatherGraph::drawTemperatureLine(const WeatherInfo& weather,
         int16_t p3y = (i < dataPoints - 2) ? tempY[i + 2] : tempY[i + 1];
 
         // Draw smooth curve between p1 and p2 using many small segments
-        int smoothSteps = 16; // Higher number = smoother curve
+        int smoothSteps = 8; // Smooth curve (8 steps sufficient for 1-bit e-paper)
 
         for (int step = 0; step < smoothSteps; step++) {
             // Calculate interpolation parameter (0.0 to 1.0)
