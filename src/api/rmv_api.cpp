@@ -11,6 +11,7 @@
 #include "config/config_manager.h"
 #include "config/config_page_data.h"
 #include "sec/aes_crypto.h"
+#include "build_config.h"
 #include <time.h>
 
 static const char* TAG = "RMV_API";
@@ -92,18 +93,20 @@ void getNearbyStops(float lat, float lon) {
     // Use static utility method for secure API key decryption (no caching)
     std::string decrypted = AESCrypto::getRMVAPIKey();
 
-    String url = "https://www.rmv.de/hapi/location.nearbystops?accessId=" + String(decrypted.c_str()) +
-        "&originCoordLat=" + String(lat, 6) +
-        "&originCoordLong=" + String(lon, 6) +
-        "&format=json&maxNo=7";
-    String urlForLog = url;
-    int keyPos = urlForLog.indexOf("accessId=");
-    if (keyPos != -1) {
-        int keyEnd = urlForLog.indexOf('&', keyPos);
-        if (keyEnd == -1) keyEnd = urlForLog.length();
-        urlForLog.replace(urlForLog.substring(keyPos, keyEnd), "accessId=***");
-    }
-    ESP_LOGI(TAG, "Requesting nearby stops: %s", urlForLog.c_str());
+    char url[256];
+    snprintf(url, sizeof(url),
+        "https://www.rmv.de/hapi/location.nearbystops?accessId=%s&originCoordLat=%.6f&originCoordLong=%.6f&format=json&maxNo=7",
+        decrypted.c_str(), lat, lon);
+    DEBUG_ONLY(
+        String urlForLog = url;
+        int keyPos = urlForLog.indexOf("accessId=");
+        if (keyPos != -1) {
+            int keyEnd = urlForLog.indexOf('&', keyPos);
+            if (keyEnd == -1) keyEnd = urlForLog.length();
+            urlForLog.replace(urlForLog.substring(keyPos, keyEnd), "accessId=***");
+        }
+        ESP_LOGI(TAG, "Requesting nearby stops: %s", urlForLog.c_str());
+    );
     http.begin(url);
     http.setTimeout(10000);
     int httpCode = http.GET();
@@ -245,21 +248,22 @@ bool getDepartureFromRMV(const char* stopId, DepartureData& departData) {
     // Calculate departure time and date including walking time for API request
     String departureTime = calculateDepartureTime(config.walkingTime);
 
-    String url = "https://www.rmv.de/hapi/departureBoard?accessId=" + String(decrypted.c_str()) +
-        "&id=" + encodedId +
-        "&format=json&maxJourneys=22&duration=90" + productsParam +
-        "&time=" + departureTime;
+    char url[512];
+    snprintf(url, sizeof(url),
+        "https://www.rmv.de/hapi/departureBoard?accessId=%s&id=%s&format=json&maxJourneys=22&duration=90%s&time=%s",
+        decrypted.c_str(), encodedId.c_str(), productsParam.c_str(), departureTime.c_str());
 
-    String urlForLog = url;
-    int keyPos = urlForLog.indexOf("accessId=");
-    if (keyPos != -1) {
-        int keyEnd = urlForLog.indexOf('&', keyPos);
-        if (keyEnd == -1) keyEnd = urlForLog.length();
-        urlForLog.replace(urlForLog.substring(keyPos, keyEnd), "accessId=***");
-    }
-
-    ESP_LOGI(TAG, "Requesting departure board: %s", urlForLog.c_str());
-    ESP_LOGI(TAG, "Walking time: %d minutes, departure time filter: %s", config.walkingTime, departureTime.c_str());
+    DEBUG_ONLY(
+        String urlForLog = url;
+        int keyPos = urlForLog.indexOf("accessId=");
+        if (keyPos != -1) {
+            int keyEnd = urlForLog.indexOf('&', keyPos);
+            if (keyEnd == -1) keyEnd = urlForLog.length();
+            urlForLog.replace(urlForLog.substring(keyPos, keyEnd), "accessId=***");
+        }
+        ESP_LOGI(TAG, "Requesting departure board: %s", urlForLog.c_str());
+        ESP_LOGI(TAG, "Walking time: %d minutes, departure time filter: %s", config.walkingTime, departureTime.c_str());
+    );
 
     http.begin(url);
     http.setTimeout(10000);
@@ -275,7 +279,8 @@ bool getDepartureFromRMV(const char* stopId, DepartureData& departData) {
         return false;
     }
 
-    initDepartureFilter();
+    static bool filterReady = false;
+    if (!filterReady) { initDepartureFilter(); filterReady = true; }
 
     // Create the raw and decoded stream
     Stream& rawStream = http.getStream();
