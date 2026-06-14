@@ -21,8 +21,17 @@
 #include "util/timing_manager.h"
 #include "util/weather_print.h"
 #include "util/wifi_manager.h"
+#include "display/common_footer.h"
 
 static const char* TAG = "DEVICE_MODE";
+
+// Turn off WiFi before display rendering to save power (~100mA)
+static void shutdownWiFiBeforeRender() {
+    CommonFooter::cacheWiFiState();
+    WiFi.disconnect(true);
+    WiFi.mode(WIFI_OFF);
+    ESP_LOGI(TAG, "WiFi disabled before display rendering");
+}
 
 // Global variables needed for operation
 
@@ -78,6 +87,7 @@ void DeviceModeManager::showApplicationInfo() {
     float voltage = BatteryManager::getBatteryVoltage();
     int percent = BatteryManager::getBatteryPercentage();
 
+    shutdownWiFiBeforeRender();
     DisplayManager::displayApplicationInfo(voltage, percent);
 }
 
@@ -98,6 +108,7 @@ void DeviceModeManager::showWeatherDeparture() {
     fetchTransportData(depart);
     TimingManager::markTransportUpdated();
 
+    shutdownWiFiBeforeRender();
     DisplayManager::displayHalfNHalf(weather, depart);
 }
 
@@ -119,6 +130,7 @@ void DeviceModeManager::updateWeatherFull() {
         ESP_LOGI(TAG, "use cached Weather data, no data fetch needed");
     }
     printWeatherInfo(weather);
+    shutdownWiFiBeforeRender();
     DisplayManager::displayWeatherFull(weather);
 }
 
@@ -140,6 +152,7 @@ void DeviceModeManager::updateDepartureFull() {
         if (depart.departureCount == 0) {
             ESP_LOGI(TAG, "No departures scheduled at this time");
         }
+        shutdownWiFiBeforeRender();
         DisplayManager::displayDeparturesFull(depart);
     } else {
         ESP_LOGE(TAG, "Failed to get departure information from RMV.");
@@ -148,6 +161,7 @@ void DeviceModeManager::updateDepartureFull() {
         depart.stopId = stopIdToUse;
         depart.stopName = String(config.selectedStopName);
         depart.departureCount = 0;
+        shutdownWiFiBeforeRender();
         DisplayManager::displayDeparturesFull(depart);
     }
 }

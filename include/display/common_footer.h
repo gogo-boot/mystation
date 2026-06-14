@@ -16,11 +16,17 @@ public:
     // elements: bitwise OR of FooterElements flags
     static void drawFooter(int16_t x, int16_t y, int16_t h, uint8_t elements = FOOTER_TIME | FOOTER_REFRESH);
 
+    // Cache WiFi state before turning WiFi off (call before WiFi.disconnect())
+    static void cacheWiFiState();
+
     // Helper functions to get icon names (for reuse in other display contexts)
     static icon_name getWiFiIcon();
     static icon_name getBatteryIcon();
 
 private:
+    static int32_t cachedRSSI;
+    static bool cachedConnected;
+
     static String getTimeString();
     static void drawWiFiStatus(int16_t& currentX, int16_t y);
     static void drawBatteryStatus(int16_t& currentX, int16_t y);

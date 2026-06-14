@@ -10,6 +10,15 @@
 
 static const char* TAG = "COMMON_FOOTER";
 
+// Static member definitions
+int32_t CommonFooter::cachedRSSI = 0;
+bool CommonFooter::cachedConnected = false;
+
+void CommonFooter::cacheWiFiState() {
+    cachedRSSI = WiFi.RSSI();
+    cachedConnected = (WiFi.status() == WL_CONNECTED);
+}
+
 
 void CommonFooter::drawFooter(int16_t x, int16_t y, int16_t h, uint8_t elements) {
     TextUtils::setFont10px_margin12px(); // Small font for footer
@@ -66,23 +75,17 @@ void CommonFooter::drawWiFiStatus(int16_t& currentX, int16_t y) {
 }
 
 icon_name CommonFooter::getWiFiIcon() {
-    // Get WiFi signal strength
-    int32_t rssi = WiFi.RSSI();
-    icon_name wifiIcon;
-
-    if (WiFi.status() != WL_CONNECTED) {
-        wifiIcon = wifi_off;
-    } else if (rssi > -50) {
-        wifiIcon = wifi; // Strong signal
-    } else if (rssi > -60) {
-        wifiIcon = wifi_3_bar; // Good signal
-    } else if (rssi > -70) {
-        wifiIcon = wifi_2_bar; // Fair signal
+    if (!cachedConnected) {
+        return wifi_off;
+    } else if (cachedRSSI > -50) {
+        return wifi; // Strong signal
+    } else if (cachedRSSI > -60) {
+        return wifi_3_bar; // Good signal
+    } else if (cachedRSSI > -70) {
+        return wifi_2_bar; // Fair signal
     } else {
-        wifiIcon = wifi_1_bar; // Weak signal
+        return wifi_1_bar; // Weak signal
     }
-
-    return wifiIcon;
 }
 
 void CommonFooter::drawBatteryStatus(int16_t& currentX, int16_t y) {
