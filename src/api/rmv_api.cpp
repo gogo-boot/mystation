@@ -84,9 +84,8 @@ namespace {
     }
 } // end anonymous namespace
 
-std::vector<Station> stations;
-
 void getNearbyStops(float lat, float lon) {
+    std::vector<Station> stations;
     Util::printFreeHeap("Before RMV request:");
     HTTPClient http;
 
@@ -114,7 +113,6 @@ void getNearbyStops(float lat, float lon) {
         JsonDocument doc;
         DeserializationError error = deserializeJson(doc, payload);
         if (!error) {
-            stations.clear();
             ConfigPageData& pageData = ConfigPageData::getInstance();
             pageData.clearStops();
             JsonArray stops = doc["stopLocationOrCoordLocation"];

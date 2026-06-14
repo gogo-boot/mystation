@@ -35,6 +35,7 @@ bool getLocationFromGoogle(float& lat, float& lon) {
 
     ESP_LOGI(TAG, "Requesting location from Google Geolocation API");
     http.begin(url);
+    http.setTimeout(10000);
     http.addHeader("Content-Type", "application/json");
     int httpCode = http.POST(wifiJson);
     if (httpCode > 0) {
