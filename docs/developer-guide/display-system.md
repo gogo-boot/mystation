@@ -1,7 +1,7 @@
 # E-Paper Display Layout Overview
 
 <!-- TODO: Add photo of device showing Half & Half mode -->
-![Half and Half display mode](../images/display-half-and-half.jpg)
+![Half and Half display mode](/img/IMG_0872.jpeg)
 
 ## Display Hardware Specifications
 
