@@ -13,7 +13,7 @@ This section is for developers who want to:
 - ✨ Add new features
 - 🔌 Modify hardware configuration
 
-> 👤 **Are you not a developer?** See the [User Guide](../user-guide/index.md) instead.
+> 👤 **Are you not a developer?** See the [User Guide](#) instead.
 
 ## Project Overview
 
@@ -51,7 +51,7 @@ information.
 - [**Display System**](display-system.md) - E-paper rendering, modes, layouts
 - [**Battery Management**](battery-management.md) - Voltage thresholds, discharge curve, percentage calculation
 - [**Power Management**](run-book.md) - Deep sleep, wake sources, battery (see Run Book)
-- [**OTA System**](ota-update.md) - Firmware updates, scheduling, rollback (see Run Book)
+- [**OTA System**](../maintainer-guide/ota-update.md) - Firmware updates, scheduling, rollback (see Run Book)
 
 ### 📡 Integration & APIs
 
@@ -224,7 +224,7 @@ See [Testing](testing.md) for test framework details.
 
 ### Documentation
 
-- 📖 [User Guide](../user-guide/index.md) - End-user documentation
+- 📖 [User Guide](#) - End-user documentation
 - 📚 [Configuration Keys Quick Reference](../reference/configuration-keys-quick-reference.md) - Configuration keys
 
 ### External Resources
@@ -265,4 +265,4 @@ See [Testing](testing.md) for test framework details.
 
 ---
 
-**Questions?** Check the [Troubleshooting Guide](../user-guide/troubleshooting.md) or open an issue on GitHub.
+**Questions?** Check the [Troubleshooting Guide](#) or open an issue on GitHub.

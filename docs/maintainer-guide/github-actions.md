@@ -508,8 +508,8 @@ Both workflows ensure:
 
 ## Related Documentation
 
-- [Development Setup](development-setup.md) - Local build instructions
-- [Configuration Layers](configuration-layers.md) - How configuration works
-- [Testing](testing.md) - Running tests locally
-- [Run Book](run-book.md) - Operational procedures and troubleshooting
+- [Development Setup](../developer-guide/development-setup.md) - Local build instructions
+- [Configuration Layers](../developer-guide/configuration-layers.md) - How configuration works
+- [Testing](../developer-guide/testing.md) - Running tests locally
+- [Run Book](../developer-guide/run-book.md) - Operational procedures and troubleshooting
 
