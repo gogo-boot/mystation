@@ -7,17 +7,6 @@ transport departure board.
 
 ## 📖 Documentation Sections
 
-### For Users
-
-If you want to build, set up, and use MyStation:
-
-**[👋 User Guide](#)** - Complete guide for end users
-
-- [Quick Start](#) - Get running in 15 minutes
-- [Understanding the Display](#) - What information is shown
-- [Button Controls](#) - Using physical buttons
-- [Troubleshooting](#) - Common issues and solutions
-
 ### For Developers
 
 If you want to understand the code, contribute, or modify MyStation:
@@ -110,12 +99,6 @@ MyStation is a complete e-paper display system:
 
 ```
 docs/
-├── user-guide/          # End-user documentation
-│   ├── index.md        # User guide overview
-│   ├── quick-start.md  # Getting started
-│   ├── understanding-display.md
-│   ├── button-controls.md
-│   └── troubleshooting.md
 │
 ├── developer-guide/     # Developer documentation
 │   ├── index.md        # Developer overview
@@ -136,12 +119,6 @@ docs/
 ```
 
 ## 🎯 Getting Started
-
-### I want to use MyStation
-
-1. Read [User Guide Overview](#)
-2. Follow [Quick Start Guide](#)
-3. Refer to [Troubleshooting](#) if needed
 
 ### I want to develop MyStation
 

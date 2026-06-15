@@ -198,7 +198,6 @@ mystation-firmware-{sha}/
 ├── firmware.elf              # Debug symbols (for crash analysis)
 ├── build_info.txt           # Build metadata
 ├── config_my_station.html   # Configuration web page
-├── FLASHING_INSTRUCTIONS.md # User guide
 └── VERSION.txt              # Version information
 ```
 

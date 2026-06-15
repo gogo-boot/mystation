@@ -117,19 +117,6 @@ const config = {
                 style: 'dark',
                 links: [
                     {
-                        title: 'User Guide',
-                        items: [
-                            {
-                                label: 'Quick Start',
-                                href: 'https://gogo-boot.github.io/mystation-landing/docs/user-guide/quick-start',
-                            },
-                            {
-                                label: 'Troubleshooting',
-                                href: 'https://gogo-boot.github.io/mystation-landing/docs/user-guide/troubleshooting',
-                            },
-                        ],
-                    },
-                    {
                         title: 'Developer',
                         items: [
                             {

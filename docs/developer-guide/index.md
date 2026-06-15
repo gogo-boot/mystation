@@ -13,8 +13,6 @@ This section is for developers who want to:
 - ✨ Add new features
 - 🔌 Modify hardware configuration
 
-> 👤 **Are you not a developer?** See the [User Guide](#) instead.
-
 ## Project Overview
 
 MyStation is an ESP32-based e-paper display system that shows real-time public transport departures and weather
@@ -224,7 +222,6 @@ See [Testing](testing.md) for test framework details.
 
 ### Documentation
 
-- 📖 [User Guide](#) - End-user documentation
 - 📚 [Configuration Keys Quick Reference](../reference/configuration-keys-quick-reference.md) - Configuration keys
 
 ### External Resources

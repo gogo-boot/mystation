@@ -58,14 +58,6 @@ pio run --target upload
 
 ## 📚 Documentation
 
-### For Users
-
-- 📖 **[User Guide](./docs/user-guide/index.md)** - Setup, usage, and troubleshooting
-- 🚀 **[Quick Start](./docs/user-guide/quick-start.md)** - Get running in 15 minutes
-- 🔘 **[Button Controls](./docs/user-guide/button-controls.md)** - Using physical buttons
-- 📱 **[Understanding Display](./docs/user-guide/understanding-display.md)** - Display modes explained
-- 🔧 **[Troubleshooting](./docs/user-guide/troubleshooting.md)** - Common issues and solutions
-
 ### For Developers
 
 - 💻 **[Developer Guide](./docs/developer-guide/index.md)** - Architecture and development
