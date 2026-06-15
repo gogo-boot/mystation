@@ -1,8 +1,4 @@
 {
-  "link.title.User Guide": {
-    "message": "User Guide",
-    "description": "The title of the footer links column with title=User Guide in the footer"
-  },
   "link.title.Developer": {
     "message": "Developer",
     "description": "The title of the footer links column with title=Developer in the footer"

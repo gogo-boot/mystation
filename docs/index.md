@@ -1,20 +1,11 @@
 # MyStation Documentation
 
+![MyStation display modes overview](/img/IMG_0872.jpeg)
+
 Welcome to the MyStation documentation! This guide will help you get started, use, and understand your public
 transport departure board.
 
 ## 📖 Documentation Sections
-
-### For Users
-
-If you want to build, set up, and use MyStation:
-
-**[👋 User Guide](user-guide/index.md)** - Complete guide for end users
-
-- [Quick Start](user-guide/quick-start.md) - Get running in 15 minutes
-- [Understanding the Display](user-guide/understanding-display.md) - What information is shown
-- [Button Controls](user-guide/button-controls.md) - Using physical buttons
-- [Troubleshooting](user-guide/troubleshooting.md) - Common issues and solutions
 
 ### For Developers
 
@@ -34,7 +25,7 @@ If you want to understand the code, contribute, or modify MyStation:
 
 ### Quick Reference
 
-**[📋 Reference Guides](reference/)** - Quick lookup
+**[📋 Reference Guides](reference/configuration-keys-quick-reference.md)** - Quick lookup
 
 - [Configuration Keys](reference/configuration-keys-quick-reference.md) - All settings
 
@@ -42,16 +33,16 @@ If you want to understand the code, contribute, or modify MyStation:
 
 ### New to MyStation?
 
-1. **[What is MyStation?](user-guide/index.md)** - Overview and features
-2. **[Quick Start Guide](user-guide/quick-start.md)** - Build and configure in 15 minutes
-3. **[Troubleshooting](user-guide/troubleshooting.md)** - Common issues
+1. **[What is MyStation?](#)** - Overview and features
+2. **[Quick Start Guide](#)** - Build and configure in 15 minutes
+3. **[Troubleshooting](#)** - Common issues
 
 ### Common Tasks
 
-- **[First Time Setup](user-guide/quick-start.md)** - WiFi and station
+- **[First Time Setup](#)** - WiFi and station
   configuration
-- **[Change WiFi Network](user-guide/quick-start.md)** - Reconfigure WiFi
-- **[Understanding Display](user-guide/understanding-display.md)** - Read the screen
+- **[Change WiFi Network](#)** - Reconfigure WiFi
+- **[Understanding Display](#)** - Read the screen
 
 ### Developer Tasks
 
@@ -108,12 +99,6 @@ MyStation is a complete e-paper display system:
 
 ```
 docs/
-├── user-guide/          # End-user documentation
-│   ├── index.md        # User guide overview
-│   ├── quick-start.md  # Getting started
-│   ├── understanding-display.md
-│   ├── button-controls.md
-│   └── troubleshooting.md
 │
 ├── developer-guide/     # Developer documentation
 │   ├── index.md        # Developer overview
@@ -135,12 +120,6 @@ docs/
 
 ## 🎯 Getting Started
 
-### I want to use MyStation
-
-1. Read [User Guide Overview](user-guide/index.md)
-2. Follow [Quick Start Guide](user-guide/quick-start.md)
-3. Refer to [Troubleshooting](user-guide/troubleshooting.md) if needed
-
 ### I want to develop MyStation
 
 1. Read [Developer Guide](developer-guide/index.md)
@@ -152,7 +131,7 @@ docs/
 
 ### Troubleshooting
 
-Most issues are covered in the [Troubleshooting Guide](user-guide/troubleshooting.md):
+Most issues are covered in the [Troubleshooting Guide](#):
 
 - WiFi connection problems
 - Display not updating
@@ -196,5 +175,5 @@ Contributions are welcome! Please:
 
 ---
 
-**Ready to get started?** Head to the [Quick Start Guide](user-guide/quick-start.md)!
+**Ready to get started?** Head to the [Quick Start Guide](#)!
 

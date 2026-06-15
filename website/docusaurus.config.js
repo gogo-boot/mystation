@@ -26,7 +26,7 @@ const config = {
     trailingSlash: false,
 
     onBrokenLinks: 'warn',
-    onBrokenMarkdownLinks: 'warn',
+    onBrokenAnchors: 'warn',
 
     // Even if you don't use internationalization, you can use this field to set
     // useful metadata like html lang. For example, if your site is Chinese, you
@@ -45,6 +45,9 @@ const config = {
 
     markdown: {
         mermaid: true,
+        hooks: {
+            onBrokenMarkdownLinks: 'warn',
+        },
     },
 
     presets: [
@@ -76,10 +79,6 @@ const config = {
             image: 'img/docusaurus-social-card.jpg',
             navbar: {
                 title: 'MyStation',
-                logo: {
-                    alt: 'MyStation Logo',
-                    src: 'img/logo.svg',
-                },
                 items: [
                     {
                         type: 'docSidebar',
@@ -113,19 +112,6 @@ const config = {
             footer: {
                 style: 'dark',
                 links: [
-                    {
-                        title: 'User Guide',
-                        items: [
-                            {
-                                label: 'Quick Start',
-                                href: 'https://gogo-boot.github.io/mystation-landing/docs/user-guide/quick-start',
-                            },
-                            {
-                                label: 'Troubleshooting',
-                                href: 'https://gogo-boot.github.io/mystation-landing/docs/user-guide/troubleshooting',
-                            },
-                        ],
-                    },
                     {
                         title: 'Developer',
                         items: [

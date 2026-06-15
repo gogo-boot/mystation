@@ -8,6 +8,8 @@
 
 ## ✨ Features
 
+![MyStation device showing departures and weather](website/static/img/IMG_0872.jpeg)
+
 - 🚌 **Real-time departures** from German public transport (RMV API)
 - 🌤️ **Weather information** from German Weather Service (DWD)
 - 📱 **Mobile-friendly web configuration** - no app installation needed
@@ -55,14 +57,6 @@ pio run --target upload
 **📖 [Complete Quick Start Guide](./docs/user-guide/quick-start.md)**
 
 ## 📚 Documentation
-
-### For Users
-
-- 📖 **[User Guide](./docs/user-guide/index.md)** - Setup, usage, and troubleshooting
-- 🚀 **[Quick Start](./docs/user-guide/quick-start.md)** - Get running in 15 minutes
-- 🔘 **[Button Controls](./docs/user-guide/button-controls.md)** - Using physical buttons
-- 📱 **[Understanding Display](./docs/user-guide/understanding-display.md)** - Display modes explained
-- 🔧 **[Troubleshooting](./docs/user-guide/troubleshooting.md)** - Common issues and solutions
 
 ### For Developers
 

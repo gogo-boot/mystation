@@ -28,6 +28,15 @@ For developers who need to quickly find the right key name for a specific layer:
 | Weekend Transport End | `weekend-transport-end` | `weekendTransportEnd` | `wTransEnd` | `weekendTransportEnd` |
 | Weekend Sleep Start | `weekend-sleep-start` | `weekendSleepStart` | `wSleepStart` | `weekendSleepStart` |
 | Weekend Sleep End | `weekend-sleep-end` | `weekendSleepEnd` | `wSleepEnd` | `weekendSleepEnd` |
+| **Display** |
+| Display Mode | `display-mode` | `displayMode` | `displayMode` | `displayMode` |
+| **Weather Model** |
+| Weather Model | `weather-model` | `weatherModel` | `weatherMdl` | `weatherModel` |
+| **OTA** |
+| OTA Enabled | `ota-enabled` | `otaEnabled` | `otaEnabled` | `otaEnabled` |
+| OTA Check Time | `ota-check-time` | `otaCheckTime` | `otaCheckTime` | `otaCheckTime` |
+| **System** |
+| Config Version | — | — | `cfgVersion` | — |
 
 ## 🔧 Common Operations
 

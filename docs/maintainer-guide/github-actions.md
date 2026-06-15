@@ -198,7 +198,6 @@ mystation-firmware-{sha}/
 ├── firmware.elf              # Debug symbols (for crash analysis)
 ├── build_info.txt           # Build metadata
 ├── config_my_station.html   # Configuration web page
-├── FLASHING_INSTRUCTIONS.md # User guide
 └── VERSION.txt              # Version information
 ```
 
@@ -508,8 +507,8 @@ Both workflows ensure:
 
 ## Related Documentation
 
-- [Development Setup](development-setup.md) - Local build instructions
-- [Configuration Layers](configuration-layers.md) - How configuration works
-- [Testing](testing.md) - Running tests locally
-- [Run Book](run-book.md) - Operational procedures and troubleshooting
+- [Development Setup](../developer-guide/development-setup.md) - Local build instructions
+- [Configuration Layers](../developer-guide/configuration-layers.md) - How configuration works
+- [Testing](../developer-guide/testing.md) - Running tests locally
+- [Run Book](../developer-guide/run-book.md) - Operational procedures and troubleshooting
 

@@ -138,7 +138,7 @@ pio test -e native -vvv
 [INFO][TIMING_MGR] Final sleep duration: 30 seconds (0 minutes)
 test/test_timing_manager/test_sleep_duration.cpp:111:test_getNextSleepDurationSeconds_weather_only_mode:PASS
 
-6 Tests 0 Failures 0 Ignored
+34 Tests 0 Failures 0 Ignored
 OK
 ```
 

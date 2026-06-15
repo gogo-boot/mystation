@@ -1,5 +1,8 @@
 # E-Paper Display Layout Overview
 
+<!-- TODO: Add photo of device showing Half & Half mode -->
+![Half and Half display mode](/img/IMG_0872.jpeg)
+
 ## Display Hardware Specifications
 
 - **Display Model**: 7.5 inch E-Paper Display GDEY075T7
@@ -20,7 +23,7 @@
 │  • Space 20px                      │  • Space 10px                           │
 │  • Day weather Info: 80px          │  • Departure Column Headers: 12px       │
 │    - first column                  │  • Space 4px                            │
-│       - Day Weather Icon: 50px     │  • Line 1px                             │
+│       - Day Weather Icon: 48px     │  • Line 1px                             │
 │        - Current Temp : 30 px      │     Left 421px for depature Entries     │
 │    - second column                 │      - Depature Entries 42 px 5 times   │
 │       - today low/high temp: 27px  │      - Separation Line 1px              │

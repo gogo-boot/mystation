@@ -7,10 +7,6 @@
     "message": "MyStation Logo",
     "description": "The alt text of navbar logo"
   },
-  "item.label.User Guide": {
-    "message": "User Guide",
-    "description": "Navbar item with label User Guide"
-  },
   "item.label.Developer Guide": {
     "message": "Developer Guide",
     "description": "Navbar item with label Developer Guide"

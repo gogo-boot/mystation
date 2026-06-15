@@ -1,8 +1,13 @@
 # Hardware Assembly
 
 ## Pin Connections
+regarding GPIO pin setup, you can refer code `include/config/pins.h`
+
+### Seeedstudio EE04 Board ESP32-S3
+![Assembled MyStation hardware](/img/20250828_192807.jpeg)
 
 ### ESP32-C3 Super Mini Wiring
+![Assembled MyStation hardware](/img/20250709_220254.jpeg)
 
 The ESP32-C3 requires **8 connections** to the e-paper display:
 

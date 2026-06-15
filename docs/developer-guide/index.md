@@ -13,8 +13,6 @@ This section is for developers who want to:
 - ✨ Add new features
 - 🔌 Modify hardware configuration
 
-> 👤 **Are you not a developer?** See the [User Guide](../user-guide/index.md) instead.
-
 ## Project Overview
 
 MyStation is an ESP32-based e-paper display system that shows real-time public transport departures and weather
@@ -51,7 +49,7 @@ information.
 - [**Display System**](display-system.md) - E-paper rendering, modes, layouts
 - [**Battery Management**](battery-management.md) - Voltage thresholds, discharge curve, percentage calculation
 - [**Power Management**](run-book.md) - Deep sleep, wake sources, battery (see Run Book)
-- [**OTA System**](ota-update.md) - Firmware updates, scheduling, rollback (see Run Book)
+- [**OTA System**](../maintainer-guide/ota-update.md) - Firmware updates, scheduling, rollback (see Run Book)
 
 ### 📡 Integration & APIs
 
@@ -84,12 +82,12 @@ information.
 
 | Library       | Version | Purpose            |
 |---------------|---------|--------------------|
-| PlatformIO    | Latest  | Build system       |
-| Arduino-ESP32 | 6.5.0   | Framework          |
+| espressif32   | 6.12.0  | Platform           |
+| Arduino-ESP32 | ~2.0.17 | Framework          |
 | WiFiManager   | 2.0.17  | WiFi configuration |
 | ArduinoJson   | 7.4.3   | JSON parsing       |
 | GxEPD2        | 1.6.4   | E-paper driver     |
-| U8g2          | 1.8.0   | Font rendering     |
+| U8g2_for_Adafruit_GFX | 1.8.0 | Font rendering |
 | StreamUtils   | 1.9.0   | Streaming JSON     |
 | QRCode        | 0.0.1   | QR code generation |
 
@@ -224,7 +222,6 @@ See [Testing](testing.md) for test framework details.
 
 ### Documentation
 
-- 📖 [User Guide](../user-guide/index.md) - End-user documentation
 - 📚 [Configuration Keys Quick Reference](../reference/configuration-keys-quick-reference.md) - Configuration keys
 
 ### External Resources
@@ -265,4 +262,4 @@ See [Testing](testing.md) for test framework details.
 
 ---
 
-**Questions?** Check the [Troubleshooting Guide](../user-guide/troubleshooting.md) or open an issue on GitHub.
+**Questions?** Check the [Troubleshooting Guide](#) or open an issue on GitHub.
