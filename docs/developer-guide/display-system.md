@@ -1,5 +1,8 @@
 # E-Paper Display Layout Overview
 
+<!-- TODO: Add photo of device showing Half & Half mode -->
+![Half and Half display mode](../images/display-half-and-half.jpg)
+
 ## Display Hardware Specifications
 
 - **Display Model**: 7.5 inch E-Paper Display GDEY075T7

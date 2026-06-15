@@ -1,5 +1,8 @@
 # MyStation Documentation
 
+<!-- TODO: Add product overview photo showing the 3 display modes side by side -->
+![MyStation display modes overview](images/display-modes-overview.jpg)
+
 Welcome to the MyStation documentation! This guide will help you get started, use, and understand your public
 transport departure board.
 

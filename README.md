@@ -8,6 +8,9 @@
 
 ## ✨ Features
 
+<!-- TODO: Replace with actual product photo showing the device on a wall/desk -->
+![MyStation device showing departures and weather](docs/images/product-front.jpg)
+
 - 🚌 **Real-time departures** from German public transport (RMV API)
 - 🌤️ **Weather information** from German Weather Service (DWD)
 - 📱 **Mobile-friendly web configuration** - no app installation needed

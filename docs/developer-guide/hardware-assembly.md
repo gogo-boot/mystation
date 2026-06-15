@@ -1,5 +1,8 @@
 # Hardware Assembly
 
+<!-- TODO: Add photo of the assembled device (PCB + display + case) -->
+![Assembled MyStation hardware](../images/hardware-assembled.jpg)
+
 ## Pin Connections
 
 ### ESP32-C3 Super Mini Wiring
