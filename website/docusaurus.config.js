@@ -79,10 +79,6 @@ const config = {
             image: 'img/docusaurus-social-card.jpg',
             navbar: {
                 title: 'MyStation',
-                logo: {
-                    alt: 'MyStation Logo',
-                    src: 'img/logo.svg',
-                },
                 items: [
                     {
                         type: 'docSidebar',
