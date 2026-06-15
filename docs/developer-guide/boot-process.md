@@ -26,7 +26,7 @@ but can skip phases or branch based on conditions.
 
 - Initialize Serial (debug builds only)
 - Print wake-up diagnostics
-- Check for factory reset (Button 1+2 held) or app reset (Button 1 held)
+- Check for factory reset (Button 1+2 held), app reset (Button 1 held), application info (Button 2 held), or OTA update (Button 3 held)
 - Initialize e-paper display and font renderer
 - Initialize battery monitoring (ESP32-S3 boards)
 - If battery voltage is critically low (>0.1V and ≤3.0V), show error and jump to ON_SHUTDOWN

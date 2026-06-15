@@ -82,12 +82,12 @@ information.
 
 | Library       | Version | Purpose            |
 |---------------|---------|--------------------|
-| PlatformIO    | Latest  | Build system       |
-| Arduino-ESP32 | 6.5.0   | Framework          |
+| espressif32   | 6.12.0  | Platform           |
+| Arduino-ESP32 | ~2.0.17 | Framework          |
 | WiFiManager   | 2.0.17  | WiFi configuration |
 | ArduinoJson   | 7.4.3   | JSON parsing       |
 | GxEPD2        | 1.6.4   | E-paper driver     |
-| U8g2          | 1.8.0   | Font rendering     |
+| U8g2_for_Adafruit_GFX | 1.8.0 | Font rendering |
 | StreamUtils   | 1.9.0   | Streaming JSON     |
 | QRCode        | 0.0.1   | QR code generation |
 
