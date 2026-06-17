@@ -306,11 +306,6 @@ void DisplayManager::displayPhase2AppSetup() {
         u8g2.print("4. \"Speichern\" drücken - MyStation startet automatisch neu");
         y += lineHeight;
 
-        u8g2.setFont(u8g2_font_helvB10_tf);
-        u8g2.setCursor(margin, 462);
-        u8g2.print(
-            "Hinweis: Die Konfigurationsseite braucht einige Sekunden zum Laden (Standort und Haltestellen werden ermittelt).");
-
         // === QR CODE ON RIGHT SIDE ===
         const int16_t qrX = 540; // X position for QR code (right side)
         const uint8_t qrVersion = 3; // Version 3 (29x29 modules)
