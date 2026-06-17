@@ -278,7 +278,9 @@ void TransportDisplay::drawSingleTransport(const DepartureInfo& dep, int16_t x, 
     currentX += COLUMN_PADDING + timeWidth;
     TextUtils::printTextAtTopMargin(currentX, currentY, dep.line.c_str());
     currentX += COLUMN_PADDING + lineWidth;
-    TextUtils::printTextAtTopMargin(currentX, currentY, dest.c_str());
+    int16_t destMaxWidth = (x + width) - currentX;
+    String fittedDest = TextUtils::shortenTextToFit(dest, destMaxWidth);
+    TextUtils::printTextAtTopMargin(currentX, currentY, fittedDest.c_str());
 
     // Draw track info right-aligned
     int8_t trackWidth = TextUtils::getTextWidth(dep.track.c_str());
