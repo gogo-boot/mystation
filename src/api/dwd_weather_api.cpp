@@ -137,6 +137,11 @@ bool getGeneralWeatherFull(float lat, float lon, WeatherInfo& weather) {
                 int count = 0;
                 // Max 7-day forecast (array size is 7)
                 for (size_t i = 0; i < times.size() && count < 7; ++i) {
+                    // Stop if core data is null (regional models return fewer days)
+                    if (temp_max[i].isNull() || temp_min[i].isNull()) {
+                        break;
+                    }
+
                     safeStringCopy(weather.dailyForecast[count].time, times[i].as<String>(), TIME_STRING_LENGTH);
 
                     // Extract sunrise/sunset times
