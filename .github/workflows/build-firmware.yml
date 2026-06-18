@@ -19,7 +19,11 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                environment: [ esp32-s3-e1001-production ]
+                include:
+                    - environment: esp32-s3-e1001-production
+                      asset_name: firmware-e1001.bin
+                    - environment: esp32-s3-ee04-production
+                      asset_name: firmware-ee04.bin
 
         steps:
             -   name: Checkout code
@@ -85,12 +89,18 @@ jobs:
                     echo "Build Date: $(date -u)" >> build_info.txt
                     echo "PlatformIO Version: ${{ env.PLATFORMIO_CORE_VERSION }}" >> build_info.txt
 
+            -   name: Rename firmware to board-specific name
+                run: |
+                    cp .pio/build/${{ matrix.environment }}/firmware.bin .pio/build/${{ matrix.environment }}/${{ matrix.asset_name }}
+
             -   name: Upload firmware artifacts
                 uses: actions/upload-artifact@v7
                 with:
                     name: firmware-${{ matrix.environment }}-${{ github.sha }}
                     path: |
-                        .pio/build/${{ matrix.environment }}/*.bin
+                        .pio/build/${{ matrix.environment }}/${{ matrix.asset_name }}
+                        .pio/build/${{ matrix.environment }}/bootloader.bin
+                        .pio/build/${{ matrix.environment }}/partitions.bin
                         .pio/build/${{ matrix.environment }}/firmware.elf
                         build_info.txt
                     retention-days: 30
@@ -105,9 +115,6 @@ jobs:
     release:
         needs: build
         runs-on: ubuntu-latest
-        strategy:
-            matrix:
-                environment: [ esp32-s3-e1001-production ]
         if: github.ref_type == 'tag'
 
         steps:
@@ -120,13 +127,15 @@ jobs:
             -   name: Create release package
                 run: |
                     mkdir -p release
-                    ls -al
 
-                    # Copy firmware files
-                    cp artifacts/.pio/build/${{ matrix.environment }}/*.bin release/
-                    cp artifacts/.pio/build/${{ matrix.environment }}/firmware.elf release/
-                    cp artifacts/build_info.txt release/
-                    cp artifacts/*.html release/
+                    # Copy board-specific firmware files
+                    find artifacts -name "firmware-*.bin" -exec cp {} release/ \;
+                    # Copy shared files from first build (bootloader, partitions are env-specific but we include e1001 as reference)
+                    find artifacts -name "bootloader.bin" | head -1 | xargs -I{} cp {} release/
+                    find artifacts -name "partitions.bin" | head -1 | xargs -I{} cp {} release/
+                    find artifacts -name "firmware.elf" | head -1 | xargs -I{} cp {} release/
+                    find artifacts -name "build_info.txt" | head -1 | xargs -I{} cp {} release/
+                    find artifacts -name "*.html" -exec cp {} release/ \; 2>/dev/null || true
 
                     # Create version info
                     cat > release/VERSION.txt << EOF
@@ -136,22 +145,18 @@ jobs:
                     Date: $(date -u)
                     EOF
 
-                    # Create ZIP package
-                    cd release
-                    zip -r ../mystation-firmware-${{ github.sha }}.zip .
-                    cd ..
+                    ls -la release/
 
             -   name: Create Release
                 uses: softprops/action-gh-release@v2
                 with:
                     files: |
-                        mystation-firmware-${{ github.sha }}.zip
-                        release/firmware.bin
+                        release/firmware-e1001.bin
+                        release/firmware-ee04.bin
                         release/bootloader.bin
-                        release/firmware.elf
                         release/partitions.bin
+                        release/firmware.elf
                         release/build_info.txt
-                        release/config_my_station.html
                         release/VERSION.txt
                     name: MyStation ${{ github.ref_name }}
                     body: |
