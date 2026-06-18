@@ -99,7 +99,17 @@ String Util::shortenStationName(const String& stationName) {
 //   Input:  departure = "Frankfurt", destination = "Frankfurt Bahnhof"
 //   Output: "Bhf"
 String Util::shortenDestination(const String departure, const String destination) {
-    // Tokenize departure
+    // City qualifiers to strip after removing matching city prefix
+    static const char* cityQualifiers[] = {
+        "(Main)", "a.M.", "am Main",
+        "(Taunus)", "i.Ts.", "im Taunus",
+        "(Hessen)", "(Rhein)", "(Lahn)",
+        "(Dill)", "(Wetterau)", "(Odenwald)",
+        "(Bergstraße)", "(Vogelsberg)",
+        nullptr
+    };
+
+    // Tokenize departure (stop name)
     std::vector<String> depTokens;
     int start = 0, end = 0;
     while ((end = departure.indexOf(' ', start)) != -1) {
@@ -130,13 +140,20 @@ String Util::shortenDestination(const String departure, const String destination
         result += destTokens[j];
     }
 
-    // Apply replacements from the shared map
-    for (const auto& pair : stationReplacements) {
-        int idx = result.indexOf(pair.first);
-        while (idx != -1) {
-            result = result.substring(0, idx) + pair.second + result.substring(idx + pair.first.length());
-            idx = result.indexOf(pair.first, idx + pair.second.length());
+    // Strip city qualifiers from the beginning of the result
+    result.trim();
+    bool stripped = true;
+    while (stripped) {
+        stripped = false;
+        for (int q = 0; cityQualifiers[q] != nullptr; q++) {
+            if (result.startsWith(cityQualifiers[q])) {
+                result = result.substring(strlen(cityQualifiers[q]));
+                result.trim();
+                stripped = true;
+                break;
+            }
         }
     }
+
     return result;
 }
