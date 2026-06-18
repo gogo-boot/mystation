@@ -7,6 +7,17 @@
 // OTA Configuration
 #define LATEST_RELEASE_API "https://api.github.com/repos/gogo-boot/mystation/releases/latest"
 
+// Board-specific firmware asset name for OTA
+#if defined(PCB_E1001)
+    #define OTA_FIRMWARE_ASSET "firmware-e1001.bin"
+#elif defined(PCB_EE04)
+    #define OTA_FIRMWARE_ASSET "firmware-ee04.bin"
+#elif defined(BOARD_ESP32_C3)
+    #define OTA_FIRMWARE_ASSET "firmware-c3.bin"
+#else
+    #define OTA_FIRMWARE_ASSET "firmware.bin"
+#endif
+
 // External variables
 extern char rcv_buffer[200];
 extern const char server_cert_pem_start[] asm("_binary_cert_github_bundle_pem_start");

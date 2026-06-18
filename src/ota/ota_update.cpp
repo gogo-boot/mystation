@@ -368,13 +368,13 @@ bool getLatestReleaseFromGitHub(ReleaseInfo& releaseInfo) {
     releaseInfo.tagName = String(tag_name);
     releaseInfo.version = SemanticVersion::parse(tag_name);
 
-    // Find firmware.bin in assets
+    // Find board-specific firmware asset
     JsonArrayConst assets = doc["assets"];
     bool foundFirmware = false;
 
     for (JsonVariantConst asset : assets) {
         const char* name = asset["name"];
-        if (name && strcmp(name, "firmware.bin") == 0) {
+        if (name && strcmp(name, OTA_FIRMWARE_ASSET) == 0) {
             const char* download_url = asset["browser_download_url"];
             if (download_url) {
                 releaseInfo.firmwareUrl = String(download_url);
@@ -386,7 +386,7 @@ bool getLatestReleaseFromGitHub(ReleaseInfo& releaseInfo) {
     }
 
     if (!foundFirmware) {
-        ESP_LOGW(TAG, "firmware.bin not found in release assets");
+        ESP_LOGW(TAG, "%s not found in release assets", OTA_FIRMWARE_ASSET);
         return false;
     }
 
