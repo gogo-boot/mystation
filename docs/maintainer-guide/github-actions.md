@@ -78,7 +78,7 @@ git push origin v1.2.0
 #### Job 1: Build
 
 **Environment**: Ubuntu Latest
-**Matrix Strategy**: Builds for `esp32-c3-production` environment
+**Matrix Strategy**: Builds for `esp32-s3-e1001-production` and `esp32-s3-ee04-production` environments
 
 **Steps**:
 
@@ -129,14 +129,14 @@ git push origin v1.2.0
 
 6. **Build Firmware**
    ```bash
-   pio run -e esp32-c3-production
+   pio run -e ${{ matrix.environment }}
    ```
-   Compiles firmware for ESP32-C3 production environment.
+   Compiles firmware for the specified production environment.
 
    **Output Files**:
-    - `.pio/build/esp32-c3-production/firmware.bin` - Main firmware
-    - `.pio/build/esp32-c3-production/bootloader.bin` - Bootloader
-    - `.pio/build/esp32-c3-production/partitions.bin` - Partition table
+    - `.pio/build/${{ matrix.environment }}/firmware.bin` - Main firmware (renamed to board-specific name)
+    - `.pio/build/${{ matrix.environment }}/bootloader.bin` - Bootloader
+    - `.pio/build/${{ matrix.environment }}/partitions.bin` - Partition table
     - `.pio/build/esp32-c3-production/firmware.elf` - Debug symbols
 
 7. **Create Build Info**
@@ -191,19 +191,17 @@ git push origin v1.2.0
 ### Artifacts Produced
 
 ```
-mystation-firmware-{sha}/
-├── firmware.bin              # Main application binary
-├── bootloader.bin            # ESP32 bootloader
-├── partitions.bin            # Partition table
-├── firmware.elf              # Debug symbols (for crash analysis)
-├── build_info.txt           # Build metadata
-├── config_my_station.html   # Configuration web page
-└── VERSION.txt              # Version information
+release/
+├── firmware-e1001.bin    # Firmware for PCB E1001 (ESP32-S3)
+├── firmware-ee04.bin     # Firmware for PCB EE04 (ESP32-S3)
+├── bootloader.bin        # ESP32 bootloader (for initial USB flash)
+├── partitions.bin        # Partition table (for initial USB flash)
+└── build_info.txt        # Build metadata
 ```
 
 ### Configuration
 
-**PlatformIO Default Environment**: `esp32-s3-production`
+**PlatformIO Default Environment**: `esp32-s3-e1001-production`
 
 ---
 
