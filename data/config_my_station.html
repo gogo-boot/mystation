@@ -573,7 +573,7 @@
               stopSelect.innerHTML = '<option value="">Bitte wählen...</option>';
               data.stops.forEach(function(s) {
                 var opt = document.createElement('option');
-                opt.value = encodeURIComponent(s.id);
+                opt.value = s.id;
                 opt.textContent = s.name + '   (' + s.dist + 'm)';
                 stopSelect.appendChild(opt);
               });

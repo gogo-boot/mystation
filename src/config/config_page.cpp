@@ -36,8 +36,8 @@ static String renderConfigPageHtml() {
     if (pageData.getStopCount() > 0) {
         stopsHtml = "<option value=''>Bitte wählen...</option>";
         for (size_t i = 0; i < pageData.getStopCount(); ++i) {
-            String encodedId = Util::urlEncode(pageData.getStopId(i));
-            stopsHtml += "<option value='" + encodedId + "'>" + pageData.getStopName(i) + "   (" +
+            String stopId = pageData.getStopId(i);
+            stopsHtml += "<option value='" + stopId + "'>" + pageData.getStopName(i) + "   (" +
                 pageData.getStopDistance(i) + "m)</option>";
         }
     } else {
@@ -119,12 +119,6 @@ void handleSaveConfig(WebServer& server) {
     if (err) {
         server.send(400, "text/plain", "Invalid JSON");
         return;
-    }
-
-    // Decode stopId if present
-    if (doc["stopId"].is<const char*>()) {
-        String stopId = doc["stopId"].as<String>();
-        doc["stopId"] = Util::urlDecode(stopId);
     }
 
     ESP_LOGI(TAG, "Saving configuration from web interface");
