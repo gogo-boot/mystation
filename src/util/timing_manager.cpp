@@ -275,6 +275,15 @@ uint64_t TimingManager::getNextSleepDurationSeconds() {
     case DISPLAY_MODE_WEATHER_ONLY:
         ESP_LOGI(TAG, "Display mode: WEATHER ONLY");
         nextWeatherOrTransport = calculateNextWeatherUpdate(currentTimeSeconds);
+        // If configured mode is HALF_AND_HALF but currently showing weather-only
+        // (outside transport active hours), also wake when transport becomes active
+        if (config.displayMode == DISPLAY_MODE_HALF_AND_HALF) {
+            uint32_t nextTransportActive = calculateNextActiveTransportTime(currentTimeSeconds);
+            if (nextTransportActive < nextWeatherOrTransport) {
+                nextWeatherOrTransport = nextTransportActive;
+                ESP_LOGI(TAG, "Half&Half mode: waking at transport active time %u", nextTransportActive);
+            }
+        }
         break;
     case DISPLAY_MODE_TRANSPORT_ONLY:
         ESP_LOGI(TAG, "Display mode: TRANSPORT ONLY");
