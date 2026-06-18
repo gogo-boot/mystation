@@ -29,14 +29,29 @@ only the `tag_name` , `name` and the `browser_download_url` of the release infor
     "assets": [
         {
             ...
-            "name": "firmware.bin",
+            "name": "firmware-e1001.bin",
             ...
-            "browser_download_url": "https://github.com/gogo-boot/mystation/releases/download/v0.3.0/firmware.bin"
+            "browser_download_url": "https://github.com/gogo-boot/mystation/releases/download/v0.3.0/firmware-e1001.bin"
+        },
+        {
+            ...
+            "name": "firmware-ee04.bin",
+            ...
+            "browser_download_url": "https://github.com/gogo-boot/mystation/releases/download/v0.3.0/firmware-ee04.bin"
         },
         ...
     ]
 }
 ```
+
+Each board downloads its own firmware asset. The asset name is defined at compile time
+via `OTA_FIRMWARE_ASSET` in `include/ota/ota_update.h`:
+
+| Board | Asset Name |
+|-------|-----------|
+| PCB E1001 | `firmware-e1001.bin` |
+| PCB EE04 | `firmware-ee04.bin` |
+| ESP32-C3 | `firmware-c3.bin` |
 
 ## Version Comparison
 

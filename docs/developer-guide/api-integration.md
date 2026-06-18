@@ -136,6 +136,9 @@ appended to the Open-Meteo API URL when a specific model is chosen.
 **Note**: Some models provide fewer than 7 days of daily forecast. The display gracefully
 handles this by rendering only the available days (remaining space is left empty).
 
+**UV Index**: Only available in Auto mode (no `&models=` parameter). All specific models
+return `null` for `uv_index_max`. The display hides the UV section when data is unavailable.
+
 The JSON response format is identical regardless of model selection — only the data
 coverage and resolution differ.
 
