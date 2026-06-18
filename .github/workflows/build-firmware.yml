@@ -101,15 +101,7 @@ jobs:
                         .pio/build/${{ matrix.environment }}/${{ matrix.asset_name }}
                         .pio/build/${{ matrix.environment }}/bootloader.bin
                         .pio/build/${{ matrix.environment }}/partitions.bin
-                        .pio/build/${{ matrix.environment }}/firmware.elf
                         build_info.txt
-                    retention-days: 30
-
-            -   name: Upload filesystem artifacts
-                uses: actions/upload-artifact@v7
-                with:
-                    name: filesystem-${{ matrix.environment }}-${{ github.sha }}
-                    path: data/
                     retention-days: 30
 
     release:
@@ -130,20 +122,10 @@ jobs:
 
                     # Copy board-specific firmware files
                     find artifacts -name "firmware-*.bin" -exec cp {} release/ \;
-                    # Copy shared files from first build (bootloader, partitions are env-specific but we include e1001 as reference)
+                    # Copy shared files (bootloader/partitions from first build as reference for initial flash)
                     find artifacts -name "bootloader.bin" | head -1 | xargs -I{} cp {} release/
                     find artifacts -name "partitions.bin" | head -1 | xargs -I{} cp {} release/
-                    find artifacts -name "firmware.elf" | head -1 | xargs -I{} cp {} release/
                     find artifacts -name "build_info.txt" | head -1 | xargs -I{} cp {} release/
-                    find artifacts -name "*.html" -exec cp {} release/ \; 2>/dev/null || true
-
-                    # Create version info
-                    cat > release/VERSION.txt << EOF
-                    MyStation Firmware
-                    Version: ${{ github.ref_name }}
-                    Build: ${{ github.sha }}
-                    Date: $(date -u)
-                    EOF
 
                     ls -la release/
 
@@ -155,9 +137,7 @@ jobs:
                         release/firmware-ee04.bin
                         release/bootloader.bin
                         release/partitions.bin
-                        release/firmware.elf
                         release/build_info.txt
-                        release/VERSION.txt
                     name: MyStation ${{ github.ref_name }}
                     body: |
                         # MyStation Firmware Release ${{ github.ref_name }}
