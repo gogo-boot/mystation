@@ -112,10 +112,12 @@ void WeatherHalfDisplay::drawWeatherInfoSecondColumn(int16_t currentX, int16_t d
         "°C";
     TextUtils::printTextAtWithMargin(currentX, dayWeatherInfoY, tempRange);
 
-    // apply UV index to grade conversion
+    // apply UV index to grade conversion (skip if not available from model)
     TextUtils::setFont10px_margin12px(); // Small font for weather info
-    String uvText = "UV Index : " + WeatherUtil::uvIndexToGrade(weather.dailyForecast[0].uvIndex);
-    TextUtils::printTextAtWithMargin(currentX, dayWeatherInfoY + 27, uvText);
+    if (weather.dailyForecast[0].uvIndex > 0) {
+        String uvText = "UV Index : " + WeatherUtil::uvIndexToGrade(weather.dailyForecast[0].uvIndex);
+        TextUtils::printTextAtWithMargin(currentX, dayWeatherInfoY + 27, uvText);
+    }
 
     // Show wind speed in "min - max m/s" format using Util
     String windDirectionText = WeatherUtil::degreeToCompass(weather.dailyForecast[0].windDirection);

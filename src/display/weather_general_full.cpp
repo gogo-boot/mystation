@@ -107,9 +107,11 @@ void WeatherFullDisplay::drawFullScreenWeatherLayout(const WeatherInfo& weather)
     // Use Util::uvIndexToGrade for UV Index
     TextUtils::printTextAtWithMargin(secondColumn, currentY + TEXT_Y_TITLE, "Sonnenstd.");
     TextUtils::printTextAtWithMargin(secondColumn, currentY + TEXT_Y_VALUE, sunshineText);
-    String uvText = WeatherUtil::uvIndexToGrade(weather.dailyForecast[0].uvIndex);
-    TextUtils::printTextAtWithMargin(thirdColumn, currentY + TEXT_Y_TITLE, "UV Index");
-    TextUtils::printTextAtWithMargin(thirdColumn, currentY + TEXT_Y_VALUE, uvText);
+    if (weather.dailyForecast[0].uvIndex > 0) {
+        String uvText = WeatherUtil::uvIndexToGrade(weather.dailyForecast[0].uvIndex);
+        TextUtils::printTextAtWithMargin(thirdColumn, currentY + TEXT_Y_TITLE, "UV Index");
+        TextUtils::printTextAtWithMargin(thirdColumn, currentY + TEXT_Y_VALUE, uvText);
+    }
     currentY += WEATHER_ROW_HEIGHT; // Move down after first row of weather info
 
     // precipitation mm, precipitation hours
