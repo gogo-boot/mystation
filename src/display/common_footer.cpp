@@ -77,11 +77,11 @@ void CommonFooter::drawWiFiStatus(int16_t& currentX, int16_t y) {
 icon_name CommonFooter::getWiFiIcon() {
     if (!cachedConnected) {
         return wifi_off;
-    } else if (cachedRSSI > -50) {
-        return wifi; // Strong signal
     } else if (cachedRSSI > -60) {
-        return wifi_3_bar; // Good signal
+        return wifi; // Strong signal
     } else if (cachedRSSI > -70) {
+        return wifi_3_bar; // Good signal
+    } else if (cachedRSSI > -80) {
         return wifi_2_bar; // Fair signal
     } else {
         return wifi_1_bar; // Weak signal
