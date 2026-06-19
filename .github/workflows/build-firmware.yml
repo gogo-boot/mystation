@@ -122,6 +122,8 @@ jobs:
 
                     # Copy board-specific firmware files
                     find artifacts -name "firmware-*.bin" -exec cp {} release/ \;
+                    # Backward compatibility: older E1001 devices (< v0.7.0) look for "firmware.bin"
+                    cp release/firmware-e1001.bin release/firmware.bin
                     # Copy shared files (bootloader/partitions from first build as reference for initial flash)
                     find artifacts -name "bootloader.bin" | head -1 | xargs -I{} cp {} release/
                     find artifacts -name "partitions.bin" | head -1 | xargs -I{} cp {} release/
@@ -135,6 +137,7 @@ jobs:
                     files: |
                         release/firmware-e1001.bin
                         release/firmware-ee04.bin
+                        release/firmware.bin
                         release/bootloader.bin
                         release/partitions.bin
                         release/build_info.txt
