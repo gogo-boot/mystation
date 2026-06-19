@@ -914,9 +914,9 @@ void test_temp_mode_flag_persists_after_clearing() {
     printf("  - Second wake: Showed configured mode (half-and-half)\n");
 }
 
-// Half&Half mode before transport active hours should wake at transport start time
+// Half&Half mode before transport window should wake at transport window start
 void test_half_half_wakes_at_transport_start() {
-    // 5:00 AM Thursday - before transport active hours (06:00-09:00)
+    // 5:00 AM Thursday - before transport window (06:00-09:00)
     time_t earlyMorning = createTime(2025, 10, 30, 5, 0, 0);
     MockTime::setMockTime(earlyMorning);
 
@@ -932,11 +932,184 @@ void test_half_half_wakes_at_transport_start() {
     TimingManager::setLastTransportUpdate((uint32_t)earlyMorning);
 
     uint64_t sleepDuration = TimingManager::getNextSleepDurationSeconds();
-    printf("Half&Half at 5:00 AM (before transport active 06:00): sleep %llu seconds (~%llu min)\n",
+    printf("Half&Half at 5:00 AM (before transport window 06:00): sleep %llu seconds (~%llu min)\n",
            sleepDuration, sleepDuration / 60);
 
     // Should wake at 06:00 (60 minutes = 3600 seconds), not at next weather update (3 hours)
     TEST_ASSERT_EQUAL(3600, sleepDuration);
+}
+
+// ===== RULE-BASED SLEEP CALCULATOR EDGE CASE TESTS =====
+
+// Transport-only mode, inside transport window: wakes at transport interval
+void test_rule_transport_inside_window_wakes_at_interval() {
+    // 07:00 AM Thursday — inside transport window (06:00-09:00)
+    time_t morning = createTime(2025, 10, 30, 7, 0, 0);
+    MockTime::setMockTime(morning);
+
+    RTCConfigData& config = ConfigManager::getConfig();
+    config.displayMode = DISPLAY_MODE_TRANSPORT_ONLY;
+    config.otaEnabled = false;
+    config.transportInterval = 5; // 5 minutes
+    strcpy(config.transportActiveStart, "06:00");
+    strcpy(config.transportActiveEnd, "09:00");
+
+    TimingManager::setLastTransportUpdate((uint32_t)morning);
+    TimingManager::setLastWeatherUpdate((uint32_t)morning);
+
+    uint64_t sleepDuration = TimingManager::getNextSleepDurationSeconds();
+    printf("Transport-only at 07:00 (inside window): %llu seconds\n", sleepDuration);
+
+    // 5 minutes = 300 seconds
+    TEST_ASSERT_EQUAL(300, sleepDuration);
+}
+
+// Transport-only mode, outside transport window: wakes at next transport window start (tomorrow)
+void test_rule_transport_outside_window_wakes_at_next_start() {
+    // 10:00 AM Thursday — outside transport window (06:00-09:00)
+    time_t morning = createTime(2025, 10, 30, 10, 0, 0);
+    MockTime::setMockTime(morning);
+
+    RTCConfigData& config = ConfigManager::getConfig();
+    config.displayMode = DISPLAY_MODE_TRANSPORT_ONLY;
+    config.otaEnabled = false;
+    strcpy(config.transportActiveStart, "06:00");
+    strcpy(config.transportActiveEnd, "09:00");
+
+    TimingManager::setLastTransportUpdate((uint32_t)morning);
+    TimingManager::setLastWeatherUpdate((uint32_t)morning);
+
+    uint64_t sleepDuration = TimingManager::getNextSleepDurationSeconds();
+    printf("Transport-only at 10:00 (outside window): %llu seconds (~%llu hours)\n",
+           sleepDuration, sleepDuration / 3600);
+
+    // Next transport window starts tomorrow at 06:00 = 20 hours = 72000 seconds
+    // But sleep window (22:30-05:30) may affect this — transport window start (06:00) is after sleep end (05:30)
+    // so it should not be pushed. Result: 20 hours
+    TEST_ASSERT_EQUAL(20 * 3600, sleepDuration);
+}
+
+// Half&Half inside transport window: picks earlier of weather vs transport update
+void test_rule_halfhalf_inside_window_picks_earlier() {
+    // 07:00 AM Thursday — inside transport window
+    time_t morning = createTime(2025, 10, 30, 7, 0, 0);
+    MockTime::setMockTime(morning);
+
+    RTCConfigData& config = ConfigManager::getConfig();
+    config.displayMode = DISPLAY_MODE_HALF_AND_HALF;
+    config.otaEnabled = false;
+    config.weatherInterval = 3;    // 3 hours
+    config.transportInterval = 5;  // 5 minutes
+    strcpy(config.transportActiveStart, "06:00");
+    strcpy(config.transportActiveEnd, "09:00");
+
+    TimingManager::setLastWeatherUpdate((uint32_t)morning);
+    TimingManager::setLastTransportUpdate((uint32_t)morning);
+
+    uint64_t sleepDuration = TimingManager::getNextSleepDurationSeconds();
+    printf("Half&Half at 07:00 (inside window): %llu seconds\n", sleepDuration);
+
+    // Transport 5min (300s) < Weather 3h (10800s) → picks transport
+    TEST_ASSERT_EQUAL(300, sleepDuration);
+}
+
+// Wake time falls inside sleep window: pushed to sleep window end
+void test_rule_wake_during_sleep_window_pushed_to_end() {
+    // 22:00 Thursday — just before sleep window (22:30-05:30)
+    time_t evening = createTime(2025, 10, 30, 22, 0, 0);
+    MockTime::setMockTime(evening);
+
+    RTCConfigData& config = ConfigManager::getConfig();
+    config.displayMode = DISPLAY_MODE_WEATHER_ONLY;
+    config.otaEnabled = false;
+    config.weatherInterval = 1; // 1 hour → next update at 23:00 (inside sleep window)
+    strcpy(config.sleepStart, "22:30");
+    strcpy(config.sleepEnd, "05:30");
+
+    TimingManager::setLastWeatherUpdate((uint32_t)evening);
+
+    uint64_t sleepDuration = TimingManager::getNextSleepDurationSeconds();
+    printf("Weather-only at 22:00 (next update 23:00 falls in sleep window): %llu seconds (~%.1f hours)\n",
+           sleepDuration, sleepDuration / 3600.0);
+
+    // Next weather at 23:00 falls in sleep window (22:30-05:30) → pushed to 05:30
+    // From 22:00 to 05:30 = 7.5 hours = 27000 seconds
+    TEST_ASSERT_EQUAL(7 * 3600 + 30 * 60, sleepDuration);
+}
+
+// OTA during sleep window: NOT pushed (bypasses sleep window)
+void test_rule_ota_bypasses_sleep_window() {
+    // 22:00 Thursday — OTA scheduled at 03:00 (inside sleep window)
+    time_t evening = createTime(2025, 10, 30, 22, 0, 0);
+    MockTime::setMockTime(evening);
+
+    RTCConfigData& config = ConfigManager::getConfig();
+    config.displayMode = DISPLAY_MODE_WEATHER_ONLY;
+    config.otaEnabled = true;
+    strcpy(config.otaCheckTime, "03:00");
+    config.weatherInterval = 3; // 3h → next at 01:00 (in sleep window → pushed to 05:30)
+    strcpy(config.sleepStart, "22:30");
+    strcpy(config.sleepEnd, "05:30");
+
+    TimingManager::setLastWeatherUpdate((uint32_t)evening);
+    TimingManager::setLastOTACheck(0); // Never checked
+
+    uint64_t sleepDuration = TimingManager::getNextSleepDurationSeconds();
+    printf("OTA at 03:00 during sleep window (weather pushed to 05:30): %llu seconds (~%.1f hours)\n",
+           sleepDuration, sleepDuration / 3600.0);
+
+    // OTA at 03:00 = 5 hours from 22:00 — bypasses sleep window
+    // Weather pushed to 05:30 = 7.5 hours
+    // OTA (5h) < weather (7.5h) → picks OTA
+    TEST_ASSERT_EQUAL(5 * 3600, sleepDuration);
+}
+
+// Weekend uses weekend transport window hours
+void test_rule_weekend_uses_weekend_transport_window() {
+    // Saturday 07:00 — weekday transport window 06-09, weekend window 08-11
+    time_t satMorning = createTime(2025, 11, 1, 7, 0, 0); // Saturday
+    MockTime::setMockTime(satMorning);
+
+    RTCConfigData& config = ConfigManager::getConfig();
+    config.displayMode = DISPLAY_MODE_HALF_AND_HALF;
+    config.otaEnabled = false;
+    config.weekendMode = true;
+    config.weatherInterval = 3;
+    strcpy(config.transportActiveStart, "06:00");
+    strcpy(config.transportActiveEnd, "09:00");
+    strcpy(config.weekendTransportStart, "08:00");
+    strcpy(config.weekendTransportEnd, "11:00");
+
+    TimingManager::setLastWeatherUpdate((uint32_t)satMorning);
+    TimingManager::setLastTransportUpdate((uint32_t)satMorning);
+
+    uint64_t sleepDuration = TimingManager::getNextSleepDurationSeconds();
+    printf("Saturday 07:00 (weekend transport window 08-11): %llu seconds (~%llu min)\n",
+           sleepDuration, sleepDuration / 60);
+
+    // On Saturday, transport window starts at 08:00 (not 06:00)
+    // Currently 07:00, outside weekend transport window → wake at 08:00 = 1 hour
+    TEST_ASSERT_EQUAL(3600, sleepDuration);
+}
+
+// Overdue weather update: wakes immediately (30s minimum)
+void test_rule_overdue_weather_wakes_immediately() {
+    // 09:00 — weather was last updated 4 hours ago, interval is 2 hours (overdue by 2h)
+    time_t morning = createTime(2025, 10, 30, 9, 0, 0);
+    MockTime::setMockTime(morning);
+
+    RTCConfigData& config = ConfigManager::getConfig();
+    config.displayMode = DISPLAY_MODE_WEATHER_ONLY;
+    config.otaEnabled = false;
+    config.weatherInterval = 2; // 2 hours
+
+    TimingManager::setLastWeatherUpdate((uint32_t)morning - (4 * 3600)); // 4 hours ago
+
+    uint64_t sleepDuration = TimingManager::getNextSleepDurationSeconds();
+    printf("Overdue weather (4h ago, interval 2h): %llu seconds\n", sleepDuration);
+
+    // Overdue → wake immediately (minimum 30s)
+    TEST_ASSERT_EQUAL(30, sleepDuration);
 }
 
 int main() {
@@ -989,6 +1162,15 @@ int main() {
 
     // Transport activation wake test
     RUN_TEST(test_half_half_wakes_at_transport_start);
+
+    // Rule-based sleep calculator edge case tests
+    RUN_TEST(test_rule_transport_inside_window_wakes_at_interval);
+    RUN_TEST(test_rule_transport_outside_window_wakes_at_next_start);
+    RUN_TEST(test_rule_halfhalf_inside_window_picks_earlier);
+    RUN_TEST(test_rule_wake_during_sleep_window_pushed_to_end);
+    RUN_TEST(test_rule_ota_bypasses_sleep_window);
+    RUN_TEST(test_rule_weekend_uses_weekend_transport_window);
+    RUN_TEST(test_rule_overdue_weather_wakes_immediately);
 
     return UNITY_END();
 }

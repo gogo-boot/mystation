@@ -194,170 +194,135 @@ uint32_t TimingManager::adjustForDeepSleepPeriod(uint32_t nearestUpdate, bool is
 }
 
 // ============================================================================
-// Main Sleep Duration Calculation
+// Main Sleep Duration Calculation — Rule-based priority queue
+//
+// Each "rule" proposes a wake-up time. We collect all candidates, apply the
+// sleep window filter (push non-OTA candidates past the sleep end), then
+// pick the earliest.
 // ============================================================================
 
+static constexpr int MAX_CANDIDATES = 5;
+static constexpr uint64_t MINIMUM_SLEEP_SECONDS = 30;
+
+struct WakeCandidate {
+    uint32_t time;         // Absolute timestamp (seconds since epoch)
+    bool bypassesSleep;    // If true, ignores the sleep window
+    const char* reason;    // For logging
+};
+
 uint64_t TimingManager::getNextSleepDurationSeconds() {
-    // Get current time and configuration
     time_t now = GET_CURRENT_TIME();
-    uint32_t currentTimeSeconds = (uint32_t)now;
+    uint32_t currentTime = (uint32_t)now;
     RTCConfigData& config = ConfigManager::getConfig();
 
-    // Get effective display mode (considers temporary mode)
-    uint8_t displayMode = getEffectiveDisplayMode();
+    ESP_LOGI(TAG, "Sleep calc - mode: %d (configured: %d, temp: %d), time: %u",
+             getEffectiveDisplayMode(), config.displayMode, config.inTemporaryMode, currentTime);
 
-    ESP_LOGI(TAG,
-             "Calculating sleep duration - Effective Display mode: %d (temp=%d, configured=%d), Current time: %u",
-             displayMode, config.inTemporaryMode, config.displayMode, currentTimeSeconds);
-
-    // ===== HANDLE TEMPORARY MODE =====
+    // ── TEMPORARY MODE (early return — short-lived override) ──────────────
     if (config.inTemporaryMode) {
-        ESP_LOGI(TAG, "Temporary mode active - mode: %d, activated at: %u",
-                 config.temporaryDisplayMode, config.temporaryModeActivationTime);
-
-        // Calculate elapsed time since temp mode activation
-        int elapsed = currentTimeSeconds - config.temporaryModeActivationTime;
+        int elapsed = currentTime - config.temporaryModeActivationTime;
         const int TEMP_MODE_DURATION = 120; // 2 minutes
         int remaining = TEMP_MODE_DURATION - elapsed;
 
-        // Check if currently in deep sleep period
-        int currentMinutes = getCurrentMin();
-        int sleepEndMin = getSleepEndMin();
-        bool inDeepSleepPeriod = isInDeepSleepPeriod();
-
-        if (remaining > 0 && !inDeepSleepPeriod) {
-            // Still showing temp mode during active hours - wait for 2 minutes to complete
-            ESP_LOGI(TAG, "Temp mode: %d seconds remaining in active hours", remaining);
-            return (uint64_t)max(30, remaining);
+        if (isInDeepSleepPeriod()) {
+            // In sleep window → sleep until sleep window ends
+            int currentMin = getCurrentMin();
+            int sleepEndMin = getSleepEndMin();
+            int minutesUntilEnd = (sleepEndMin > currentMin)
+                ? (sleepEndMin - currentMin)
+                : ((24 * 60) - currentMin + sleepEndMin);
+            return (uint64_t)max((int)MINIMUM_SLEEP_SECONDS, minutesUntilEnd * 60);
         }
 
-        if (inDeepSleepPeriod) {
-            // In deep sleep period - stay in temp mode until sleep ends
-            int minutesUntilSleepEnd;
-            if (sleepEndMin > currentMinutes) {
-                minutesUntilSleepEnd = sleepEndMin - currentMinutes;
-            } else {
-                minutesUntilSleepEnd = (24 * 60) - currentMinutes + sleepEndMin;
-            }
-            uint32_t sleepDuration = minutesUntilSleepEnd * 60;
-            ESP_LOGI(TAG, "Temp mode: staying active until deep sleep end (%d seconds)", sleepDuration);
-            return (uint64_t)max(30, (int)sleepDuration);
+        if (remaining > 0) {
+            return (uint64_t)max((int)MINIMUM_SLEEP_SECONDS, remaining);
         }
-        // 2 minutes complete and in active hours
-        // Temp mode should already be cleared by ButtonManager::handleWakeupMode()
-        // This path is a fallback that shouldn't normally be reached
-        ESP_LOGW(TAG, "Temp mode still active in sleep calculator after 2 minutes");
-        ESP_LOGW(TAG, "Flag should have been cleared by button manager - falling through to normal mode");
 
-        // Fall through to normal configured mode calculation below
+        // Temp mode expired — fall through to normal calculation
+        ESP_LOGW(TAG, "Temp mode expired but flag not cleared — falling through");
     }
 
-    // ===== NORMAL CONFIGURED MODE =====
-    ESP_LOGI(TAG, "Last updates - Weather: %u seconds, Departure: %u seconds",
-             getLastWeatherUpdate(), getLastTransportUpdate());
+    // ── COLLECT WAKE CANDIDATES ──────────────────────────────────────────
+    WakeCandidate candidates[MAX_CANDIDATES];
+    int count = 0;
+    uint8_t effectiveMode = getEffectiveDisplayMode();
 
-    // Step 1: Calculate next update times for each type
-    // it returns 0 if that update type is not needed
-    uint32_t nextOTACheck = calculateNextOTACheckTime(currentTimeSeconds);
-    uint32_t nextWeatherOrTransport = 0;
-
-    switch (displayMode) {
-    case DISPLAY_MODE_HALF_AND_HALF:
-        ESP_LOGI(TAG, "Display mode: HALF AND HALF");
-        nextWeatherOrTransport = min(calculateNextWeatherUpdate(currentTimeSeconds),
-                                     calculateNextTransportUpdate(currentTimeSeconds));
-        if (!isTransportActiveAtTime(nextWeatherOrTransport)) {
-            nextWeatherOrTransport = calculateNextWeatherUpdate(currentTimeSeconds);
-            ESP_LOGI(TAG, "Next update is transport outside active hours - using weather update at %u",
-                     nextWeatherOrTransport);
+    // Rule 1: Weather update (all modes that show weather)
+    if (effectiveMode != DISPLAY_MODE_TRANSPORT_ONLY) {
+        uint32_t nextWeather = calculateNextWeatherUpdate(currentTime);
+        if (nextWeather > 0) {
+            candidates[count++] = {nextWeather, false, "weather-update"};
         }
-        break;
-    case DISPLAY_MODE_WEATHER_ONLY:
-        ESP_LOGI(TAG, "Display mode: WEATHER ONLY");
-        nextWeatherOrTransport = calculateNextWeatherUpdate(currentTimeSeconds);
-        // If configured mode is HALF_AND_HALF but currently showing weather-only
-        // (outside transport active hours), also wake when transport becomes active
-        if (config.displayMode == DISPLAY_MODE_HALF_AND_HALF) {
-            uint32_t nextTransportActive = calculateNextActiveTransportTime(currentTimeSeconds);
-            if (nextTransportActive < nextWeatherOrTransport) {
-                nextWeatherOrTransport = nextTransportActive;
-                ESP_LOGI(TAG, "Half&Half mode: waking at transport active time %u", nextTransportActive);
-            }
-        }
-        break;
-    case DISPLAY_MODE_TRANSPORT_ONLY:
-        ESP_LOGI(TAG, "Display mode: TRANSPORT ONLY");
-        nextWeatherOrTransport = calculateNextTransportUpdate(currentTimeSeconds);
-        if (!isTransportActiveAtTime(nextWeatherOrTransport)) {
-            nextWeatherOrTransport = calculateNextActiveTransportTime(currentTimeSeconds);
-            ESP_LOGI(TAG, "Next transport update outside active hours - sleeping until active period at %u",
-                     nextWeatherOrTransport);
-        }
-        break;
-    case DISPLAY_MODE_APPLICATION_INFO:
-        // Application info mode has no data updates — temp mode block above handles sleep.
-        // This is a safety-net fallback: sleep 30 seconds minimum.
-        ESP_LOGI(TAG, "Display mode: APPLICATION INFO (fallback - temp mode should have been caught above)");
-        return 60;
-    default:
-        ESP_LOGI(TAG, "Unknown display mode: %d ", displayMode);
-        break;
     }
 
-    // Step 2: Adjust weather/transport update for sleep period (if not overdue)
-    bool isWeatherTransportOverdue = (nextWeatherOrTransport <= currentTimeSeconds);
-    if (!isWeatherTransportOverdue && nextWeatherOrTransport > 0) {
-        nextWeatherOrTransport = adjustForDeepSleepPeriod(nextWeatherOrTransport, false);
-    } else if (isWeatherTransportOverdue) {
-        ESP_LOGI(TAG, "Weather/Transport update is overdue - bypassing sleep period adjustment");
-    }
-
-    // Step 3: Handle OTA check separately (OTA always bypasses sleep)
-    uint32_t nextOTAWakeup = 0;
-    if (nextOTACheck > currentTimeSeconds) {
-        // OTA checks bypass sleep period restrictions
-        nextOTAWakeup = nextOTACheck;
-        ESP_LOGI(TAG, "OTA check scheduled at: %u (bypasses sleep period)", nextOTACheck);
-    }
-
-    // Step 4: Choose the earliest wake-up time between weather/transport and OTA
-    uint32_t nextUpdate = 0;
-    if (nextWeatherOrTransport > 0 && nextOTAWakeup > 0) {
-        if (nextOTAWakeup < nextWeatherOrTransport) {
-            nextUpdate = nextOTAWakeup;
-            ESP_LOGI(TAG, "Next wake-up: OTA check at %u (earlier than weather/transport at %u)",
-                     nextOTAWakeup, nextWeatherOrTransport);
-        } else {
-            nextUpdate = nextWeatherOrTransport;
-            ESP_LOGI(TAG, "Next wake-up: Weather/Transport at %u (earlier than OTA at %u)",
-                     nextWeatherOrTransport, nextOTAWakeup);
+    // Rule 2: Transport update (only when inside transport window)
+    if (effectiveMode == DISPLAY_MODE_HALF_AND_HALF || effectiveMode == DISPLAY_MODE_TRANSPORT_ONLY) {
+        uint32_t nextTransport = calculateNextTransportUpdate(currentTime);
+        if (nextTransport > 0 && isTransportActiveAtTime(nextTransport)) {
+            candidates[count++] = {nextTransport, false, "transport-update"};
         }
-    } else if (nextOTAWakeup > 0) {
-        nextUpdate = nextOTAWakeup;
-        ESP_LOGI(TAG, "Next wake-up: OTA check at %u (only scheduled event)", nextOTAWakeup);
-    } else if (nextWeatherOrTransport > 0) {
-        nextUpdate = nextWeatherOrTransport;
-        ESP_LOGI(TAG, "Next wake-up: Weather/Transport at %u (only scheduled event)", nextWeatherOrTransport);
     }
 
-    // Step 4: Calculate final sleep duration with minimum threshold
-    uint64_t sleepDurationSeconds;
-    if (nextUpdate > currentTimeSeconds) {
-        sleepDurationSeconds = (uint64_t)(nextUpdate - currentTimeSeconds);
+    // Rule 3: Transport window start (wake to begin showing departures)
+    // Applies when configured as half&half or transport-only, but currently outside transport window
+    if ((config.displayMode == DISPLAY_MODE_HALF_AND_HALF ||
+         config.displayMode == DISPLAY_MODE_TRANSPORT_ONLY) && !isTransportActiveTime()) {
+        uint32_t nextStart = calculateNextActiveTransportTime(currentTime);
+        if (nextStart > currentTime) {
+            candidates[count++] = {nextStart, false, "transport-window-start"};
+        }
+    }
+
+    // Rule 4: OTA check (bypasses sleep window)
+    if (config.otaEnabled) {
+        uint32_t nextOTA = calculateNextOTACheckTime(currentTime);
+        if (nextOTA > currentTime) {
+            candidates[count++] = {nextOTA, true, "ota-check"};
+        }
+    }
+
+    // ── CHECK FOR OVERDUE CANDIDATES (wake immediately) ─────────────────
+    for (int i = 0; i < count; i++) {
+        if (candidates[i].time <= currentTime) {
+            ESP_LOGI(TAG, "Candidate '%s' is overdue — wake immediately", candidates[i].reason);
+            return MINIMUM_SLEEP_SECONDS;
+        }
+    }
+
+    // ── APPLY SLEEP WINDOW FILTER ────────────────────────────────────────
+    // Non-OTA candidates that fall inside the sleep window are pushed to sleep end
+    for (int i = 0; i < count; i++) {
+        if (!candidates[i].bypassesSleep) {
+            candidates[i].time = adjustForDeepSleepPeriod(candidates[i].time, false);
+        }
+    }
+
+    // ── PICK EARLIEST ────────────────────────────────────────────────────
+    uint32_t earliest = 0;
+    const char* earliestReason = "none";
+    for (int i = 0; i < count; i++) {
+        if (earliest == 0 || candidates[i].time < earliest) {
+            earliest = candidates[i].time;
+            earliestReason = candidates[i].reason;
+        }
+    }
+
+    // ── CALCULATE DURATION ───────────────────────────────────────────────
+    uint64_t sleepSeconds;
+    if (earliest > currentTime) {
+        sleepSeconds = (uint64_t)(earliest - currentTime);
     } else {
-        sleepDurationSeconds = 30; // Minimum if time is in the past
+        sleepSeconds = MINIMUM_SLEEP_SECONDS;
     }
 
-    // Apply minimum sleep duration
-    if (sleepDurationSeconds < 30) {
-        sleepDurationSeconds = 30;
-        ESP_LOGI(TAG, "Applied minimum sleep duration: 30 seconds");
+    if (sleepSeconds < MINIMUM_SLEEP_SECONDS) {
+        sleepSeconds = MINIMUM_SLEEP_SECONDS;
     }
 
-    ESP_LOGI(TAG, "Final sleep duration: %llu seconds (%llu minutes)",
-             sleepDurationSeconds, sleepDurationSeconds / 60);
+    ESP_LOGI(TAG, "Next wake: %s at %u (in %llu seconds / %llu min)",
+             earliestReason, earliest, sleepSeconds, sleepSeconds / 60);
 
-    return sleepDurationSeconds;
+    return sleepSeconds;
 }
 
 bool TimingManager::isTransportActiveTime() {
