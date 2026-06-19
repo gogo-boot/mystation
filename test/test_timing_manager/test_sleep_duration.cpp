@@ -914,6 +914,31 @@ void test_temp_mode_flag_persists_after_clearing() {
     printf("  - Second wake: Showed configured mode (half-and-half)\n");
 }
 
+// Half&Half mode before transport active hours should wake at transport start time
+void test_half_half_wakes_at_transport_start() {
+    // 5:00 AM Thursday - before transport active hours (06:00-09:00)
+    time_t earlyMorning = createTime(2025, 10, 30, 5, 0, 0);
+    MockTime::setMockTime(earlyMorning);
+
+    RTCConfigData& config = ConfigManager::getConfig();
+    config.displayMode = DISPLAY_MODE_HALF_AND_HALF;
+    config.otaEnabled = false;
+    strcpy(config.transportActiveStart, "06:00");
+    strcpy(config.transportActiveEnd, "09:00");
+    config.weatherInterval = 3; // 3 hours
+
+    // Weather was updated at 5:00 AM (just now)
+    TimingManager::setLastWeatherUpdate((uint32_t)earlyMorning);
+    TimingManager::setLastTransportUpdate((uint32_t)earlyMorning);
+
+    uint64_t sleepDuration = TimingManager::getNextSleepDurationSeconds();
+    printf("Half&Half at 5:00 AM (before transport active 06:00): sleep %llu seconds (~%llu min)\n",
+           sleepDuration, sleepDuration / 60);
+
+    // Should wake at 06:00 (60 minutes = 3600 seconds), not at next weather update (3 hours)
+    TEST_ASSERT_EQUAL(3600, sleepDuration);
+}
+
 int main() {
     UNITY_BEGIN();
 
@@ -961,6 +986,9 @@ int main() {
     RUN_TEST(test_temp_mode_before_deep_sleep_starts);
     RUN_TEST(test_temp_mode_exit_after_2_minutes);
     RUN_TEST(test_temp_mode_flag_persists_after_clearing); // TDD test for bug fix
+
+    // Transport activation wake test
+    RUN_TEST(test_half_half_wakes_at_transport_start);
 
     return UNITY_END();
 }
