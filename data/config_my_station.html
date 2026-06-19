@@ -427,6 +427,9 @@
       <div class="warning">
         💡 Während Deep Sleep werden keine Updates durchgeführt und das Display bleibt unverändert. Dies maximiert die Batterielebensdauer.
       </div>
+      <div id="overlap-warning" style="display:none; background:#fab1a0; border:1px solid #e17055; color:#6b2020; padding:0.8em 1em; border-radius:6px; margin-top:0.5em; text-align:left;">
+        ⚠️ <strong>Hinweis:</strong> Die Abfahrtsanzeige-Zeit liegt innerhalb der Ruhezeit. Während der Ruhezeit werden keine Abfahrten aktualisiert.
+      </div>
     </div>
 
     <div class="config-item">
@@ -797,6 +800,39 @@
           stopSuggestions.style.display = 'none';
         });
     });
+
+    // --- Overlap detection: transport window vs sleep window ---
+    function timeToMinutes(str) {
+      var parts = str.split(':');
+      return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    }
+    function isMinuteInRange(min, start, end) {
+      if (start <= end) return min >= start && min < end;
+      return min >= start || min < end; // overnight range
+    }
+    function checkTransportSleepOverlap() {
+      var tStart = timeToMinutes(document.getElementById('transport-active-start').value);
+      var tEnd = timeToMinutes(document.getElementById('transport-active-end').value);
+      var sStart = timeToMinutes(document.getElementById('sleep-start').value);
+      var sEnd = timeToMinutes(document.getElementById('sleep-end').value);
+      return isMinuteInRange(tStart, sStart, sEnd) || isMinuteInRange(tEnd > 0 ? tEnd - 1 : 0, sStart, sEnd);
+    }
+    function updateOverlapWarning() {
+      var warning = document.getElementById('overlap-warning');
+      var displayMode = document.getElementById('display-mode').value;
+      if ((displayMode === '0' || displayMode === '2') && checkTransportSleepOverlap()) {
+        warning.style.display = 'block';
+      } else {
+        warning.style.display = 'none';
+      }
+    }
+    // Check overlap on any relevant input change
+    ['transport-active-start','transport-active-end','sleep-start','sleep-end','display-mode'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.addEventListener('change', updateOverlapWarning);
+    });
+    // Initial check on page load
+    updateOverlapWarning();
 
     // --- Save config handler ---
     document.getElementById('save-btn').onclick = function() {
