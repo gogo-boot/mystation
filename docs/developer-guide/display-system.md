@@ -44,7 +44,7 @@
 ## Update Performance
 
 - **Full Screen**: Complete redraw (~2-3 seconds)
-- **Partial Updates**: Not currently possible (see below)
+- **Partial Updates**: Not possible with deep sleep (see below)
 
 ---
 
@@ -68,7 +68,7 @@ Weather data (`WeatherInfo`) is stored in RTC memory because:
 
 ---
 
-## Future Improvement: Partial Display Update
+## Partial Display Update — Not Feasible with Deep Sleep
 
 Partial display update would allow refreshing only the transport section while keeping the weather section untouched:
 
@@ -77,14 +77,23 @@ Full refresh:     [Weather ████████ | Transport █████�
 Partial refresh:  [Weather (unchanged) | Transport ████]  ← no flash on left, <1s
 ```
 
-**Benefits:**
+**Why it doesn't work:**
 
-- Faster visible update (~0.5s vs 2-3s)
-- No full-screen flash on every transport update
-- Better user experience
+The e-paper controller (GDEY075T7) supports `setPartialWindow()` and GxEPD2 provides the API.
+U8g2_for_Adafruit_GFX also works correctly within partial windows (renders via `drawPixel()`
+which GxEPD2 clips to the window). The x=400 half-width boundary is 8-pixel aligned as required.
 
-**Current Blocker:**
+However, **partial updates require the controller to retain the previous image** in its RAM
+to calculate pixel transitions. After ESP32 deep sleep, the controller's RAM content becomes
+unreliable (even with `display.hibernate()`), causing:
 
-The U8g2 font rendering library does not support partial display updates with GxEPD2.
-The partial update window must avoid any U8g2-rendered text, which is used throughout both sections.
-A workaround (rendering fonts to a buffer, then using GxEPD2's native partial update) has not yet been implemented.
+- Ghosting on the unchanged half (weather)
+- Progressively unreadable content after multiple partial cycles
+- Full-screen flash fallback on some updates
+
+Since the device deep-sleeps between every update cycle (~5 min), there is no "second update
+within the same wake cycle" where partial refresh could work. The 48 KB framebuffer
+(800×480 / 8) also exceeds the ESP32's 8 KB RTC RAM, so it cannot be persisted across sleep.
+
+**Conclusion:** Full-screen refresh is the only reliable approach for a deep-sleep device.
+This is a hardware limitation, not a software one.
