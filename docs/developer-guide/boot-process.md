@@ -108,26 +108,96 @@ Weather data is cached in RTC memory. It is only re-fetched when the configured 
 
 ## Deep Sleep Duration Calculation
 
-Factors considered when calculating next wake-up time:
+The sleep duration calculator uses a **rule-based priority queue**. Each rule independently
+proposes a wake-up time. The system picks the earliest.
 
-- Current display mode (effective, considering temporary mode)
-- Configured update interval (weather or transport)
-- Night sleep schedule (user-configured quiet hours)
-- OTA check time (if OTA is enabled, wake briefly during night sleep for update)
-- Transport active time range
-- Minimum 30-second sleep to avoid rapid wake-sleep cycles
+### Terminology
 
-```mermaid
-flowchart TD
-    is_temp{{Temporary Mode?}} -->|yes| show_temp(Sleep until temp mode expires\nor night sleep ends)
-    is_temp -->|no| get_config(Get effective display mode)
-    get_config --> calc_interval(Calculate next update time\nbased on mode interval)
-    calc_interval --> is_night{{In Night Sleep Range?}}
-    is_night -->|no| return(Return interval\nconsider OTA check time)
-    is_night -->|yes| want_ota{{OTA Enabled?}}
-    want_ota -->|yes| show_ota(Sleep until OTA check time)
-    want_ota -->|no| wake_up(Sleep until night sleep ends)
+| Term | Meaning |
+|------|---------|
+| **Transport window** | Time range when departures are shown (e.g. 06:00–09:00) |
+| **Sleep window** | Time range when the device stays in deep sleep (e.g. 22:30–05:30) |
+| **Wake candidate** | A proposed wake-up time from a rule |
+
+### Rules
+
+| # | Rule | When it applies | Bypasses Sleep Window |
+|---|------|----------------|----------------------|
+| 1 | Weather update | All modes showing weather (weather-only, half&half) | No |
+| 2 | Transport update | Inside transport window (half&half, transport-only) | No |
+| 3 | Transport window start | Configured half&half or transport-only, currently outside window | No |
+| 4 | OTA check | OTA enabled | **Yes** |
+
+### Algorithm
+
 ```
+1. TEMPORARY MODE (early return)
+   → If temp mode active and < 2 min elapsed: sleep remaining time
+   → If in sleep window: sleep until sleep window ends
+
+2. COLLECT CANDIDATES
+   → Each rule proposes a wake-up timestamp
+
+3. OVERDUE CHECK
+   → If any candidate is in the past → wake immediately (30s)
+
+4. SLEEP WINDOW FILTER
+   → Non-OTA candidates inside sleep window are pushed to sleep window end
+   → OTA candidates bypass this filter
+
+5. PICK EARLIEST
+   → Minimum of all remaining candidates
+   → Enforce 30s minimum
+```
+
+### Display Mode Logic
+
+| Configured Mode | Inside Transport Window | Outside Transport Window |
+|-----------------|------------------------|--------------------------|
+| **Weather Only** | Rule 1 (weather) | Rule 1 (weather) |
+| **Half & Half** | Rule 1 + Rule 2 (picks earlier) | Rule 1 + Rule 3 (picks earlier) |
+| **Transport Only** | Rule 2 (transport) | Rule 3 (next window start) |
+
+### Sleep Window Handling
+
+When a wake candidate falls inside the sleep window:
+
+```
+  22:00       22:30          05:30       06:00
+    |           |    SLEEP    |           |
+    |           |=============|           |
+    |      ┌────┼──── X ─────┼──→ pushed to 05:30
+    |      |    |             |
+  candidate    sleep start   sleep end
+  (23:00)
+```
+
+- Non-OTA candidates are pushed to sleep window end
+- OTA candidates are NOT pushed (they bypass the sleep window)
+- If already inside the sleep window, device sleeps until window ends
+
+### Examples
+
+**7:00 AM, Half & Half mode, transport window 06:00–09:00:**
+- Rule 1: weather at 10:00 (3h interval)
+- Rule 2: transport at 7:05 (5 min interval)
+- Rule 3: not applicable (already inside window)
+- → Picks 7:05 (transport, earliest)
+
+**5:00 AM, Half & Half mode, transport window 06:00–09:00:**
+- Rule 1: weather at 8:00 (3h interval)
+- Rule 2: not applicable (outside window)
+- Rule 3: transport window starts at 6:00
+- → Picks 6:00 (transport window start, earliest)
+
+**22:00, Weather Only, sleep window 22:30–05:30:**
+- Rule 1: weather at 23:00 → pushed to 05:30
+- → Picks 05:30
+
+**22:00, OTA at 03:00, weather at 23:00, sleep window 22:30–05:30:**
+- Rule 1: weather at 23:00 → pushed to 05:30
+- Rule 4: OTA at 03:00 (bypasses sleep window)
+- → Picks 03:00 (OTA, earliest)
 
 ## Wake-up Sources
 
