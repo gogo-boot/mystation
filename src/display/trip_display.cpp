@@ -9,7 +9,7 @@
 static const char* TAG = "TRIP_DISPLAY";
 
 static constexpr int16_t ROW_HEIGHT = 18;
-static constexpr int16_t CONNECTION_HEIGHT = 62; // 3 rows (54px) + 8px padding
+static constexpr int16_t CONNECTION_HEIGHT = 75; // 480px - 28px header = 452px / 6 connections
 static constexpr int16_t HEADER_HEIGHT = 30;
 static constexpr int16_t MARGIN = 5;
 static constexpr int16_t COL_LINES = 70;
@@ -81,7 +81,7 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
     String originFull = extractStopName(config.selectedStopId);
 
     // === ROW 1: dep_time [+delay]  [line1] -O- [line2]  arr_time [+delay]  duration ===
-    int16_t row1Y = y + 4;
+    int16_t row1Y = y + 10;
 
     // Departure time
     TextUtils::printTextAtTopMargin(leftX, row1Y, conn.legs[0].departureTime);
