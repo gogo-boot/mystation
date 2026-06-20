@@ -931,6 +931,13 @@
           return;
       }
 
+      // Validate destination when trip mode is active
+      var tripModeActive = document.getElementById('trip-mode-on').classList.contains('active');
+      if (tripModeActive && !document.getElementById('trip-dest-id').value.trim()) {
+          alert('Bitte wählen Sie eine Ziel-Haltestelle für den Verbindungsmodus aus.');
+          return;
+      }
+
       // Validate "city-lat" and "city-lon" for display modes 0 and 1
       if ((displayMode === '0' || displayMode === '1') && (cityLat.trim() === '' || cityLon.trim() === '')) {
           alert('Bitte geben Sie gültige Breitengrad- und Längengradwerte ein, um den Anzeigemodus zu speichern.');
