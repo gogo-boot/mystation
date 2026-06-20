@@ -668,7 +668,8 @@
       document.getElementById('trip-dest-section').style.display = enabled ? 'block' : 'none';
     }
     // Initialize trip mode from template
-    if ('{{TRIP_MODE}}' === '1') setTripMode(true);
+    var savedTripMode = '{{TRIP_MODE}}';
+    if (savedTripMode === '1' || savedTripMode === 'true') setTripMode(true);
 
     // --- Trip destination autocomplete ---
     (function() {
