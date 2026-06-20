@@ -34,6 +34,8 @@ RTC_DATA_ATTR RTCConfigData ConfigManager::rtcConfig = {
     "", // otaCheckTime - empty = will be randomized on first boot
     FILTER_R | FILTER_S | FILTER_U | FILTER_TRAM | FILTER_BUS | FILTER_HIGHFLOOR | FILTER_FERRY | FILTER_CALLBUS,
     // filterFlags - Default filters
+    false, // tripMode - default to departures (not connections)
+    "", // tripDestId - no destination
     true, // configMode
     0, // lastUpdate
     false, // inTemporaryMode - default to normal mode
@@ -175,6 +177,10 @@ bool ConfigManager::loadFromNVS(bool force = false) {
             FILTER_FERRY | FILTER_CALLBUS;
     }
 
+    // Load trip mode configuration
+    rtcConfig.tripMode = preferences.getBool("tripMode", false);
+    String tripDest = preferences.getString("tripDestId", "");
+    copyString(rtcConfig.tripDestId, tripDest, sizeof(rtcConfig.tripDestId));
 
     preferences.end();
 
@@ -239,6 +245,9 @@ bool ConfigManager::saveToNVS() {
         preferences.putString(key.c_str(), filters[i]);
     }
 
+    // Save trip mode configuration
+    preferences.putBool("tripMode", rtcConfig.tripMode);
+    preferences.putString("tripDestId", rtcConfig.tripDestId);
 
     preferences.end();
 
@@ -497,6 +506,9 @@ void ConfigManager::updateFromJson(const JsonDocument& doc) {
     if (!doc["otaEnabled"].isNull()) config.otaEnabled = doc["otaEnabled"].as<bool>();
     if (!doc["otaCheckTime"].isNull()) strncpy(config.otaCheckTime, doc["otaCheckTime"].as<const char*>(),
                                                  sizeof(config.otaCheckTime) - 1);
+    if (!doc["tripMode"].isNull()) config.tripMode = doc["tripMode"].as<bool>();
+    if (!doc["tripDestId"].isNull()) strncpy(config.tripDestId, doc["tripDestId"].as<const char*>(),
+                                               sizeof(config.tripDestId) - 1);
 
     if (!doc["filters"].isNull()) {
         std::vector<String> filterList;

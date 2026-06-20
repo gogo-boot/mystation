@@ -331,7 +331,27 @@
       </div>
       <div><a class="edit-link" onclick="editStop()">Andere Haltestelle eingeben</a></div>
       <div id="stop-suggestions" style="display:none;"></div>
-      <div class="help-text" id="stop-help" style="display:none;">Stadtname zuerst, dann Straße (z.B. "Frankfurt Kaiserstraße") eingeben und Vorschlag auswählen.</div>
+      <div class="help-text" id="stop-help">Stadtname zuerst, dann Straße (z.B. "Frankfurt Kaiserstraße") eingeben und Vorschlag auswählen.</div>
+    </div>
+
+    <div class="config-item">
+      <div class="label">
+        Anzeigemodus ÖPNV
+        <span class="tooltip">ℹ️
+          <span class="tooltiptext">Abfahrten: zeigt nächste Abfahrten ab Ihrer Haltestelle. Verbindungen: zeigt Reiseverbindungen zu einem Ziel.</span>
+        </span>
+      </div>
+      <div class="config-row" style="display:flex; gap:0.5em;">
+        <button type="button" id="trip-mode-off" class="chip active" onclick="setTripMode(false)">Abfahrten</button>
+        <button type="button" id="trip-mode-on" class="chip" onclick="setTripMode(true)">Verbindungen</button>
+      </div>
+      <div id="trip-dest-section" style="display:none; margin-top:0.5em;">
+        <div class="label">Ziel-Haltestelle</div>
+        <input type="text" id="trip-dest-input" style="width:100%; padding:0.5em; font-size:1em; border:1px solid #ccc; border-radius:5px;" placeholder="Ziel eingeben..." autocomplete="off">
+        <div id="trip-dest-suggestions" style="display:none; position:relative; background:#fff; border:1px solid #ccc; border-radius:5px; max-height:200px; overflow-y:auto;"></div>
+        <div class="help-text">Stadtname zuerst, dann Straße (z.B. "Frankfurt Kaiserstraße") eingeben und Vorschlag auswählen.</div>
+        <input type="hidden" id="trip-dest-id" value="{{TRIP_DEST_ID}}">
+      </div>
     </div>
 
     <div class="config-item">
@@ -641,6 +661,50 @@
       event.target.style.display = 'none';
     }
 
+    // --- Trip mode toggle ---
+    function setTripMode(enabled) {
+      document.getElementById('trip-mode-on').classList.toggle('active', enabled);
+      document.getElementById('trip-mode-off').classList.toggle('active', !enabled);
+      document.getElementById('trip-dest-section').style.display = enabled ? 'block' : 'none';
+    }
+    // Initialize trip mode from template
+    var savedTripMode = '{{TRIP_MODE}}';
+    if (savedTripMode === '1' || savedTripMode === 'true') setTripMode(true);
+
+    // --- Trip destination autocomplete ---
+    (function() {
+      var input = document.getElementById('trip-dest-input');
+      var suggestions = document.getElementById('trip-dest-suggestions');
+      var hiddenId = document.getElementById('trip-dest-id');
+      if (hiddenId.value) input.value = hiddenId.value.replace(/.*@O=([^@]*)@.*/, '$1');
+
+      input.addEventListener('input', function() {
+        var q = input.value.trim();
+        if (q.length < 5) { suggestions.style.display = 'none'; return; }
+        fetch('/api/stop?q=' + encodeURIComponent(q))
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            suggestions.innerHTML = '';
+            data.forEach(function(stop) {
+              var div = document.createElement('div');
+              div.textContent = stop.name;
+              div.style.padding = '0.5em';
+              div.style.cursor = 'pointer';
+              div.style.borderBottom = '1px solid #eee';
+              div.onmouseover = function() { div.style.background = '#f0f8ff'; };
+              div.onmouseout = function() { div.style.background = '#fff'; };
+              div.onclick = function() {
+                input.value = stop.name;
+                hiddenId.value = stop.id;
+                suggestions.style.display = 'none';
+              };
+              suggestions.appendChild(div);
+            });
+            suggestions.style.display = data.length > 0 ? 'block' : 'none';
+          });
+      });
+    })();
+
     // --- Haltestelle bearbeiten ---
     function editStop() {
       document.getElementById('stop-select').style.display = 'none';
@@ -868,6 +932,13 @@
           return;
       }
 
+      // Validate destination when trip mode is active
+      var tripModeActive = document.getElementById('trip-mode-on').classList.contains('active');
+      if (tripModeActive && !document.getElementById('trip-dest-id').value.trim()) {
+          alert('Bitte wählen Sie eine Ziel-Haltestelle für den Verbindungsmodus aus.');
+          return;
+      }
+
       // Validate "city-lat" and "city-lon" for display modes 0 and 1
       if ((displayMode === '0' || displayMode === '1') && (cityLat.trim() === '' || cityLon.trim() === '')) {
           alert('Bitte geben Sie gültige Breitengrad- und Längengradwerte ein, um den Anzeigemodus zu speichern.');
@@ -917,7 +988,9 @@
         weekendSleepStart: weekendSleepStart,
         weekendSleepEnd: weekendSleepEnd,
         otaEnabled: otaEnabled,
-        otaCheckTime: otaCheckTime
+        otaCheckTime: otaCheckTime,
+        tripMode: document.getElementById('trip-mode-on').classList.contains('active'),
+        tripDestId: document.getElementById('trip-dest-id').value
       };
 
       fetch('/save_config', {
