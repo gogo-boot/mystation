@@ -372,7 +372,7 @@ bool getTripFromRMV(const char* originId, const char* destId, TripData& tripData
 
     char url[512];
     snprintf(url, sizeof(url),
-        "https://www.rmv.de/hapi/trip?accessId=%s&originId=%s&destId=%s&format=json&numF=5&products=%d&time=%s",
+        "https://www.rmv.de/hapi/trip?accessId=%s&originId=%s&destId=%s&format=json&numF=8&products=%d&time=%s",
         decrypted.c_str(), encodedOrigin.c_str(), encodedDest.c_str(),
         config.filterFlags, departureTime);
 
@@ -424,7 +424,7 @@ bool getTripFromRMV(const char* originId, const char* destId, TripData& tripData
     // Parse trips
     JsonArray trips = doc["Trip"];
     for (JsonObject trip : trips) {
-        if (tripData.connectionCount >= 5) break;
+        if (tripData.connectionCount >= 8) break;
 
         TripConnection& conn = tripData.connections[tripData.connectionCount];
         conn.legCount = 0;

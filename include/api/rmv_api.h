@@ -49,7 +49,7 @@ struct TripConnection {
 };
 
 struct TripData {
-    TripConnection connections[5]; // Next 5 connections
+    TripConnection connections[8]; // Next 8 connections
     int connectionCount;
 };
 
