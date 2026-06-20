@@ -33,11 +33,16 @@ void TripDisplay::drawTripConnections(const TripData& tripData, int16_t x, int16
 
     RTCConfigData& config = ConfigManager::getConfig();
 
-    // Header: Origin → Destination
+    // Header: Origin → Destination (strip city name, use short forms)
     TextUtils::setFont12px_margin15px();
-    String origin = Util::shortenStationName(config.selectedStopName);
+    String origin = extractStopName(config.selectedStopId);
     String dest = extractStopName(config.tripDestId);
-    dest = Util::shortenStationName(dest);
+    // Remove city prefix from both (e.g. "Frankfurt (Main) Rödelheim Bhf" → "Rödelheim Bhf")
+    origin = Util::shortenDestination(origin, dest);
+    dest = Util::shortenDestination(dest, origin);
+    // If shortenDestination removed everything, fall back to shortenStationName
+    if (origin.isEmpty()) origin = Util::shortenStationName(extractStopName(config.selectedStopId));
+    if (dest.isEmpty()) dest = Util::shortenStationName(extractStopName(config.tripDestId));
     String header = origin + " -> " + dest;
     header = TextUtils::shortenTextToFit(header, w - MARGIN * 2);
     TextUtils::printTextAtTopMargin(x + MARGIN, y, header);
