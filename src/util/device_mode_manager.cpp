@@ -12,6 +12,7 @@
 #include "config/config_page_data.h"
 #include "config/config_struct.h"
 #include "display/display_manager.h"
+#include "display/trip_display.h"
 #include "util/battery_manager.h"
 #include "util/transport_print.h"
 #include "global_instances.h"
@@ -96,20 +97,26 @@ void DeviceModeManager::showWeatherDeparture() {
     bool needsWeatherUpdate = TimingManager::isTimeForWeatherUpdate();
     ESP_LOGI(TAG, "Update requirements - Weather: %s", needsWeatherUpdate ? "YES" : "NO");
 
-    DepartureData depart;
-
-    // Path: Update both weather and departure - FULL REFRESH
-    ESP_LOGI(TAG, "Updating both weather and departure data");
-
     if (needsWeatherUpdate && getGeneralWeatherFull(config.latitude, config.longitude, weather)) {
         printWeatherInfo(weather);
         TimingManager::markWeatherUpdated();
     }
-    fetchTransportData(depart);
-    TimingManager::markTransportUpdated();
 
-    shutdownWiFiBeforeRender();
-    DisplayManager::displayHalfNHalf(weather, depart);
+    if (config.tripMode) {
+        // Trip/connection mode
+        TripData trip;
+        getTripFromRMV(config.selectedStopId, config.tripDestId, trip);
+        TimingManager::markTransportUpdated();
+        shutdownWiFiBeforeRender();
+        DisplayManager::displayHalfNHalfTrip(weather, trip);
+    } else {
+        // Departure mode
+        DepartureData depart;
+        fetchTransportData(depart);
+        TimingManager::markTransportUpdated();
+        shutdownWiFiBeforeRender();
+        DisplayManager::displayHalfNHalf(weather, depart);
+    }
 }
 
 void DeviceModeManager::updateWeatherFull() {
