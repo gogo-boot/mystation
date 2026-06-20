@@ -326,3 +326,149 @@ bool getDepartureFromRMV(const char* stopId, DepartureData& departData) {
 
     return true;
 }
+
+
+// ============================================================================
+// Trip/Connection API
+// ============================================================================
+
+static int parseDuration(const char* dur) {
+    // Parse ISO 8601 duration: "PT19M" → 19, "PT1H19M" → 79
+    int h = 0, m = 0;
+    if (sscanf(dur, "PT%dH%dM", &h, &m) == 2) return h * 60 + m;
+    if (sscanf(dur, "PT%dM", &m) == 1) return m;
+    if (sscanf(dur, "PT%dH", &h) == 1) return h * 60;
+    return 0;
+}
+
+static void copyTime(char* dest, const char* src, size_t destSize) {
+    // Copy "HH:MM:SS" → "HH:MM" (first 5 chars)
+    if (src && strlen(src) >= 5) {
+        strncpy(dest, src, 5);
+        dest[5] = '\0';
+    } else {
+        dest[0] = '\0';
+    }
+}
+
+bool getTripFromRMV(const char* originId, const char* destId, TripData& tripData) {
+    ESP_LOGI(TAG, "Fetching trip data: %s → %s", originId, destId);
+
+    tripData.connectionCount = 0;
+
+    RTCConfigData& config = ConfigManager::getConfig();
+    std::string decrypted = AESCrypto::getRMVAPIKey();
+
+    // Calculate departure time with walking time offset
+    time_t now;
+    time(&now);
+    now += config.walkingTime * 60; // Add walking time
+    struct tm* t = localtime(&now);
+    char departureTime[6];
+    snprintf(departureTime, sizeof(departureTime), "%02d:%02d", t->tm_hour, t->tm_min);
+
+    String encodedOrigin = Util::urlEncode(String(originId));
+    String encodedDest = Util::urlEncode(String(destId));
+
+    char url[512];
+    snprintf(url, sizeof(url),
+        "https://www.rmv.de/hapi/trip?accessId=%s&originId=%s&destId=%s&format=json&numF=5&products=%d&time=%s",
+        decrypted.c_str(), encodedOrigin.c_str(), encodedDest.c_str(),
+        config.filterFlags, departureTime);
+
+    ESP_LOGI(TAG, "Trip API request (time=%s, products=%d)", departureTime, config.filterFlags);
+
+    HTTPClient http;
+    http.begin(url);
+    http.setTimeout(10000);
+
+    const char* keys[] = {"Transfer-Encoding"};
+    http.collectHeaders(keys, 1);
+
+    int httpCode = http.GET();
+    if (httpCode != HTTP_CODE_OK) {
+        ESP_LOGE(TAG, "Trip HTTP GET failed: %s", http.errorToString(httpCode).c_str());
+        http.end();
+        return false;
+    }
+
+    // JSON filter — only parse the fields we need
+    JsonDocument filter;
+    filter["Trip"][0]["duration"] = true;
+    filter["Trip"][0]["LegList"]["Leg"][0]["type"] = true;
+    filter["Trip"][0]["LegList"]["Leg"][0]["name"] = true;
+    filter["Trip"][0]["LegList"]["Leg"][0]["direction"] = true;
+    filter["Trip"][0]["LegList"]["Leg"][0]["Origin"]["time"] = true;
+    filter["Trip"][0]["LegList"]["Leg"][0]["Origin"]["rtTime"] = true;
+    filter["Trip"][0]["LegList"]["Leg"][0]["Origin"]["track"] = true;
+    filter["Trip"][0]["LegList"]["Leg"][0]["Destination"]["time"] = true;
+    filter["Trip"][0]["LegList"]["Leg"][0]["Destination"]["rtTime"] = true;
+
+    // Stream and parse
+    Stream& rawStream = http.getStream();
+    ChunkDecodingStream decodedStream(http.getStream());
+    Stream& response = http.header("Transfer-Encoding") == "chunked" ? decodedStream : rawStream;
+
+    JsonDocument doc;
+    DeserializationError error = deserializeJson(doc, response,
+        DeserializationOption::Filter(filter),
+        DeserializationOption::NestingLimit(20));
+
+    http.end();
+
+    if (error) {
+        ESP_LOGE(TAG, "Trip JSON parse failed: %s", error.c_str());
+        return false;
+    }
+
+    // Parse trips
+    JsonArray trips = doc["Trip"];
+    for (JsonObject trip : trips) {
+        if (tripData.connectionCount >= 5) break;
+
+        TripConnection& conn = tripData.connections[tripData.connectionCount];
+        conn.legCount = 0;
+        conn.durationMinutes = parseDuration(trip["duration"] | "PT0M");
+
+        JsonArray legs = trip["LegList"]["Leg"];
+        for (JsonObject leg : legs) {
+            if (conn.legCount >= 4) break;
+
+            // Skip walking legs
+            const char* type = leg["type"] | "";
+            if (strcmp(type, "JNY") != 0) continue;
+
+            TripLeg& tl = conn.legs[conn.legCount];
+
+            copyTime(tl.departureTime, leg["Origin"]["time"] | "", sizeof(tl.departureTime));
+            copyTime(tl.arrivalTime, leg["Destination"]["time"] | "", sizeof(tl.arrivalTime));
+            copyTime(tl.rtDepartureTime, leg["Origin"]["rtTime"] | "", sizeof(tl.rtDepartureTime));
+            copyTime(tl.rtArrivalTime, leg["Destination"]["rtTime"] | "", sizeof(tl.rtArrivalTime));
+
+            strncpy(tl.line, leg["name"] | "", sizeof(tl.line) - 1);
+            tl.line[sizeof(tl.line) - 1] = '\0';
+
+            strncpy(tl.direction, leg["direction"] | "", sizeof(tl.direction) - 1);
+            tl.direction[sizeof(tl.direction) - 1] = '\0';
+
+            const char* track = leg["Origin"]["track"] | "";
+            strncpy(tl.platform, track, sizeof(tl.platform) - 1);
+            tl.platform[sizeof(tl.platform) - 1] = '\0';
+
+            conn.legCount++;
+        }
+
+        if (conn.legCount > 0) {
+            tripData.connectionCount++;
+            ESP_LOGI(TAG, "  Connection %d: %s→%s (%d min, %d legs)",
+                tripData.connectionCount,
+                conn.legs[0].departureTime,
+                conn.legs[conn.legCount - 1].arrivalTime,
+                conn.durationMinutes,
+                conn.legCount);
+        }
+    }
+
+    ESP_LOGI(TAG, "Trip: found %d connections", tripData.connectionCount);
+    return tripData.connectionCount > 0;
+}
