@@ -9,16 +9,12 @@
 static const char* TAG = "TRIP_DISPLAY";
 
 static constexpr int16_t ROW_HEIGHT = 18;
-static constexpr int16_t CONNECTION_PADDING = 4;
+static constexpr int16_t CONNECTION_HEIGHT = 62; // 3 rows (54px) + 8px padding
+static constexpr int16_t HEADER_HEIGHT = 30;
 static constexpr int16_t MARGIN = 5;
-
-// Column positions (relative to x)
-static constexpr int16_t COL_DEP_TIME = 0;
 static constexpr int16_t COL_LINES = 70;
-static constexpr int16_t COL_DURATION = -55; // from right edge
 
 String TripDisplay::extractStopName(const char* stopId) {
-    // Extract name from "A=1@O=Name@X=..."
     String id = String(stopId);
     int oStart = id.indexOf("@O=");
     if (oStart < 0) return id;
@@ -29,11 +25,7 @@ String TripDisplay::extractStopName(const char* stopId) {
 }
 
 int16_t TripDisplay::getConnectionHeight(const TripConnection& conn) {
-    // Row 1: times + lines
-    // Row 2+: "in X min" + transfer stations (one per transfer)
-    int transfers = conn.legCount > 1 ? conn.legCount - 1 : 0;
-    int rows = 1 + max(1, transfers); // at least 2 rows per connection
-    return rows * ROW_HEIGHT + CONNECTION_PADDING;
+    return CONNECTION_HEIGHT; // Fixed 3-row height
 }
 
 void TripDisplay::drawTripConnections(const TripData& tripData, int16_t x, int16_t y, int16_t w, int16_t h) {
@@ -49,93 +41,85 @@ void TripDisplay::drawTripConnections(const TripData& tripData, int16_t x, int16
     String header = origin + " -> " + dest;
     header = TextUtils::shortenTextToFit(header, w - MARGIN * 2);
     TextUtils::printTextAtTopMargin(x + MARGIN, y, header);
-    y += ROW_HEIGHT + 2;
+    y += 20;
 
     // Separator line
     display.drawFastHLine(x, y, w, GxEPD_BLACK);
     y += 4;
 
-    // Get current time for "in X min" calculation
+    // Current time for "in X min"
     time_t now;
     time(&now);
     uint32_t currentTime = (uint32_t)now;
 
-    // Draw each connection
+    // Draw connections
     TextUtils::setFont10px_margin12px();
     for (int i = 0; i < tripData.connectionCount; i++) {
-        const TripConnection& conn = tripData.connections[i];
+        if (y + CONNECTION_HEIGHT > h) break;
 
-        int16_t connHeight = getConnectionHeight(conn);
-        if (y + connHeight > h) {
-            ESP_LOGI(TAG, "Stopping at connection %d — no space left", i);
-            break;
-        }
+        drawSingleConnection(tripData.connections[i], x, y, w, CONNECTION_HEIGHT, currentTime);
+        y += CONNECTION_HEIGHT;
 
-        drawSingleConnection(conn, x, y, w, h - y, currentTime);
-        y += connHeight;
-
-        // Separator line between connections
-        display.drawFastHLine(x + MARGIN, y - 2, w - MARGIN * 2, GxEPD_BLACK);
+        // Separator
+        display.drawFastHLine(x + MARGIN, y - 4, w - MARGIN * 2, GxEPD_BLACK);
     }
 
-    // No connections found
     if (tripData.connectionCount == 0) {
-        TextUtils::printTextAtTopMargin(x + MARGIN, y, "Keine Verbindungen gefunden");
+        TextUtils::printTextAtTopMargin(x + MARGIN, y + 10, "Keine Verbindungen gefunden");
     }
 }
 
 int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x, int16_t y,
                                            int16_t w, int16_t maxH, uint32_t currentTime) {
-    int16_t startY = y;
     int16_t rightEdge = x + w - MARGIN;
+    int16_t leftX = x + MARGIN;
 
-    // === ROW 1: dep_time [delay] [line1] ─O─ [line2] ... arr_time [delay] duration ===
+    // === ROW 1: dep_time [+delay]  [line1] -O- [line2]  arr_time [+delay]  duration ===
+    int16_t row1Y = y + 4;
 
     // Departure time
-    TextUtils::printTextAtTopMargin(x + MARGIN + COL_DEP_TIME, y, conn.legs[0].departureTime);
+    TextUtils::printTextAtTopMargin(leftX, row1Y, conn.legs[0].departureTime);
 
     // Departure delay
-    int16_t currentX = x + MARGIN + 35;
+    int16_t currentX = leftX + 35;
     if (conn.legs[0].rtDepartureTime[0] != '\0' &&
         strcmp(conn.legs[0].rtDepartureTime, conn.legs[0].departureTime) != 0) {
-        // Calculate delay in minutes
         int schedMin = atoi(conn.legs[0].departureTime) * 60 + atoi(conn.legs[0].departureTime + 3);
         int rtMin = atoi(conn.legs[0].rtDepartureTime) * 60 + atoi(conn.legs[0].rtDepartureTime + 3);
         int delay = rtMin - schedMin;
         if (delay > 0) {
             String delayStr = "+" + String(delay);
-            TextUtils::printTextAtTopMargin(currentX, y, delayStr.c_str());
+            TextUtils::printTextAtTopMargin(currentX, row1Y, delayStr.c_str());
         }
     }
 
-    // Line numbers with ─O─ between them
-    currentX = x + MARGIN + COL_LINES;
+    // Line boxes with -O- transfer symbols
+    currentX = leftX + COL_LINES;
     for (int leg = 0; leg < conn.legCount; leg++) {
         if (leg > 0) {
-            // Draw ─O─ transfer symbol
-            TextUtils::printTextAtTopMargin(currentX, y, "-O-");
+            TextUtils::printTextAtTopMargin(currentX, row1Y, "-O-");
             currentX += TextUtils::getTextWidth("-O-") + 2;
         }
-        // Draw [line] box
         String line = String(conn.legs[leg].line);
         int16_t lineW = TextUtils::getTextWidth(line) + 6;
-        display.drawRect(currentX, y - 1, lineW, ROW_HEIGHT - 4, GxEPD_BLACK);
-        TextUtils::printTextAtTopMargin(currentX + 3, y, line.c_str());
+        // Don't overflow into arrival area
+        if (currentX + lineW > rightEdge - 90) break;
+        display.drawRect(currentX, row1Y - 1, lineW, ROW_HEIGHT - 4, GxEPD_BLACK);
+        TextUtils::printTextAtTopMargin(currentX + 3, row1Y, line.c_str());
         currentX += lineW + 4;
     }
-
-    // Arrival time (right-aligned)
-    const TripLeg& lastLeg = conn.legs[conn.legCount - 1];
-    String arrStr = String(lastLeg.arrivalTime);
-    int16_t arrW = TextUtils::getTextWidth(arrStr);
 
     // Duration (far right)
     String durStr = String(conn.durationMinutes) + " min";
     int16_t durW = TextUtils::getTextWidth(durStr);
-    TextUtils::printTextAtTopMargin(rightEdge - durW, y, durStr.c_str());
+    TextUtils::printTextAtTopMargin(rightEdge - durW, row1Y, durStr.c_str());
 
-    // Arrival time (before duration)
-    TextUtils::printTextAtTopMargin(rightEdge - durW - arrW - 10, y, arrStr.c_str());
+    // Arrival time
+    const TripLeg& lastLeg = conn.legs[conn.legCount - 1];
+    String arrStr = String(lastLeg.arrivalTime);
+    int16_t arrW = TextUtils::getTextWidth(arrStr);
+    int16_t arrX = rightEdge - durW - arrW - 10;
+    TextUtils::printTextAtTopMargin(arrX, row1Y, arrStr.c_str());
 
     // Arrival delay
     if (lastLeg.rtArrivalTime[0] != '\0' &&
@@ -145,18 +129,16 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
         int delay = rtMin - schedMin;
         if (delay > 0) {
             String delayStr = "+" + String(delay);
-            TextUtils::printTextAtTopMargin(rightEdge - durW - arrW - 10 + arrW + 2, y, delayStr.c_str());
+            TextUtils::printTextAtTopMargin(arrX + arrW + 2, row1Y, delayStr.c_str());
         }
     }
 
-    y += ROW_HEIGHT;
+    // === ROW 2: "in X min" + Transfer 1 ===
+    int16_t row2Y = row1Y + ROW_HEIGHT;
 
-    // === ROW 2+: "in X min" + transfer stations ===
-
-    // "in X min" under departure time
+    // "in X min"
     int depHour = atoi(conn.legs[0].departureTime);
     int depMin = atoi(conn.legs[0].departureTime + 3);
-    // Use rtTime if available
     if (conn.legs[0].rtDepartureTime[0] != '\0') {
         depHour = atoi(conn.legs[0].rtDepartureTime);
         depMin = atoi(conn.legs[0].rtDepartureTime + 3);
@@ -165,33 +147,46 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
     int nowMinutes = nowTm->tm_hour * 60 + nowTm->tm_min;
     int depMinutes = depHour * 60 + depMin;
     int minutesUntil = depMinutes - nowMinutes;
-    if (minutesUntil < 0) minutesUntil += 24 * 60; // next day
+    if (minutesUntil < 0) minutesUntil += 24 * 60;
 
     String inStr = "in " + String(minutesUntil) + " min";
-    TextUtils::printTextAtTopMargin(x + MARGIN + COL_DEP_TIME, y, inStr.c_str());
+    TextUtils::printTextAtTopMargin(leftX, row2Y, inStr.c_str());
 
-    // Transfer stations (one per line)
+    // Transfer 1 (if exists)
     if (conn.legCount > 1) {
-        int16_t transferX = x + MARGIN + COL_LINES;
-        for (int leg = 0; leg < conn.legCount - 1; leg++) {
-            // Transfer station = destination of current leg
-            String station = Util::shortenStationName(String(conn.legs[leg].direction));
+        int arrMin = atoi(conn.legs[0].arrivalTime) * 60 + atoi(conn.legs[0].arrivalTime + 3);
+        int nextDepMin = atoi(conn.legs[1].departureTime) * 60 + atoi(conn.legs[1].departureTime + 3);
+        int transferTime = nextDepMin - arrMin;
+        if (transferTime < 0) transferTime += 24 * 60;
 
-            // Calculate transfer time (next leg departure - this leg arrival)
+        String station = Util::shortenStationName(String(conn.legs[0].direction));
+        String transferStr = "Umst: " + station + " (" + String(transferTime) + " min)";
+        int16_t maxTransferW = w - COL_LINES - MARGIN;
+        transferStr = TextUtils::shortenTextToFit(transferStr, maxTransferW);
+        TextUtils::printTextAtTopMargin(leftX + COL_LINES, row2Y, transferStr.c_str());
+    }
+
+    // === ROW 3: Transfer 2+ (combined on one line if multiple) ===
+    int16_t row3Y = row2Y + ROW_HEIGHT;
+
+    if (conn.legCount > 2) {
+        String combined = "";
+        for (int leg = 1; leg < conn.legCount - 1; leg++) {
             int arrMin = atoi(conn.legs[leg].arrivalTime) * 60 + atoi(conn.legs[leg].arrivalTime + 3);
             int nextDepMin = atoi(conn.legs[leg + 1].departureTime) * 60 +
                              atoi(conn.legs[leg + 1].departureTime + 3);
             int transferTime = nextDepMin - arrMin;
             if (transferTime < 0) transferTime += 24 * 60;
 
-            String transferStr = "Umst: " + station + " (" + String(transferTime) + " min)";
-            transferStr = TextUtils::shortenTextToFit(transferStr, w - COL_LINES - MARGIN);
-            TextUtils::printTextAtTopMargin(transferX, y, transferStr.c_str());
-            y += ROW_HEIGHT;
+            String station = Util::shortenStationName(String(conn.legs[leg].direction));
+            if (combined.length() > 0) combined += ", ";
+            combined += station + " (" + String(transferTime) + " min)";
         }
-    } else {
-        y += ROW_HEIGHT; // Empty row 2 for direct connections
+        String transferStr = "Umst: " + combined;
+        int16_t maxTransferW = w - COL_LINES - MARGIN;
+        transferStr = TextUtils::shortenTextToFit(transferStr, maxTransferW);
+        TextUtils::printTextAtTopMargin(leftX + COL_LINES, row3Y, transferStr.c_str());
     }
 
-    return y - startY;
+    return CONNECTION_HEIGHT;
 }
