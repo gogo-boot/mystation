@@ -331,7 +331,7 @@
       </div>
       <div><a class="edit-link" onclick="editStop()">Andere Haltestelle eingeben</a></div>
       <div id="stop-suggestions" style="display:none;"></div>
-      <div class="help-text" id="stop-help" style="display:none;">Stadtname zuerst, dann Straße (z.B. "Frankfurt Kaiserstraße") eingeben und Vorschlag auswählen.</div>
+      <div class="help-text" id="stop-help">Stadtname zuerst, dann Straße (z.B. "Frankfurt Kaiserstraße") eingeben und Vorschlag auswählen.</div>
     </div>
 
     <div class="config-item">
@@ -349,6 +349,7 @@
         <div class="label">Ziel-Haltestelle</div>
         <input type="text" id="trip-dest-input" style="width:100%; padding:0.5em; font-size:1em; border:1px solid #ccc; border-radius:5px;" placeholder="Ziel eingeben..." autocomplete="off">
         <div id="trip-dest-suggestions" style="display:none; position:relative; background:#fff; border:1px solid #ccc; border-radius:5px; max-height:200px; overflow-y:auto;"></div>
+        <div class="help-text">Stadtname zuerst, dann Straße (z.B. "Frankfurt Kaiserstraße") eingeben und Vorschlag auswählen.</div>
         <input type="hidden" id="trip-dest-id" value="{{TRIP_DEST_ID}}">
       </div>
     </div>
