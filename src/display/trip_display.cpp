@@ -77,6 +77,8 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
                                            int16_t w, int16_t maxH, uint32_t currentTime) {
     int16_t rightEdge = x + w - MARGIN;
     int16_t leftX = x + MARGIN;
+    RTCConfigData& config = ConfigManager::getConfig();
+    String originFull = extractStopName(config.selectedStopId);
 
     // === ROW 1: dep_time [+delay]  [line1] -O- [line2]  arr_time [+delay]  duration ===
     int16_t row1Y = y + 4;
@@ -163,7 +165,7 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
         int transferTime = nextDepMin - arrMin;
         if (transferTime < 0) transferTime += 24 * 60;
 
-        String station = Util::shortenStationName(String(conn.legs[0].direction));
+        String station = Util::shortenDestination(originFull, String(conn.legs[0].direction));
         String transferStr = "Umst: " + station + " (" + String(transferTime) + " min)";
         int16_t maxTransferW = w - COL_LINES - MARGIN;
         transferStr = TextUtils::shortenTextToFit(transferStr, maxTransferW);
@@ -182,7 +184,7 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
             int transferTime = nextDepMin - arrMin;
             if (transferTime < 0) transferTime += 24 * 60;
 
-            String station = Util::shortenStationName(String(conn.legs[leg].direction));
+            String station = Util::shortenDestination(originFull, String(conn.legs[leg].direction));
             if (combined.length() > 0) combined += ", ";
             combined += station + " (" + String(transferTime) + " min)";
         }
