@@ -32,10 +32,12 @@ RTCConfigData ConfigManager::rtcConfig = {
     (uint16_t)(
         FILTER_R | FILTER_S | FILTER_U | FILTER_TRAM | FILTER_BUS | FILTER_HIGHFLOOR | FILTER_FERRY | FILTER_CALLBUS),
     // filterFlags
+    false, // tripMode
+    "", // tripDestId
     false, // configMode
     0, // lastUpdate
     false, // inTemporaryMode
-    0xFF, // temporaryDisplayMode
+    (uint8_t)0xFF, // temporaryDisplayMode
     0 // temporaryModeActivationTime
 };
 
