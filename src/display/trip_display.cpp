@@ -33,20 +33,19 @@ void TripDisplay::drawTripConnections(const TripData& tripData, int16_t x, int16
 
     RTCConfigData& config = ConfigManager::getConfig();
 
-    // Header: Origin → Destination (strip city name, use short forms)
+    // Header: Origin → Destination (strip city name)
     TextUtils::setFont12px_margin15px();
-    String origin = extractStopName(config.selectedStopId);
-    String dest = extractStopName(config.tripDestId);
-    // Remove city prefix from both (e.g. "Frankfurt (Main) Rödelheim Bhf" → "Rödelheim Bhf")
-    origin = Util::shortenDestination(origin, dest);
-    dest = Util::shortenDestination(dest, origin);
-    // If shortenDestination removed everything, fall back to shortenStationName
-    if (origin.isEmpty()) origin = Util::shortenStationName(extractStopName(config.selectedStopId));
-    if (dest.isEmpty()) dest = Util::shortenStationName(extractStopName(config.tripDestId));
+    String originFull = extractStopName(config.selectedStopId);
+    String destFull = extractStopName(config.tripDestId);
+    // Use the full destination as reference to strip city from origin, and vice versa
+    String origin = Util::shortenDestination(destFull, originFull);
+    String dest = Util::shortenDestination(originFull, destFull);
+    if (origin.isEmpty()) origin = Util::shortenStationName(originFull);
+    if (dest.isEmpty()) dest = Util::shortenStationName(destFull);
     String header = origin + " -> " + dest;
     header = TextUtils::shortenTextToFit(header, w - MARGIN * 2);
     TextUtils::printTextAtTopMargin(x + MARGIN, y, header);
-    y += 20;
+    y += 24; // More spacing after header
 
     // Separator line
     display.drawFastHLine(x, y, w, GxEPD_BLACK);
