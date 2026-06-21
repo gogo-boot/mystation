@@ -87,8 +87,7 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
     int16_t colDepTime = leftX;
     int16_t colDelay = leftX + 38;  // gap after "23:06"
     int16_t colLines = leftX + COL_LINES;
-    int16_t colDuration = rightEdge - TextUtils::getTextWidth("999 min");
-    int16_t colArrTime = colDuration - TextUtils::getTextWidth("23:06") - 12;
+    int16_t colArrTime = rightEdge - TextUtils::getTextWidth("23:06") - 5;
     int16_t colArrDelay = colArrTime + TextUtils::getTextWidth("23:06") + 3;
 
     // Departure time
@@ -115,18 +114,14 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
         }
         String line = String(conn.legs[leg].line);
         int16_t lineW = TextUtils::getTextWidth(line) + 6;
-        // Don't overflow into arrival area
+        // Don't overflow into arrival time area
         if (currentX + lineW > colArrTime - 5) break;
         display.drawRect(currentX, row1Y - 1, lineW, ROW_HEIGHT - 4, GxEPD_BLACK);
         TextUtils::printTextAtTopMargin(currentX + 3, row1Y, line.c_str());
         currentX += lineW + 4;
     }
 
-    // Duration (fixed position, far right)
-    String durStr = String(conn.durationMinutes) + " min";
-    TextUtils::printTextAtTopMargin(colDuration, row1Y, durStr.c_str());
-
-    // Arrival time (fixed position)
+    // Arrival time (fixed position, right side of row 1)
     const TripLeg& lastLeg = conn.legs[conn.legCount - 1];
     TextUtils::printTextAtTopMargin(colArrTime, row1Y, lastLeg.arrivalTime);
 
@@ -162,6 +157,11 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
     inStr = TextUtils::shortenTextToFit(inStr, COL_LINES - 5);
     TextUtils::printTextAtTopMargin(leftX, row2Y, inStr.c_str());
     int16_t transferColX = leftX + COL_LINES; // Align with line boxes above
+
+    // Duration (right-aligned on row 2)
+    String durStr = String(conn.durationMinutes) + " min";
+    int16_t durW = TextUtils::getTextWidth(durStr);
+    TextUtils::printTextAtTopMargin(rightEdge - durW, row2Y, durStr.c_str());
 
     // Transfer 1 (if exists)
     if (conn.legCount > 1) {
