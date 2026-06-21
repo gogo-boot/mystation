@@ -154,34 +154,31 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
     // === ROW 2: "in X min" + Transfer 1 ===
     int16_t row2Y = row1Y + ROW_HEIGHT;
 
-    // "in X min"
-    int depHour = atoi(conn.legs[0].departureTime);
-    int depMin = atoi(conn.legs[0].departureTime + 3);
-    if (conn.legs[0].rtDepartureTime[0] != '\0') {
-        depHour = atoi(conn.legs[0].rtDepartureTime);
-        depMin = atoi(conn.legs[0].rtDepartureTime + 3);
+    String inStr;
+    if (hasCancelled) {
+        inStr = "Fällt aus";
+    } else {
+        int depHour = atoi(conn.legs[0].departureTime);
+        int depMin = atoi(conn.legs[0].departureTime + 3);
+        if (conn.legs[0].rtDepartureTime[0] != '\0') {
+            depHour = atoi(conn.legs[0].rtDepartureTime);
+            depMin = atoi(conn.legs[0].rtDepartureTime + 3);
+        }
+        struct tm* nowTm = localtime((time_t*)&currentTime);
+        int nowMinutes = nowTm->tm_hour * 60 + nowTm->tm_min;
+        int depMinutes = depHour * 60 + depMin;
+        int minutesUntil = depMinutes - nowMinutes;
+        if (minutesUntil < 0) minutesUntil += 24 * 60;
+        inStr = "in " + String(minutesUntil) + " min";
     }
-    struct tm* nowTm = localtime((time_t*)&currentTime);
-    int nowMinutes = nowTm->tm_hour * 60 + nowTm->tm_min;
-    int depMinutes = depHour * 60 + depMin;
-    int minutesUntil = depMinutes - nowMinutes;
-    if (minutesUntil < 0) minutesUntil += 24 * 60;
-
-    String inStr = "in " + String(minutesUntil) + " min";
     inStr = TextUtils::shortenTextToFit(inStr, COL_LINES - 5);
     TextUtils::printTextAtTopMargin(leftX, row2Y, inStr.c_str());
     int16_t transferColX = leftX + COL_LINES; // Align with line boxes above
 
-    // Duration (right-aligned on row 2) or "Fällt aus" if cancelled
-    if (hasCancelled) {
-        String cancelStr = "Fällt aus";
-        int16_t cancelW = TextUtils::getTextWidth(cancelStr);
-        TextUtils::printTextAtTopMargin(rightEdge - cancelW, row2Y, cancelStr.c_str());
-    } else {
-        String durStr = String(conn.durationMinutes) + " min";
-        int16_t durW = TextUtils::getTextWidth(durStr);
-        TextUtils::printTextAtTopMargin(rightEdge - durW, row2Y, durStr.c_str());
-    }
+    // Duration (right-aligned on row 2, always shown)
+    String durStr = String(conn.durationMinutes) + " min";
+    int16_t durW = TextUtils::getTextWidth(durStr);
+    TextUtils::printTextAtTopMargin(rightEdge - durW, row2Y, durStr.c_str());
 
     // Transfer 1 (if exists)
     if (conn.legCount > 1) {
