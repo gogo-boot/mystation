@@ -83,11 +83,18 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
     // === ROW 1: dep_time [+delay]  [line1] -O- [line2]  arr_time [+delay]  duration ===
     int16_t row1Y = y + 10;
 
-    // Departure time
-    TextUtils::printTextAtTopMargin(leftX, row1Y, conn.legs[0].departureTime);
+    // Fixed column positions for vertical alignment across all connections
+    int16_t colDepTime = leftX;
+    int16_t colDelay = leftX + 38;  // gap after "23:06"
+    int16_t colLines = leftX + COL_LINES;
+    int16_t colDuration = rightEdge - TextUtils::getTextWidth("999 min");
+    int16_t colArrTime = colDuration - TextUtils::getTextWidth("23:06") - 12;
+    int16_t colArrDelay = colArrTime + TextUtils::getTextWidth("23:06") + 3;
 
-    // Departure delay
-    int16_t currentX = leftX + 35;
+    // Departure time
+    TextUtils::printTextAtTopMargin(colDepTime, row1Y, conn.legs[0].departureTime);
+
+    // Departure delay (more space from time)
     if (conn.legs[0].rtDepartureTime[0] != '\0' &&
         strcmp(conn.legs[0].rtDepartureTime, conn.legs[0].departureTime) != 0) {
         int schedMin = atoi(conn.legs[0].departureTime) * 60 + atoi(conn.legs[0].departureTime + 3);
@@ -95,12 +102,12 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
         int delay = rtMin - schedMin;
         if (delay > 0) {
             String delayStr = "+" + String(delay);
-            TextUtils::printTextAtTopMargin(currentX, row1Y, delayStr.c_str());
+            TextUtils::printTextAtTopMargin(colDelay, row1Y, delayStr.c_str());
         }
     }
 
     // Line boxes with -O- transfer symbols
-    currentX = leftX + COL_LINES;
+    int16_t currentX = colLines;
     for (int leg = 0; leg < conn.legCount; leg++) {
         if (leg > 0) {
             TextUtils::printTextAtTopMargin(currentX, row1Y, "-O-");
@@ -109,23 +116,19 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
         String line = String(conn.legs[leg].line);
         int16_t lineW = TextUtils::getTextWidth(line) + 6;
         // Don't overflow into arrival area
-        if (currentX + lineW > rightEdge - 90) break;
+        if (currentX + lineW > colArrTime - 5) break;
         display.drawRect(currentX, row1Y - 1, lineW, ROW_HEIGHT - 4, GxEPD_BLACK);
         TextUtils::printTextAtTopMargin(currentX + 3, row1Y, line.c_str());
         currentX += lineW + 4;
     }
 
-    // Duration (far right)
+    // Duration (fixed position, far right)
     String durStr = String(conn.durationMinutes) + " min";
-    int16_t durW = TextUtils::getTextWidth(durStr);
-    TextUtils::printTextAtTopMargin(rightEdge - durW, row1Y, durStr.c_str());
+    TextUtils::printTextAtTopMargin(colDuration, row1Y, durStr.c_str());
 
-    // Arrival time
+    // Arrival time (fixed position)
     const TripLeg& lastLeg = conn.legs[conn.legCount - 1];
-    String arrStr = String(lastLeg.arrivalTime);
-    int16_t arrW = TextUtils::getTextWidth(arrStr);
-    int16_t arrX = rightEdge - durW - arrW - 10;
-    TextUtils::printTextAtTopMargin(arrX, row1Y, arrStr.c_str());
+    TextUtils::printTextAtTopMargin(colArrTime, row1Y, lastLeg.arrivalTime);
 
     // Arrival delay
     if (lastLeg.rtArrivalTime[0] != '\0' &&
@@ -135,7 +138,7 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
         int delay = rtMin - schedMin;
         if (delay > 0) {
             String delayStr = "+" + String(delay);
-            TextUtils::printTextAtTopMargin(arrX + arrW + 2, row1Y, delayStr.c_str());
+            TextUtils::printTextAtTopMargin(colArrDelay, row1Y, delayStr.c_str());
         }
     }
 
@@ -156,8 +159,9 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
     if (minutesUntil < 0) minutesUntil += 24 * 60;
 
     String inStr = "in " + String(minutesUntil) + " min";
+    inStr = TextUtils::shortenTextToFit(inStr, COL_LINES - 5);
     TextUtils::printTextAtTopMargin(leftX, row2Y, inStr.c_str());
-    int16_t transferColX = leftX + max((int16_t)COL_LINES, (int16_t)(TextUtils::getTextWidth(inStr) + 10));
+    int16_t transferColX = leftX + COL_LINES; // Align with line boxes above
 
     // Transfer 1 (if exists)
     if (conn.legCount > 1) {
