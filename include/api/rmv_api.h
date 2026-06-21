@@ -49,7 +49,7 @@ struct TripConnection {
 };
 
 struct TripData {
-    TripConnection connections[8]; // Next 8 connections
+    TripConnection connections[6]; // Max 6 (API limit for /hapi/trip)
     int connectionCount;
 };
 
