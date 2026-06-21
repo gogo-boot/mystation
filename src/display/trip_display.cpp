@@ -165,7 +165,7 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
         int transferTime = nextDepMin - arrMin;
         if (transferTime < 0) transferTime += 24 * 60;
 
-        String station = Util::shortenDestination(originFull, String(conn.legs[0].direction));
+        String station = Util::shortenDestination(originFull, String(conn.legs[0].arrivalStation));
         String transferStr = "Umst: " + station + " (" + String(transferTime) + " min)";
         int16_t maxTransferW = w - COL_LINES - MARGIN;
         transferStr = TextUtils::shortenTextToFit(transferStr, maxTransferW);
@@ -184,7 +184,7 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
             int transferTime = nextDepMin - arrMin;
             if (transferTime < 0) transferTime += 24 * 60;
 
-            String station = Util::shortenDestination(originFull, String(conn.legs[leg].direction));
+            String station = Util::shortenDestination(originFull, String(conn.legs[leg].arrivalStation));
             if (combined.length() > 0) combined += ", ";
             combined += station + " (" + String(transferTime) + " min)";
         }

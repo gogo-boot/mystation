@@ -403,6 +403,7 @@ bool getTripFromRMV(const char* originId, const char* destId, TripData& tripData
     filter["Trip"][0]["LegList"]["Leg"][0]["Origin"]["track"] = true;
     filter["Trip"][0]["LegList"]["Leg"][0]["Destination"]["time"] = true;
     filter["Trip"][0]["LegList"]["Leg"][0]["Destination"]["rtTime"] = true;
+    filter["Trip"][0]["LegList"]["Leg"][0]["Destination"]["name"] = true;
 
     // Stream and parse
     Stream& rawStream = http.getStream();
@@ -450,6 +451,9 @@ bool getTripFromRMV(const char* originId, const char* destId, TripData& tripData
 
             strncpy(tl.direction, leg["direction"] | "", sizeof(tl.direction) - 1);
             tl.direction[sizeof(tl.direction) - 1] = '\0';
+
+            strncpy(tl.arrivalStation, leg["Destination"]["name"] | "", sizeof(tl.arrivalStation) - 1);
+            tl.arrivalStation[sizeof(tl.arrivalStation) - 1] = '\0';
 
             const char* track = leg["Origin"]["track"] | "";
             strncpy(tl.platform, track, sizeof(tl.platform) - 1);

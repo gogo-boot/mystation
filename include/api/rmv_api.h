@@ -38,7 +38,8 @@ struct TripLeg {
     char rtDepartureTime[6]; // "23:14" (real-time, empty if on-time)
     char rtArrivalTime[6];   // "23:33" (real-time, empty if on-time)
     char line[10];           // "RB68"
-    char direction[48];      // "Heidelberg Bahnhof"
+    char direction[48];      // "Heidelberg Bahnhof" (vehicle final destination)
+    char arrivalStation[48]; // "Konstablerwache" (where you get off)
     char platform[6];        // "10"
 };
 
