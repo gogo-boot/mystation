@@ -41,6 +41,7 @@ struct TripLeg {
     char direction[48];      // "Heidelberg Bahnhof" (vehicle final destination)
     char arrivalStation[48]; // "Konstablerwache" (where you get off)
     char platform[6];        // "10"
+    bool cancelled;          // true if this leg is cancelled
 };
 
 struct TripConnection {

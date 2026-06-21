@@ -90,8 +90,18 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
     int16_t colArrTime = rightEdge - TextUtils::getTextWidth("23:06") - 5;
     int16_t colArrDelay = colArrTime + TextUtils::getTextWidth("23:06") + 3;
 
-    // Departure time
-    TextUtils::printTextAtTopMargin(colDepTime, row1Y, conn.legs[0].departureTime);
+    // Check if any leg is cancelled
+    bool hasCancelled = false;
+    for (int leg = 0; leg < conn.legCount; leg++) {
+        if (conn.legs[leg].cancelled) { hasCancelled = true; break; }
+    }
+
+    // Departure time (strikethrough if cancelled)
+    if (hasCancelled) {
+        TextUtils::printStrikethroughTextAtTopMargin(colDepTime, row1Y, conn.legs[0].departureTime);
+    } else {
+        TextUtils::printTextAtTopMargin(colDepTime, row1Y, conn.legs[0].departureTime);
+    }
 
     // Departure delay (more space from time)
     if (conn.legs[0].rtDepartureTime[0] != '\0' &&
@@ -123,7 +133,11 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
 
     // Arrival time (fixed position, right side of row 1)
     const TripLeg& lastLeg = conn.legs[conn.legCount - 1];
-    TextUtils::printTextAtTopMargin(colArrTime, row1Y, lastLeg.arrivalTime);
+    if (hasCancelled) {
+        TextUtils::printStrikethroughTextAtTopMargin(colArrTime, row1Y, lastLeg.arrivalTime);
+    } else {
+        TextUtils::printTextAtTopMargin(colArrTime, row1Y, lastLeg.arrivalTime);
+    }
 
     // Arrival delay
     if (lastLeg.rtArrivalTime[0] != '\0' &&
@@ -158,10 +172,16 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
     TextUtils::printTextAtTopMargin(leftX, row2Y, inStr.c_str());
     int16_t transferColX = leftX + COL_LINES; // Align with line boxes above
 
-    // Duration (right-aligned on row 2)
-    String durStr = String(conn.durationMinutes) + " min";
-    int16_t durW = TextUtils::getTextWidth(durStr);
-    TextUtils::printTextAtTopMargin(rightEdge - durW, row2Y, durStr.c_str());
+    // Duration (right-aligned on row 2) or "Fällt aus" if cancelled
+    if (hasCancelled) {
+        String cancelStr = "Fällt aus";
+        int16_t cancelW = TextUtils::getTextWidth(cancelStr);
+        TextUtils::printTextAtTopMargin(rightEdge - cancelW, row2Y, cancelStr.c_str());
+    } else {
+        String durStr = String(conn.durationMinutes) + " min";
+        int16_t durW = TextUtils::getTextWidth(durStr);
+        TextUtils::printTextAtTopMargin(rightEdge - durW, row2Y, durStr.c_str());
+    }
 
     // Transfer 1 (if exists)
     if (conn.legCount > 1) {
