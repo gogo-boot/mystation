@@ -600,9 +600,17 @@
                 opt.textContent = s.name + '   (' + s.dist + 'm)';
                 stopSelect.appendChild(opt);
               });
+              // Pre-select saved stop if it exists in the list
+              var savedStopId = '{{STOP_ID}}';
+              if (savedStopId) {
+                stopSelect.value = savedStopId;
+              }
             } else {
               stopSelect.innerHTML = '<option>Keine Haltestellen gefunden</option>';
             }
+            // Re-apply trip mode after DOM is fully loaded
+            var savedTripMode = '{{TRIP_MODE}}';
+            if (savedTripMode === '1' || savedTripMode === 'true') setTripMode(true);
           })
           .catch(function(err) {
             console.error('Init error:', err);
