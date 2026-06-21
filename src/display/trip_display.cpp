@@ -157,6 +157,7 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
 
     String inStr = "in " + String(minutesUntil) + " min";
     TextUtils::printTextAtTopMargin(leftX, row2Y, inStr.c_str());
+    int16_t transferColX = leftX + max((int16_t)COL_LINES, (int16_t)(TextUtils::getTextWidth(inStr) + 10));
 
     // Transfer 1 (if exists)
     if (conn.legCount > 1) {
@@ -167,9 +168,9 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
 
         String station = Util::shortenDestination(originFull, String(conn.legs[0].arrivalStation));
         String transferStr = "Umst: " + station + " (" + String(transferTime) + " min)";
-        int16_t maxTransferW = w - COL_LINES - MARGIN;
+        int16_t maxTransferW = (x + w) - transferColX - MARGIN;
         transferStr = TextUtils::shortenTextToFit(transferStr, maxTransferW);
-        TextUtils::printTextAtTopMargin(leftX + COL_LINES, row2Y, transferStr.c_str());
+        TextUtils::printTextAtTopMargin(transferColX, row2Y, transferStr.c_str());
     }
 
     // === ROW 3: Transfer 2+ (combined on one line if multiple) ===
@@ -189,9 +190,9 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
             combined += station + " (" + String(transferTime) + " min)";
         }
         String transferStr = "Umst: " + combined;
-        int16_t maxTransferW = w - COL_LINES - MARGIN;
+        int16_t maxTransferW = (x + w) - transferColX - MARGIN;
         transferStr = TextUtils::shortenTextToFit(transferStr, maxTransferW);
-        TextUtils::printTextAtTopMargin(leftX + COL_LINES, row3Y, transferStr.c_str());
+        TextUtils::printTextAtTopMargin(transferColX, row3Y, transferStr.c_str());
     }
 
     return CONNECTION_HEIGHT;
