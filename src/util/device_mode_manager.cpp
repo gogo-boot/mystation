@@ -104,7 +104,8 @@ void DeviceModeManager::showWeatherDeparture() {
 
     if (config.tripMode) {
         // Trip/connection mode
-        TripData trip;
+        static TripData trip; // static: ~4KB too large for stack
+        memset(&trip, 0, sizeof(trip));
         getTripFromRMV(config.selectedStopId, config.tripDestId, trip);
         TimingManager::markTransportUpdated();
         shutdownWiFiBeforeRender();
