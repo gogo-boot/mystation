@@ -7,6 +7,7 @@
 #include "display/weather_general_half.h"
 #include "display/weather_general_full.h"
 #include "display/common_footer.h"
+#include "display/trip_display.h"
 #include "display/qr_code_helper.h"
 #include "util/util.h"
 
@@ -56,6 +57,19 @@ void DisplayManager::displayHalfNHalf(const WeatherInfo& weather,
 
         // Draw vertical divider
         displayVerticalLine(contentY);
+    } while (display.nextPage());
+}
+
+void DisplayManager::displayHalfNHalfTrip(const WeatherInfo& weather, const TripData& tripData) {
+    ESP_LOGI(TAG, "Full update - weather + trip connections");
+
+    display.setFullWindow();
+    display.firstPage();
+    do {
+        display.fillScreen(GxEPD_WHITE);
+        updateWeatherHalf(weather);
+        TripDisplay::drawTripConnections(tripData, halfWidth + 1, 0, screenWidth - halfWidth - 1, screenHeight);
+        displayVerticalLine(0);
     } while (display.nextPage());
 }
 

@@ -51,6 +51,10 @@ struct RTCConfigData {
     // Transport filters (simplified - store as bit flags)
     uint16_t filterFlags; // 2 byte
 
+    // Trip/connection mode
+    bool tripMode;              // false = departures, true = connections (A→B)
+    char tripDestId[128];       // Destination stop ID for trip mode
+
     // System state
     bool configMode; // 1 byte
     uint32_t lastUpdate; // 4 bytes (timestamp)

@@ -22,6 +22,7 @@ enum class UpdateRegion {
 class DisplayManager {
 public:
     static void displayHalfNHalf(const WeatherInfo& weather, const DepartureData& departures);
+    static void displayHalfNHalfTrip(const WeatherInfo& weather, const TripData& tripData);
     static void displayWeatherFull(const WeatherInfo& weather);
     static void displayDeparturesFull(const DepartureData& departures);
 

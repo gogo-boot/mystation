@@ -35,6 +35,9 @@ For developers who need to quickly find the right key name for a specific layer:
 | **OTA** |
 | OTA Enabled | `ota-enabled` | `otaEnabled` | `otaEnabled` | `otaEnabled` |
 | OTA Check Time | `ota-check-time` | `otaCheckTime` | `otaCheckTime` | `otaCheckTime` |
+| **Trip/Connection Mode** |
+| Trip Mode | `trip-mode-on` | `tripMode` | `tripMode` | `tripMode` |
+| Trip Destination ID | `trip-dest-id` | `tripDestId` | `tripDestId` | `tripDestId` |
 | **System** |
 | Config Version | — | — | `cfgVersion` | — |
 

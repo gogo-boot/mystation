@@ -76,6 +76,9 @@ static String renderConfigPageHtml() {
             else if (varName == "WEEKEND_SLEEP_END") { page += config.weekendSleepEnd; }
             else if (varName == "OTA_ENABLED") { page += config.otaEnabled ? "true" : "false"; }
             else if (varName == "OTA_CHECK_TIME") { page += config.otaCheckTime; }
+            else if (varName == "TRIP_MODE") { page += config.tripMode ? "1" : "0"; }
+            else if (varName == "TRIP_DEST_ID") { page += config.tripDestId; }
+            else if (varName == "STOP_ID") { page += config.selectedStopId; }
             else if (varName == "SAVED_FILTERS") { page += filtersJs; }
             else if (varName == "LAT") { page += String(pageData.getLatitude(), 6); }
             else if (varName == "LON") { page += String(pageData.getLongitude(), 6); }
