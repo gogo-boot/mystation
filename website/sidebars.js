@@ -18,6 +18,7 @@ const sidebars = {
         {
             type: 'category',
             label: '🏗️ Architecture',
+            collapsed: false,
             items: [
                 'developer-guide/index',
                 'developer-guide/boot-process',
@@ -27,6 +28,7 @@ const sidebars = {
         {
             type: 'category',
             label: '⚙️ Core Systems',
+            collapsed: false,
             items: [
                 'developer-guide/display-system',
                 'developer-guide/button-system',
@@ -36,6 +38,7 @@ const sidebars = {
         {
             type: 'category',
             label: '📡 APIs & Integration',
+            collapsed: false,
             items: [
                 'developer-guide/api-integration',
             ],
@@ -43,6 +46,7 @@ const sidebars = {
         {
             type: 'category',
             label: '🛠️ Development',
+            collapsed: false,
             items: [
                 'developer-guide/development-setup',
                 'developer-guide/testing',
@@ -54,6 +58,7 @@ const sidebars = {
         {
             type: 'category',
             label: '🔌 Hardware',
+            collapsed: false,
             items: [
                 'developer-guide/hardware-assembly',
                 'hardware-setup',
@@ -61,11 +66,12 @@ const sidebars = {
         },
     ],
 
-    // Quick Reference Sidebar - For quick lookups
+    // Maintainer Guide Sidebar
     maintainerSidebar: [
         {
             type: 'category',
             label: '📋 Maintainer Guide',
+            collapsed: false,
             items: [
                 'maintainer-guide/release-process',
                 'maintainer-guide/ota-update',
@@ -75,11 +81,12 @@ const sidebars = {
         },
     ],
 
-    // Quick Reference Sidebar - For quick lookups
+    // Quick Reference Sidebar
     referenceSidebar: [
         {
             type: 'category',
             label: '📋 Quick Reference',
+            collapsed: false,
             items: [
                 'reference/configuration-keys-quick-reference',
             ],
@@ -88,4 +95,3 @@ const sidebars = {
 };
 
 export default sidebars;
-
