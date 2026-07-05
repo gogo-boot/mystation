@@ -4,6 +4,10 @@
 #include "config/config_manager.h"
 #include "mock_time.h"
 
+// In native tests, getDeviceJitterSeed() returns 0xDEADBEEF.
+// The expected jitter added to sleep durations is: 0xDEADBEEF % MAX_JITTER_SECONDS
+static const uint32_t EXPECTED_JITTER = TimingManager::getDeviceJitterSeed() % MAX_JITTER_SECONDS;
+
 // Helper function to create a specific time_t from date/time components
 time_t createTime(int year, int month, int day, int hour, int minute, int second) {
     tm timeinfo = {};
@@ -79,7 +83,7 @@ void test_getNextSleepDurationSeconds_weather_only_mode() {
 
     uint64_t sleepDuration = TimingManager::getNextSleepDurationSeconds();
 
-    TEST_ASSERT_EQUAL(3600, sleepDuration); // 1 hour
+    TEST_ASSERT_EQUAL(3600 + EXPECTED_JITTER, sleepDuration); // 1 hour + jitter
 }
 
 // If transport only mode, should wake up every 3 minutes during active hours
@@ -94,7 +98,7 @@ void test_getNextSleepDurationSeconds_departure_only_mode() {
     TimingManager::setLastTransportUpdate((uint32_t)morningTime);
     uint64_t sleepDuration = TimingManager::getNextSleepDurationSeconds();
 
-    TEST_ASSERT_EQUAL(180, sleepDuration);
+    TEST_ASSERT_EQUAL(180 + EXPECTED_JITTER, sleepDuration);
 }
 
 // If transport only mode, but during inactive hours, should wake up in 21 hours after deep sleep
@@ -110,7 +114,7 @@ void test_getNextSleepDurationSeconds_departure_only_mode_inactive() {
     TimingManager::setLastTransportUpdate((uint32_t)morningTime);
     uint64_t sleepDuration = TimingManager::getNextSleepDurationSeconds();
 
-    TEST_ASSERT_EQUAL(3600 * 21, sleepDuration);
+    TEST_ASSERT_EQUAL(3600 * 21 + EXPECTED_JITTER, sleepDuration);
 }
 
 // If weather and transport not updated, Ensure minimum sleep duration of 30 seconds is enforced
@@ -158,9 +162,9 @@ void test_with_previous_transport_update() {
     printf("Sleep duration with 2min ago transport update: %llu seconds (~%llu minutes)\n",
            sleepDuration, sleepDuration / 60);
 
-    // Should wake up in ~3 minutes (5 min interval - 2 min already passed)
-    TEST_ASSERT_GREATER_OR_EQUAL(150, sleepDuration); // ~3 min - buffer
-    TEST_ASSERT_LESS_THAN(210, sleepDuration); // ~3 min + buffer
+    // Should wake up in ~3 minutes (5 min interval - 2 min already passed) + jitter
+    TEST_ASSERT_GREATER_OR_EQUAL(150 + EXPECTED_JITTER, sleepDuration); // ~3 min - buffer + jitter
+    TEST_ASSERT_LESS_THAN(210 + EXPECTED_JITTER, sleepDuration); // ~3 min + buffer + jitter
 }
 
 // If weather was updated 1 hour ago and transport 2 minutes ago, should wake up for nearest update
@@ -191,7 +195,7 @@ void test_with_both_previous_updates() {
     printf("  Transport updated: 2 minutes ago (interval: 5 minutes)\n");
 
     // Should wake up for the nearest update (transport in ~3 minutes)
-    TEST_ASSERT_EQUAL(180, sleepDuration); // ~3 min + buffer
+    TEST_ASSERT_EQUAL(180 + EXPECTED_JITTER, sleepDuration); // ~3 min + jitter
 }
 
 void test_weather_update_overdue() {
@@ -294,7 +298,7 @@ void test_friday_to_saturday_deepsleep() {
            sleepDuration, sleepDuration / 60);
 
     // Should wake at 03:00 for OTA check (5 hours), not 07:00 weekend sleep end
-    TEST_ASSERT_EQUAL(3600 * 5, sleepDuration);
+    TEST_ASSERT_EQUAL(3600 * 5 + EXPECTED_JITTER, sleepDuration);
 }
 
 // Sunday night to Monday morning deep sleep test
@@ -312,7 +316,7 @@ void test_sunday_to_monday_deepsleep() {
            sleepDuration, sleepDuration / 60);
 
     // Should wake at 03:00 for OTA check (4.5 hours), not 05:30 weekday sleep end
-    TEST_ASSERT_EQUAL(3600 * 4.5L, sleepDuration);
+    TEST_ASSERT_EQUAL(3600 * 4.5L + EXPECTED_JITTER, sleepDuration);
 }
 
 // If weather is never updated, transport just updated, during transport inactive hours
@@ -344,7 +348,7 @@ void test_sleep_duration_half_half_weather_transport_active_updated_now() {
     printf("Sleep duration at 6:00 AM (active hours): %llu seconds (~%llu min)\n",
            sleepDuration, sleepDuration / 60);
 
-    TEST_ASSERT_EQUAL(180, sleepDuration);
+    TEST_ASSERT_EQUAL(180 + EXPECTED_JITTER, sleepDuration);
 }
 
 // If both weather and transport just updated, during transport inactive hours
@@ -360,7 +364,7 @@ void test_sleep_duration_half_half_weather_transport_inactive_updated_now() {
     printf("Sleep duration at 9:00 AM (transport inactive hours): %llu seconds (~%llu min)\n",
            sleepDuration, sleepDuration / 60);
 
-    TEST_ASSERT_EQUAL(3600, sleepDuration);
+    TEST_ASSERT_EQUAL(3600 + EXPECTED_JITTER, sleepDuration);
 }
 
 // If weather transport never updated, during transport inactive hours
@@ -376,7 +380,7 @@ void test_sleep_duration_half_half_weather_trasport_inactive_transport_not_updat
     printf("Sleep duration at 9:00 AM (transport inactive hours): %llu seconds (~%llu min)\n",
            sleepDuration, sleepDuration / 60);
 
-    TEST_ASSERT_EQUAL(3600, sleepDuration);
+    TEST_ASSERT_EQUAL(3600 + EXPECTED_JITTER, sleepDuration);
 }
 
 // If weather updated and transport updated long ago before deep sleep period
@@ -393,7 +397,7 @@ void test_sleep_duration_half_half_deep_sleep() {
            sleepDuration, sleepDuration / 60);
 
     // Should wake at 03:00 for OTA check (5 hours), not 05:30 sleep end
-    TEST_ASSERT_EQUAL(3600 * 5, sleepDuration);
+    TEST_ASSERT_EQUAL(3600 * 5 + EXPECTED_JITTER, sleepDuration);
 }
 
 // ============================================================================
@@ -418,7 +422,7 @@ void test_ota_disabled() {
            sleepDuration, sleepDuration / 60);
 
     // Should wake for after deep sleep at 5:30, not OTA
-    TEST_ASSERT_EQUAL(3600 * 3, sleepDuration);
+    TEST_ASSERT_EQUAL(3600 * 3 + EXPECTED_JITTER, sleepDuration);
 }
 
 // Test: OTA enabled and scheduled before next weather/transport update
@@ -441,7 +445,7 @@ void test_ota_enabled_before_other_updates() {
            sleepDuration, sleepDuration / 60);
 
     // Should wake in 15 minutes for OTA (900 seconds)
-    TEST_ASSERT_EQUAL(900, sleepDuration);
+    TEST_ASSERT_EQUAL(900 + EXPECTED_JITTER, sleepDuration);
 }
 
 // Test: OTA scheduled during deep sleep period - should bypass sleep
@@ -466,7 +470,7 @@ void test_ota_during_deep_sleep_bypasses_sleep() {
            sleepDuration, sleepDuration / 3600);
 
     // Should wake at 3:00 AM for OTA (4 hours = 14400 seconds), not at sleep end (5:30 AM)
-    TEST_ASSERT_EQUAL(4 * 3600, sleepDuration);
+    TEST_ASSERT_EQUAL(4 * 3600 + EXPECTED_JITTER, sleepDuration);
 }
 
 // Test: OTA check already performed recently - should skip
@@ -489,7 +493,7 @@ void test_ota_already_checked_recently() {
            sleepDuration, sleepDuration / 60);
 
     // Should not schedule OTA again, wake for transport in 3 minutes
-    TEST_ASSERT_EQUAL(3600 * 2.5, sleepDuration);
+    TEST_ASSERT_EQUAL(3600 * 2.5 + EXPECTED_JITTER, sleepDuration);
 }
 
 // Test: OTA scheduled later today
@@ -512,7 +516,7 @@ void test_ota_scheduled_later_today() {
            sleepDuration, sleepDuration / 3600);
 
     // Should wake in 2 hours for OTA
-    TEST_ASSERT_EQUAL(2 * 3600, sleepDuration);
+    TEST_ASSERT_EQUAL(2 * 3600 + EXPECTED_JITTER, sleepDuration);
 }
 
 // Test: OTA scheduled tomorrow (past today's OTA time)
@@ -536,7 +540,7 @@ void test_ota_scheduled_tomorrow() {
            sleepDuration, sleepDuration / 3600);
 
     // Should wake in 1 hour for weather (sooner than tomorrow's OTA at 12 hours)
-    TEST_ASSERT_EQUAL(3600, sleepDuration);
+    TEST_ASSERT_EQUAL(3600 + EXPECTED_JITTER, sleepDuration);
 }
 
 // Test: OTA and weather update at same approximate time
@@ -561,7 +565,7 @@ void test_ota_and_weather_coincide() {
            sleepDuration, sleepDuration / 60);
 
     // Should wake in 1 hour (both OTA and weather scheduled)
-    TEST_ASSERT_EQUAL(3600, sleepDuration);
+    TEST_ASSERT_EQUAL(3600 + EXPECTED_JITTER, sleepDuration);
 }
 
 // Test: OTA during transport inactive hours (should still wake)
@@ -586,7 +590,7 @@ void test_ota_during_transport_inactive_hours() {
            sleepDuration, sleepDuration / 60);
 
     // Should wake in 30 minutes for OTA, not wait until transport active hours
-    TEST_ASSERT_EQUAL(30 * 60, sleepDuration);
+    TEST_ASSERT_EQUAL(30 * 60 + EXPECTED_JITTER, sleepDuration);
 }
 
 // Test: OTA on weekend
@@ -612,7 +616,7 @@ void test_ota_on_weekend() {
            sleepDuration, sleepDuration / 3600);
 
     // Should wake at 3:00 AM for OTA (4 hours), not at weekend sleep end (7:00 AM)
-    TEST_ASSERT_EQUAL(4 * 3600, sleepDuration);
+    TEST_ASSERT_EQUAL(4 * 3600 + EXPECTED_JITTER, sleepDuration);
 }
 
 // Test: Verify OTA timestamp getters/setters
@@ -818,7 +822,7 @@ void test_temp_mode_exit_after_2_minutes() {
     uint64_t sleepDuration = TimingManager::getNextSleepDurationSeconds();
 
     // Temp mode should be exited, sleep until next weather update (1 hour)
-    TEST_ASSERT_EQUAL_UINT64(3600, sleepDuration);
+    TEST_ASSERT_EQUAL_UINT64(3600 + EXPECTED_JITTER, sleepDuration);
 
     // Verify temp mode was cleared (by button manager simulation above)
     TEST_ASSERT_FALSE(config.inTemporaryMode);
@@ -887,7 +891,7 @@ void test_temp_mode_flag_persists_after_clearing() {
     TEST_ASSERT_EQUAL_UINT32(0, config.temporaryModeActivationTime);
 
     // Sleep duration should be next weather update (1 hour)
-    TEST_ASSERT_EQUAL_UINT64(3600, sleepDuration);
+    TEST_ASSERT_EQUAL_UINT64(3600 + EXPECTED_JITTER, sleepDuration);
 
     // SIMULATE SLEEP AND WAKE CYCLE
     // Advance time by sleep duration (1 hour)
@@ -936,7 +940,7 @@ void test_half_half_wakes_at_transport_start() {
            sleepDuration, sleepDuration / 60);
 
     // Should wake at 06:00 (60 minutes = 3600 seconds), not at next weather update (3 hours)
-    TEST_ASSERT_EQUAL(3600, sleepDuration);
+    TEST_ASSERT_EQUAL(3600 + EXPECTED_JITTER, sleepDuration);
 }
 
 // ===== RULE-BASED SLEEP CALCULATOR EDGE CASE TESTS =====
@@ -961,7 +965,7 @@ void test_rule_transport_inside_window_wakes_at_interval() {
     printf("Transport-only at 07:00 (inside window): %llu seconds\n", sleepDuration);
 
     // 5 minutes = 300 seconds
-    TEST_ASSERT_EQUAL(300, sleepDuration);
+    TEST_ASSERT_EQUAL(300 + EXPECTED_JITTER, sleepDuration);
 }
 
 // Transport-only mode, outside transport window: wakes at next transport window start (tomorrow)
@@ -986,7 +990,7 @@ void test_rule_transport_outside_window_wakes_at_next_start() {
     // Next transport window starts tomorrow at 06:00 = 20 hours = 72000 seconds
     // But sleep window (22:30-05:30) may affect this — transport window start (06:00) is after sleep end (05:30)
     // so it should not be pushed. Result: 20 hours
-    TEST_ASSERT_EQUAL(20 * 3600, sleepDuration);
+    TEST_ASSERT_EQUAL(20 * 3600 + EXPECTED_JITTER, sleepDuration);
 }
 
 // Half&Half inside transport window: picks earlier of weather vs transport update
@@ -1010,7 +1014,7 @@ void test_rule_halfhalf_inside_window_picks_earlier() {
     printf("Half&Half at 07:00 (inside window): %llu seconds\n", sleepDuration);
 
     // Transport 5min (300s) < Weather 3h (10800s) → picks transport
-    TEST_ASSERT_EQUAL(300, sleepDuration);
+    TEST_ASSERT_EQUAL(300 + EXPECTED_JITTER, sleepDuration);
 }
 
 // Wake time falls inside sleep window: pushed to sleep window end
@@ -1034,7 +1038,7 @@ void test_rule_wake_during_sleep_window_pushed_to_end() {
 
     // Next weather at 23:00 falls in sleep window (22:30-05:30) → pushed to 05:30
     // From 22:00 to 05:30 = 7.5 hours = 27000 seconds
-    TEST_ASSERT_EQUAL(7 * 3600 + 30 * 60, sleepDuration);
+    TEST_ASSERT_EQUAL(7 * 3600 + 30 * 60 + EXPECTED_JITTER, sleepDuration);
 }
 
 // OTA during sleep window: NOT pushed (bypasses sleep window)
@@ -1061,7 +1065,7 @@ void test_rule_ota_bypasses_sleep_window() {
     // OTA at 03:00 = 5 hours from 22:00 — bypasses sleep window
     // Weather pushed to 05:30 = 7.5 hours
     // OTA (5h) < weather (7.5h) → picks OTA
-    TEST_ASSERT_EQUAL(5 * 3600, sleepDuration);
+    TEST_ASSERT_EQUAL(5 * 3600 + EXPECTED_JITTER, sleepDuration);
 }
 
 // Weekend uses weekend transport window hours
@@ -1089,7 +1093,7 @@ void test_rule_weekend_uses_weekend_transport_window() {
 
     // On Saturday, transport window starts at 08:00 (not 06:00)
     // Currently 07:00, outside weekend transport window → wake at 08:00 = 1 hour
-    TEST_ASSERT_EQUAL(3600, sleepDuration);
+    TEST_ASSERT_EQUAL(3600 + EXPECTED_JITTER, sleepDuration);
 }
 
 // Overdue weather update: wakes immediately (30s minimum)

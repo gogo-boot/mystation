@@ -2,6 +2,10 @@
 
 #include <Arduino.h>
 
+// Maximum jitter added to sleep duration to spread API requests across devices.
+// With 1000 devices, a 60-second window yields ~17 requests/second instead of a spike.
+static constexpr uint32_t MAX_JITTER_SECONDS = 60;
+
 class TimingManager {
 public:
     // Get next sleep duration based on mode and next required update
@@ -22,6 +26,9 @@ public:
 
     // Get effective display mode (considers temporary mode)
     static uint8_t getEffectiveDisplayMode();
+
+    // Device-unique jitter seed derived from MAC address (deterministic per device)
+    static uint32_t getDeviceJitterSeed();
 
     // RTC timestamp management (public for testing)
     static uint32_t getLastWeatherUpdate();
