@@ -48,6 +48,7 @@ information.
 - [**Configuration Layers**](configuration-layers.md) - NVS storage, phases, data structures
 - [**Display System**](display-system.md) - E-paper rendering, modes, layouts
 - [**Battery Management**](battery-management.md) - Voltage thresholds, discharge curve, percentage calculation
+- [**Jittered Sleep**](jittered-sleep.md) - Thundering herd prevention for multi-device deployments
 - [**Power Management**](run-book.md) - Deep sleep, wake sources, battery (see Run Book)
 - [**OTA System**](../maintainer-guide/ota-update.md) - Firmware updates, scheduling, rollback (see Run Book)
 

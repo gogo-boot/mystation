@@ -33,6 +33,7 @@ const sidebars = {
                 'developer-guide/display-system',
                 'developer-guide/button-system',
                 'developer-guide/battery-management',
+                'developer-guide/jittered-sleep',
             ],
         },
         {
