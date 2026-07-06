@@ -338,13 +338,18 @@ uint64_t TimingManager::getNextSleepDurationSeconds() {
 
     // ── APPLY DEVICE-SPECIFIC JITTER ─────────────────────────────────────
     // Add a deterministic offset (0 to MAX_JITTER_SECONDS) based on the device's
-    // MAC address. This spreads API requests evenly across devices that would
-    // otherwise wake at the same time (thundering herd prevention).
-    uint32_t jitter = getDeviceJitterSeed() % MAX_JITTER_SECONDS;
-    sleepSeconds += jitter;
+    // MAC address. Only applied on the first wake after boot (when no updates have
+    // been recorded yet). This spreads the initial API requests evenly across devices
+    // that boot simultaneously (thundering herd prevention) without drifting the
+    // update interval on subsequent cycles.
+    if (getLastWeatherUpdate() == 0 && getLastTransportUpdate() == 0) {
+        uint32_t jitter = getDeviceJitterSeed() % MAX_JITTER_SECONDS;
+        sleepSeconds += jitter;
+        ESP_LOGI(TAG, "First wake after boot — applying jitter: +%u s", jitter);
+    }
 
-    ESP_LOGI(TAG, "Next wake: %s at %u (in %llu seconds / %llu min, jitter: +%u s)",
-             earliestReason, earliest, sleepSeconds, sleepSeconds / 60, jitter);
+    ESP_LOGI(TAG, "Next wake: %s at %u (in %llu seconds / %llu min)",
+             earliestReason, earliest, sleepSeconds, sleepSeconds / 60);
 
     return sleepSeconds;
 }

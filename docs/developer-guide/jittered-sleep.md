@@ -18,9 +18,10 @@ With 60s jitter:
 
 ## Solution
 
-Each device adds a **deterministic, device-unique offset** to its sleep duration. This spreads
-wake-up times evenly across a configurable jitter window without requiring any coordination
-between devices.
+Each device adds a **deterministic, device-unique offset** to its sleep duration on the
+**first wake cycle after boot**. This one-time jitter spreads devices apart, and since each
+device then follows its own interval from that shifted starting point, they remain spread
+across subsequent cycles without further jitter.
 
 ### Key Properties
 
@@ -29,8 +30,32 @@ between devices.
 | Jitter source | MAC address (unique per device) |
 | Jitter range | 0 to `MAX_JITTER_SECONDS - 1` (default: 0–59 seconds) |
 | Deterministic | Yes — same device always gets the same offset |
+| Applied | Only once per boot (when both `lastWeatherUpdate` and `lastTransportUpdate` are 0) |
 | Coordination needed | None — devices operate independently |
-| Battery impact | None — jitter extends sleep (less wake time) |
+| Battery impact | None — only adds sleep on first cycle |
+
+### Why Only on First Wake?
+
+If jitter were applied every cycle, it would accumulate and drift the update interval:
+
+```
+❌ Jitter every cycle (interval=300s, jitter=59s):
+  Cycle 1: sleeps 359s, wakes 59s late
+  Cycle 2: sleeps 359s, wakes 118s late
+  Cycle 3: sleeps 359s, wakes 177s late
+  ...after 5 cycles: 5 minutes behind schedule!
+
+✅ Jitter only on first wake:
+  Cycle 1: sleeps 359s (one-time offset)
+  Cycle 2: sleeps 300s (exact interval)
+  Cycle 3: sleeps 300s (exact interval)
+  ...permanently offset by 59s, interval stays exact
+```
+
+The first-wake-only approach is correct because:
+- After power loss, all devices boot simultaneously → thundering herd → jitter needed
+- After the first cycle, `lastUpdate` is set → each device's schedule is already shifted
+- Subsequent cycles use exact intervals, no drift
 
 ## Implementation
 
@@ -58,17 +83,22 @@ uint32_t TimingManager::getDeviceJitterSeed() {
 
 ### Jitter Application
 
-The jitter is added to the final sleep duration after the rule-based candidate selection:
+The jitter is added to the final sleep duration **only on the first wake after boot**:
 
 ```cpp
 // At the end of getNextSleepDurationSeconds():
-uint32_t jitter = getDeviceJitterSeed() % MAX_JITTER_SECONDS;
-sleepSeconds += jitter;
+if (getLastWeatherUpdate() == 0 && getLastTransportUpdate() == 0) {
+    uint32_t jitter = getDeviceJitterSeed() % MAX_JITTER_SECONDS;
+    sleepSeconds += jitter;
+}
 ```
 
-The jitter is **not** applied to:
-- Temporary mode early returns (button press → 2-minute cycle)
-- Overdue candidate returns (immediate wake = minimum 30s)
+The condition `lastWeatherUpdate == 0 && lastTransportUpdate == 0` is true only when:
+- Device has just cold-booted (power loss, reset, OTA reboot)
+- RTC memory was cleared (these are `RTC_DATA_ATTR` variables)
+
+After the first API fetch, at least one `lastUpdate` is set → jitter is never applied again
+until the next cold boot.
 
 ### Configuration
 
@@ -96,24 +126,20 @@ between devices and upstream APIs to:
 ## Effect on Display Update Timing
 
 From the user's perspective, the jitter is invisible:
-- A device configured for 5-minute transport updates will actually update every 5 minutes + jitter
-- With the default 60s jitter, updates arrive between 5:00 and 5:59 minutes — imperceptible
-
-The jitter does **not** accumulate across cycles. Each sleep duration is independently calculated
-as `base_duration + fixed_jitter`, so the offset remains constant.
+- The first wake after boot is delayed by up to 60 seconds
+- All subsequent updates follow the configured interval exactly
+- No drift or accumulation over time
 
 ## Testing
 
 In native tests, `getDeviceJitterSeed()` returns `0xDEADBEEF`, producing a deterministic
-jitter of `0xDEADBEEF % 60 = 59` seconds. Test assertions account for this:
+jitter of `0xDEADBEEF % 60 = 59` seconds.
 
-```cpp
-// In test_sleep_duration.cpp:
-static const uint32_t EXPECTED_JITTER = TimingManager::getDeviceJitterSeed() % MAX_JITTER_SECONDS;
-
-// Assertions include jitter:
-TEST_ASSERT_EQUAL(3600 + EXPECTED_JITTER, sleepDuration); // 1 hour + jitter
-```
+Four dedicated jitter tests verify:
+1. Jitter applies on first wake (both `lastUpdate == 0`)
+2. Jitter does NOT apply when weather has been updated
+3. Jitter does NOT apply when transport has been updated
+4. Jitter seed is deterministic
 
 Run tests with:
 
@@ -127,5 +153,5 @@ pio test -e native -v
 |------|-------------|
 | `include/util/timing_manager.h` | `MAX_JITTER_SECONDS` constant, `getDeviceJitterSeed()` declaration |
 | `src/util/timing_manager.cpp` | Jitter implementation in `getNextSleepDurationSeconds()` |
-| `test/test_timing_manager/test_sleep_duration.cpp` | Tests with `EXPECTED_JITTER` constant |
+| `test/test_timing_manager/test_sleep_duration.cpp` | Tests verifying jitter behavior |
 | `docs/developer-guide/boot-process.md` | Sleep duration calculation overview |
