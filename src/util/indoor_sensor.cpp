@@ -5,12 +5,10 @@
 #include <Wire.h>
 #include <SensirionI2cSht4x.h>
 #include <esp_log.h>
+#include "config/pins.h"
 
 static const char* TAG = "INDOOR_SENSOR";
 
-// I2C pins for SHT4x on E1001 board
-static constexpr uint8_t SHT4X_SDA = 19;
-static constexpr uint8_t SHT4X_SCL = 20;
 static constexpr uint8_t SHT4X_ADDR = 0x44;
 
 static SensirionI2cSht4x sht4x;
@@ -21,7 +19,7 @@ float IndoorSensor::temperature = 0.0f;
 float IndoorSensor::humidity = 0.0f;
 
 bool IndoorSensor::init() {
-    Wire.begin(SHT4X_SDA, SHT4X_SCL);
+    Wire.begin(Pins::I2C_SDA, Pins::I2C_SCL);
     sht4x.begin(Wire, SHT4X_ADDR);
 
     uint32_t serialNumber = 0;
