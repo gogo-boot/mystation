@@ -39,9 +39,12 @@ void TripDisplay::drawTripConnections(const TripData& tripData, int16_t x, int16
     String destFull = extractStopName(config.tripDestId);
     // Use the full destination as reference to strip city from origin, and vice versa
     String origin = Util::shortenDestination(destFull, originFull);
+    if (origin.isEmpty()) origin = originFull;
+    origin = Util::shortenStationName(origin);
+
     String dest = Util::shortenDestination(originFull, destFull);
-    if (origin.isEmpty()) origin = Util::shortenStationName(originFull);
-    if (dest.isEmpty()) dest = Util::shortenStationName(destFull);
+    if (dest.isEmpty()) dest = destFull;
+    dest = Util::shortenStationName(dest);
     String header = origin + " -> " + dest;
     header = TextUtils::shortenTextToFit(header, w - MARGIN * 2);
     TextUtils::printTextAtTopMargin(x + MARGIN, y, header);
