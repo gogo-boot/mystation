@@ -385,7 +385,7 @@ void DeviceModeManager::handlePhaseComplete() {
     ESP_LOGI(TAG, "Display mode: %d (temp=%d, configured=%d)",
              displayMode, cfg.inTemporaryMode, cfg.displayMode);
 
-#ifdef PCB_E1001
+#ifdef BOARD_S3_E1001
     IndoorSensor::init();
     IndoorSensor::read();
 #endif

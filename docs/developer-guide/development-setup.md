@@ -76,6 +76,37 @@ https://github.com/gogo-boot/aes-demo
 1. **Edit `include/config/pins.h`**
 2. **Update GPIO assignments**
 
+## Board Identification
+
+Each build environment sets a board define via `-D` flag in `platformio.ini`.
+The naming convention is `BOARD_{chip}_{product}`:
+
+| Define | Chip | Product | PlatformIO Environments |
+|--------|------|---------|------------------------|
+| `BOARD_C3_SUPERMINI` | ESP32-C3 | ESP32-C3 Super Mini | `esp32-c3-*` |
+| `BOARD_C5_XIAO` | ESP32-C5 | Seeed XIAO ESP32-C5 | *(future)* |
+| `BOARD_S3_E1001` | ESP32-S3 | TRMNL E1001 PCB | `esp32-s3-e1001-*` |
+| `BOARD_S3_EE04` | ESP32-S3 | TRMNL EE04 PCB | `esp32-s3-ee04-*` |
+
+Use these defines for board-specific conditional compilation:
+
+```cpp
+#ifdef BOARD_S3_E1001
+    // Code only for E1001 board (e.g., SHT4x sensor)
+#endif
+
+#if defined(BOARD_S3_E1001) || defined(BOARD_S3_EE04)
+    // Code for all ESP32-S3 boards (e.g., battery, buttons)
+#endif
+```
+
+Feature flags derived from board defines are set in `include/build_config.h`:
+
+| Flag | Meaning | Enabled for |
+|------|---------|-------------|
+| `SHOW_BATTERY_STATUS` | Has battery ADC circuit | E1001, EE04, C5 |
+| `HAS_BUTTON` | Has physical buttons | E1001, EE04, C5 |
+
 ## Building and Flashing
 
 following command example runs with default `esp32-s3-production` environments.

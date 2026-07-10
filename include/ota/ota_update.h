@@ -8,11 +8,11 @@
 #define LATEST_RELEASE_API "https://api.github.com/repos/gogo-boot/mystation/releases/latest"
 
 // Board-specific firmware asset name for OTA
-#if defined(PCB_E1001)
+#if defined(BOARD_S3_E1001)
     #define OTA_FIRMWARE_ASSET "firmware-e1001.bin"
-#elif defined(PCB_EE04)
+#elif defined(BOARD_S3_EE04)
     #define OTA_FIRMWARE_ASSET "firmware-ee04.bin"
-#elif defined(BOARD_ESP32_C3)
+#elif defined(BOARD_C3_SUPERMINI)
     #define OTA_FIRMWARE_ASSET "firmware-c3.bin"
 #else
     #define OTA_FIRMWARE_ASSET "firmware.bin"

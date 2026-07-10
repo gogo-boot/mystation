@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef PCB_E1001
+#ifdef BOARD_S3_E1001
 
 /**
  * @brief Indoor temperature & humidity sensor (SHT4x) driver.
@@ -29,4 +29,4 @@ private:
     static float humidity;
 };
 
-#endif // PCB_E1001
+#endif // BOARD_S3_E1001

@@ -1,6 +1,6 @@
 #include "util/indoor_sensor.h"
 
-#ifdef PCB_E1001
+#ifdef BOARD_S3_E1001
 
 #include <Wire.h>
 #include <SensirionI2cSht4x.h>
@@ -65,4 +65,4 @@ bool IndoorSensor::isAvailable() {
     return initialized;
 }
 
-#endif // PCB_E1001
+#endif // BOARD_S3_E1001

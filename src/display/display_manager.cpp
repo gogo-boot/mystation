@@ -344,13 +344,13 @@ void DisplayManager::displayApplicationInfo(float batteryVoltage, int batteryPer
     RTCConfigData& cfg = ConfigManager::getConfig();
 
     // Determine board name string
-#if defined(PCB_E1001)
+#if defined(BOARD_S3_E1001)
     const char* boardName = "PCB E1001 (ESP32-S3)";
-#elif defined(PCB_EE04)
+#elif defined(BOARD_S3_EE04)
     const char* boardName = "PCB EE04 (ESP32-S3)";
-#elif defined(BOARD_ESP32_C3)
+#elif defined(BOARD_C3_SUPERMINI)
     const char* boardName = "ESP32-C3 SuperMini";
-#elif defined(BOARD_ESP32_C5)
+#elif defined(BOARD_C5_XIAO)
     const char* boardName = "Seeed XIAO ESP32-C5";
 #else
     const char* boardName = "Unknown Board";
