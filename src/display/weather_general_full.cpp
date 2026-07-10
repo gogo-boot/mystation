@@ -87,7 +87,7 @@ void WeatherFullDisplay::drawFullScreenWeatherLayout(const WeatherInfo& weather)
         weather.dailyForecast[0].apparentTempMax, 0) + "°C";
     TextUtils::printTextAtWithMargin(screenQuaterWidth, colY + 50, feelTempRange);
     // Indoor temperature and humidity (SHT4x sensor, E1001 only)
-#ifdef PCB_E1001
+#ifdef BOARD_S3_E1001
     if (IndoorSensor::isAvailable()) {
         TextUtils::printTextAtWithMargin(100, colY + 80, "Innen");
         String indoorText = String(IndoorSensor::getTemperature(), 1) + "°C  "

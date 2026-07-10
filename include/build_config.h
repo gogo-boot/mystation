@@ -40,19 +40,19 @@ enum class BoardType {
 };
 
 // Detect which board we're building for (set via platformio.ini build_flags)
-#if defined(BOARD_ESP32_C3)
+#if defined(BOARD_C3_SUPERMINI)
 #define SHOW_BATTERY_STATUS 0
 #define HAS_BUTTON 0
 
-#elif defined(PCB_E1001)
+#elif defined(BOARD_S3_E1001)
 #define SHOW_BATTERY_STATUS 1
 #define HAS_BUTTON 1
 
-#elif defined(PCB_EE04)
+#elif defined(BOARD_S3_EE04)
 #define SHOW_BATTERY_STATUS 1
 #define HAS_BUTTON 1
 
-#elif defined(BOARD_ESP32_C5)
+#elif defined(BOARD_C5_XIAO)
 #define SHOW_BATTERY_STATUS 1
 #define HAS_BUTTON 1
 
