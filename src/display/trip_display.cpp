@@ -131,6 +131,17 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
         currentX += lineW + 4;
     }
 
+    // For single-leg connections, show direction after line box
+    if (conn.legCount == 1 && conn.legs[0].direction[0] != '\0') {
+        String dir = Util::shortenDestination(originFull, String(conn.legs[0].direction));
+        if (dir.isEmpty()) dir = Util::shortenStationName(String(conn.legs[0].direction));
+        int16_t dirMaxWidth = colArrTime - currentX - 8;
+        if (dirMaxWidth > 20) {
+            dir = TextUtils::shortenTextToFit(dir, dirMaxWidth);
+            TextUtils::printTextAtTopMargin(currentX, row1Y, dir.c_str());
+        }
+    }
+
     // Arrival time (fixed position, right side of row 1)
     const TripLeg& lastLeg = conn.legs[conn.legCount - 1];
     if (hasCancelled) {
