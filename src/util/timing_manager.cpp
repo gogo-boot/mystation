@@ -6,6 +6,7 @@
 #define GET_CURRENT_TIME() MockTime::now()
 #else
 #include "util/time_manager.h"
+#include <esp_mac.h>
 #define GET_CURRENT_TIME() ({ time_t t; time(&t); t; })
 #endif
 #include <time.h>
@@ -17,6 +18,22 @@ static const char* TAG = "TIMING_MGR";
 RTC_DATA_ATTR uint32_t lastWeatherUpdate = 0;
 RTC_DATA_ATTR uint32_t lastTransportUpdate = 0;
 RTC_DATA_ATTR uint32_t lastOTACheck = 0;
+
+// ============================================================================
+// Device Jitter — deterministic per-device offset to spread API requests
+// ============================================================================
+
+uint32_t TimingManager::getDeviceJitterSeed() {
+#ifdef NATIVE_TEST
+    // Fixed seed for reproducible test results
+    return 0xDEADBEEF;
+#else
+    uint8_t mac[6];
+    esp_efuse_mac_get_default(mac);
+    // Simple hash of MAC address — deterministic and unique per device
+    return (uint32_t)(mac[2] << 24) | (mac[3] << 16) | (mac[4] << 8) | mac[5];
+#endif
+}
 
 // ============================================================================
 // Helper Functions for Sleep Duration Calculation
@@ -317,6 +334,18 @@ uint64_t TimingManager::getNextSleepDurationSeconds() {
 
     if (sleepSeconds < MINIMUM_SLEEP_SECONDS) {
         sleepSeconds = MINIMUM_SLEEP_SECONDS;
+    }
+
+    // ── APPLY DEVICE-SPECIFIC JITTER ─────────────────────────────────────
+    // Add a deterministic offset (0 to MAX_JITTER_SECONDS) based on the device's
+    // MAC address. Only applied on the first wake after boot (when no updates have
+    // been recorded yet). This spreads the initial API requests evenly across devices
+    // that boot simultaneously (thundering herd prevention) without drifting the
+    // update interval on subsequent cycles.
+    if (getLastWeatherUpdate() == 0 && getLastTransportUpdate() == 0) {
+        uint32_t jitter = getDeviceJitterSeed() % MAX_JITTER_SECONDS;
+        sleepSeconds += jitter;
+        ESP_LOGI(TAG, "First wake after boot — applying jitter: +%u s", jitter);
     }
 
     ESP_LOGI(TAG, "Next wake: %s at %u (in %llu seconds / %llu min)",
