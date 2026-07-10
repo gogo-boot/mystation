@@ -9,6 +9,7 @@
 #include "util/date_util.h"
 #include "display/common_footer.h"
 #include "global_instances.h"
+#include "util/indoor_sensor.h"
 
 static const char* TAG = "WEATHER_DISPLAY";
 
@@ -17,7 +18,7 @@ namespace WeatherFullDisplayConstants {
     constexpr int16_t SIDE_MARGIN = 10;
     constexpr int16_t DATE_SECTION_HEIGHT = 60;
     constexpr int16_t CITY_NAME_HEIGHT = 40;
-    constexpr int16_t WEATHER_ROW_HEIGHT = 80;
+    constexpr int16_t WEATHER_ROW_HEIGHT = 75;
     constexpr int16_t FORECAST_ROW_HEIGHT = 100;
     constexpr int16_t GRAPH_TITLE_HEIGHT = 15;
     constexpr int16_t GRAPH_SPACING = 25;
@@ -85,6 +86,15 @@ void WeatherFullDisplay::drawFullScreenWeatherLayout(const WeatherInfo& weather)
     String feelTempRange = String(weather.dailyForecast[0].apparentTempMin, 0) + " / " + String(
         weather.dailyForecast[0].apparentTempMax, 0) + "°C";
     TextUtils::printTextAtWithMargin(screenQuaterWidth, colY + 50, feelTempRange);
+    // Indoor temperature and humidity (SHT4x sensor, E1001 only)
+#ifdef PCB_E1001
+    if (IndoorSensor::isAvailable()) {
+        TextUtils::printTextAtWithMargin(100, colY + 80, "Innen");
+        String indoorText = String(IndoorSensor::getTemperature(), 1) + "°C  "
+                          + String((int)IndoorSensor::getHumidity()) + "%";
+        TextUtils::printTextAtWithMargin(screenQuaterWidth, colY + 80, indoorText);
+    }
+#endif
     currentY += 100; // Move down after first row of weather info
 
     int16_t firstColumn = 0;

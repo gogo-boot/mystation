@@ -45,6 +45,10 @@ namespace Pins {
     constexpr gpio_num_t GPIO_BATTERY_ADC = GPIO_NUM_1; // Voltage sense (2:1 divider)
     constexpr gpio_num_t GPIO_BATTERY_ADC_EN = GPIO_NUM_21; // ADC power control
 
+    // --- I2C Pins (SHT4x Indoor Sensor) ---
+    constexpr gpio_num_t GPIO_I2C_SDA = GPIO_NUM_19;
+    constexpr gpio_num_t GPIO_I2C_SCL = GPIO_NUM_20;
+
     // --- Button Hardware Pins ---
     constexpr gpio_num_t GPIO_BUTTON_1 = GPIO_NUM_3; // Multi-function button
     constexpr gpio_num_t GPIO_BUTTON_2 = GPIO_NUM_4;
@@ -113,5 +117,11 @@ namespace Pins {
     constexpr int BUTTON_WEATHER_ONLY = GPIO_BUTTON_2; // Weather only mode
     constexpr int BUTTON_DEPARTURE_ONLY = GPIO_BUTTON_3; // Departures only mode
     constexpr int BUTTON_FACTORY_RESET = GPIO_BUTTON_1; // Long-press (5s) triggers factory reset
+#endif
+
+#if defined(PCB_E1001)
+    // --- I2C Functional Names (SHT4x Indoor Sensor) ---
+    constexpr int I2C_SDA = GPIO_I2C_SDA;
+    constexpr int I2C_SCL = GPIO_I2C_SCL;
 #endif
 } // namespace Pins

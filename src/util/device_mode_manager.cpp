@@ -18,6 +18,7 @@
 #include "global_instances.h"
 
 #include "util/sleep_utils.h"
+#include "util/indoor_sensor.h"
 #include "util/time_manager.h"
 #include "util/timing_manager.h"
 #include "util/weather_print.h"
@@ -383,6 +384,11 @@ void DeviceModeManager::handlePhaseComplete() {
     uint8_t displayMode = TimingManager::getEffectiveDisplayMode();
     ESP_LOGI(TAG, "Display mode: %d (temp=%d, configured=%d)",
              displayMode, cfg.inTemporaryMode, cfg.displayMode);
+
+#ifdef PCB_E1001
+    IndoorSensor::init();
+    IndoorSensor::read();
+#endif
 
     runOperationalMode(displayMode);
 }
