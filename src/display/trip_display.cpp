@@ -39,9 +39,12 @@ void TripDisplay::drawTripConnections(const TripData& tripData, int16_t x, int16
     String destFull = extractStopName(config.tripDestId);
     // Use the full destination as reference to strip city from origin, and vice versa
     String origin = Util::shortenDestination(destFull, originFull);
+    if (origin.isEmpty()) origin = originFull;
+    origin = Util::shortenStationName(origin);
+
     String dest = Util::shortenDestination(originFull, destFull);
-    if (origin.isEmpty()) origin = Util::shortenStationName(originFull);
-    if (dest.isEmpty()) dest = Util::shortenStationName(destFull);
+    if (dest.isEmpty()) dest = destFull;
+    dest = Util::shortenStationName(dest);
     String header = origin + " -> " + dest;
     header = TextUtils::shortenTextToFit(header, w - MARGIN * 2);
     TextUtils::printTextAtTopMargin(x + MARGIN, y, header);
@@ -87,8 +90,10 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
     int16_t colDepTime = leftX;
     int16_t colDelay = leftX + 38;  // gap after "23:06"
     int16_t colLines = leftX + COL_LINES;
-    int16_t colArrTime = rightEdge - TextUtils::getTextWidth("23:06") - 5;
-    int16_t colArrDelay = colArrTime + TextUtils::getTextWidth("23:06") + 3;
+    int16_t arrDelayWidth = TextUtils::getTextWidth("+00") + 3;
+    int16_t arrTimeWidth = TextUtils::getTextWidth("23:06");
+    int16_t colArrTime = rightEdge - arrDelayWidth - arrTimeWidth - 3;
+    int16_t colArrDelay = colArrTime + arrTimeWidth + 3;
 
     // Check if any leg is cancelled
     bool hasCancelled = false;
@@ -129,6 +134,17 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
         display.drawRect(currentX, row1Y - 1, lineW, ROW_HEIGHT - 4, GxEPD_BLACK);
         TextUtils::printTextAtTopMargin(currentX + 3, row1Y, line.c_str());
         currentX += lineW + 4;
+    }
+
+    // For single-leg connections, show direction after line box
+    if (conn.legCount == 1 && conn.legs[0].direction[0] != '\0') {
+        String dir = Util::shortenDestination(originFull, String(conn.legs[0].direction));
+        if (dir.isEmpty()) dir = Util::shortenStationName(String(conn.legs[0].direction));
+        int16_t dirMaxWidth = colArrTime - currentX - 8;
+        if (dirMaxWidth > 20) {
+            dir = TextUtils::shortenTextToFit(dir, dirMaxWidth);
+            TextUtils::printTextAtTopMargin(currentX, row1Y, dir.c_str());
+        }
     }
 
     // Arrival time (fixed position, right side of row 1)
