@@ -90,8 +90,10 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
     int16_t colDepTime = leftX;
     int16_t colDelay = leftX + 38;  // gap after "23:06"
     int16_t colLines = leftX + COL_LINES;
-    int16_t colArrTime = rightEdge - TextUtils::getTextWidth("23:06") - 5;
-    int16_t colArrDelay = colArrTime + TextUtils::getTextWidth("23:06") + 3;
+    int16_t arrDelayWidth = TextUtils::getTextWidth("+00") + 3;
+    int16_t arrTimeWidth = TextUtils::getTextWidth("23:06");
+    int16_t colArrTime = rightEdge - arrDelayWidth - arrTimeWidth - 3;
+    int16_t colArrDelay = colArrTime + arrTimeWidth + 3;
 
     // Check if any leg is cancelled
     bool hasCancelled = false;
