@@ -55,9 +55,9 @@ String getCityFromLatLon(float lat, float lon) {
 bool getGeneralWeatherFull(float lat, float lon, WeatherInfo& weather) {
     String url = "https://api.open-meteo.com/v1/forecast?latitude=" + String(lat, 6) +
         "&longitude=" + String(lon, 6) +
-        "&daily=sunset,sunrise,uv_index_max,sunshine_duration,precipitation_sum,precipitation_hours,weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_min,apparent_temperature_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant"
+        "&daily=sunset,sunrise,uv_index_max,shortwave_radiation_sum,sunshine_duration,precipitation_sum,precipitation_hours,weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_min,apparent_temperature_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant"
         +
-        "&hourly=temperature_2m,weather_code,precipitation_probability,precipitation,relative_humidity_2m" +
+        "&hourly=temperature_2m,weather_code,precipitation_probability,precipitation,relative_humidity_2m,shortwave_radiation" +
         "&current=temperature_2m,precipitation,weather_code" +
         "&timezone=auto&past_hours=0&forecast_hours=13";
 
@@ -95,6 +95,7 @@ bool getGeneralWeatherFull(float lat, float lon, WeatherInfo& weather) {
                 JsonArray rainProb = hourly["precipitation_probability"];
                 JsonArray precipitation = hourly["precipitation"];
                 JsonArray humidity = hourly["relative_humidity_2m"];
+                JsonArray solar = hourly["shortwave_radiation"];
 
                 int count = 0;
                 for (size_t i = 0; i < times.size() && count < 13; ++i) {
@@ -104,6 +105,9 @@ bool getGeneralWeatherFull(float lat, float lon, WeatherInfo& weather) {
                     weather.hourlyForecast[count].rainChance = rainProb[i].as<int>();
                     weather.hourlyForecast[count].rainfall = precipitation[i].as<float>();
                     weather.hourlyForecast[count].humidity = humidity[i].as<int>();
+                    // Solar radiation: -1.0f marks unavailable (model returned null/missing)
+                    weather.hourlyForecast[count].solarRadiation =
+                        (solar.isNull() || solar[i].isNull()) ? -1.0f : solar[i].as<float>();
 
                     count++;
                 }
@@ -119,6 +123,7 @@ bool getGeneralWeatherFull(float lat, float lon, WeatherInfo& weather) {
                 JsonArray sunrise = daily["sunrise"];
 
                 JsonArray uv_index = daily["uv_index_max"];
+                JsonArray solar_sum = daily["shortwave_radiation_sum"];
                 JsonArray sunshine = daily["sunshine_duration"];
                 JsonArray precipitation_sum = daily["precipitation_sum"];
                 JsonArray precipitation_hours = daily["precipitation_hours"];
@@ -152,6 +157,9 @@ bool getGeneralWeatherFull(float lat, float lon, WeatherInfo& weather) {
                                        TIME_SHORT_LENGTH);
 
                     weather.dailyForecast[count].uvIndex = uv_index[i].as<float>();
+                    // Daily solar energy total (MJ/m²): -1.0f marks unavailable
+                    weather.dailyForecast[count].solarRadiationSum =
+                        (solar_sum.isNull() || solar_sum[i].isNull()) ? -1.0f : solar_sum[i].as<float>();
 
                     weather.dailyForecast[count].sunshineDuration = sunshine[i].as<float>();
                     weather.dailyForecast[count].precipitationSum = precipitation_sum[i].as<float>();
@@ -214,7 +222,7 @@ int getWeatherHourlyMultiDay(float lat, float lon, int maxDays,
 
     String url = "https://api.open-meteo.com/v1/forecast?latitude=" + String(lat, 6) +
         "&longitude=" + String(lon, 6) +
-        "&hourly=temperature_2m,weather_code,precipitation_probability,precipitation,relative_humidity_2m" +
+        "&hourly=temperature_2m,weather_code,precipitation_probability,precipitation,relative_humidity_2m,shortwave_radiation" +
         "&timezone=auto" +
         "&forecast_days=" + String(maxDays);
 
@@ -253,6 +261,7 @@ int getWeatherHourlyMultiDay(float lat, float lon, int maxDays,
     JsonArray rainProb  = hourly["precipitation_probability"];
     JsonArray precip    = hourly["precipitation"];
     JsonArray humidity  = hourly["relative_humidity_2m"];
+    JsonArray solar     = hourly["shortwave_radiation"];
 
     // Track which (day, hour) slots got a valid (non-null) value.
     bool filled[DAY_CACHE_MAX_DAYS][DAY_CACHE_HOURS] = {{false}};
@@ -281,10 +290,26 @@ int getWeatherHourlyMultiDay(float lat, float lon, int maxDays,
         if (hum < 0) hum = 0; if (hum > 100) hum = 100;
         p.humidity = (uint8_t)hum;
 
+        // Solar radiation (W/m²): SOLAR_UNAVAILABLE marks a null/missing value so
+        // the solar graph can skip it rather than plotting a false zero. Valid
+        // values are clamped to the uint16_t range (physical max ~1500 W/m²).
+        if (solar.isNull() || solar[i].isNull()) {
+            p.solarRadiation = SOLAR_UNAVAILABLE;
+        } else {
+            float sr = solar[i].as<float>();
+            if (sr < 0.0f) sr = 0.0f;
+            if (sr > 65534.0f) sr = 65534.0f; // stay below the 0xFFFF sentinel
+            p.solarRadiation = (uint16_t)(sr + 0.5f);
+        }
+
         filled[day][hour] = true;
     }
 
     // A day is valid only if the entire display window (06:00–23:00) is present.
+    // Note: solar availability does NOT gate day validity — a day with full
+    // temperature/rain data but missing solar is still a valid *weather browse*
+    // day. Solar availability is tracked per-point via the SOLAR_UNAVAILABLE
+    // sentinel; the solar render path checks it to decide if solar browse works.
     int validDays = 0;
     for (int day = 0; day < maxDays; ++day) {
         bool windowComplete = true;

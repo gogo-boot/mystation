@@ -31,6 +31,24 @@ public:
                                             int16_t x, int16_t y,
                                             int16_t w, int16_t h);
 
+    /**
+     * Draw a clean single-metric solar radiation graph from an external hourly array.
+     * The curve is normalized to the day's own peak (Y-axis is % of daily max), so it
+     * auto-fits regardless of absolute W/m² and never clips. Hours flagged unavailable
+     * (solarRadiation < 0) are skipped.
+     * @param hourlyData Array of hourly forecast entries (solarRadiation in W/m²)
+     * @param hourlyCount Number of entries in the array
+     * @param x X position of graph area
+     * @param y Y position of graph area
+     * @param w Width of graph area
+     * @param h Height of graph area
+     * @return true if a curve was drawn; false if no valid solar data (caller may fall back)
+     */
+    static bool drawSolarRadiationGraph(const WeatherHourlyForecast hourlyData[],
+                                        int hourlyCount,
+                                        int16_t x, int16_t y,
+                                        int16_t w, int16_t h);
+
 private:
     // Core drawing functions
     static void drawGraphFrame(int16_t x, int16_t y, int16_t w, int16_t h, int dataCount);
@@ -47,6 +65,12 @@ private:
                              int16_t graphW, int16_t graphH);
 
     static void drawGraphLegend(int16_t x, int16_t y, int16_t w, int16_t h);
+
+    // Solar radiation drawing helpers
+    static void drawSolarAxis(int16_t x, int16_t y, int16_t w, int16_t h, float maxRadiation);
+    static void drawSolarCurve(const WeatherHourlyForecast hourlyData[], int dataCount,
+                               int16_t graphX, int16_t graphY, int16_t graphW, int16_t graphH,
+                               float maxRadiation);
 
     // Humidity drawing functions
     static void drawHumidityLine(const WeatherInfo& weather,

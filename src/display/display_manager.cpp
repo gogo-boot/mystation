@@ -139,6 +139,21 @@ void DisplayManager::displayWeatherDayBrowse(const WeatherInfo& weather,
     } while (display.nextPage());
 }
 
+void DisplayManager::displaySolarDayBrowse(const WeatherInfo& weather,
+                                           const WeatherHourlyForecast dayHourly[],
+                                           int hourlyCount, int selectedDay) {
+    ESP_LOGI(TAG, "Displaying solar day browse mode (day %d)", selectedDay);
+
+    display.setFullWindow();
+    display.firstPage();
+    do {
+        display.fillScreen(GxEPD_WHITE);
+        WeatherFullDisplay::drawSolarBrowseLayout(weather, dayHourly, hourlyCount, selectedDay);
+        WeatherFullDisplay::drawWeatherFooter(0, screenHeight - DisplayConstants::FOOTER_HEIGHT,
+                                              DisplayConstants::FOOTER_HEIGHT);
+    } while (display.nextPage());
+}
+
 void DisplayManager::displayDeparturesFull(const DepartureData& departures) {
     ESP_LOGI(TAG, "Displaying transports only mode");
 

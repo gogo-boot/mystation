@@ -90,6 +90,7 @@ const sidebars = {
             collapsed: false,
             items: [
                 'reference/configuration-keys-quick-reference',
+                'reference/solar-radiation-glossary',
             ],
         },
     ],

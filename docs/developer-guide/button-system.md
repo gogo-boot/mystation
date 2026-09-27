@@ -152,82 +152,142 @@ This cleanly separates "what woke the device" from "what action to take."
 | Button 3 | Transport Full mode (temp) | Trigger OTA Update |
 | Button 1+2 | — | Factory Reset (restarts) |
 
-### Weather-Only Mode (Day Browsing)
+### Weather-Only Mode (Day Browse)
+
+In Weather-Only mode the short-press behavior depends on **whether the device is already
+browsing** (temporary browse mode active) and, if so, on the active **browse context**
+(weather browse or solar browse). Long-press actions are unchanged in every state.
+
+**From the default weather-today view (not browsing):**
 
 | Button | Short Press | Long Press (3s) |
 |--------|-------------|-----------------|
-| Button 1 | Back to today (day 0) | Enter Configure Mode (restarts) |
-| Button 2 | Next day (+1, circular) | Show Application Info (temp) |
-| Button 3 | Previous day (-1, circular) | Trigger OTA Update |
+| Button 1 | Stay on weather today (day 0) | Enter Configure Mode (restarts) |
+| Button 2 | Enter **weather browse** (starts at day 1) | Show Application Info (temp) |
+| Button 3 | Enter **solar browse** (starts at day 0 = today) | Trigger OTA Update |
 | Button 1+2 | — | Factory Reset (restarts) |
 
-> Long press actions are unchanged — only short press behavior is reinterpreted in Weather-Only mode.
+**While already browsing (either context):**
+
+| Button | Short Press | Long Press (3s) |
+|--------|-------------|-----------------|
+| Button 1 | Exit browsing → default weather-today view | Enter Configure Mode (restarts) |
+| Button 2 | Next day (+1, circular, same context) | Show Application Info (temp) |
+| Button 3 | Previous day (-1, circular, same context) | Trigger OTA Update |
+| Button 1+2 | — | Factory Reset (restarts) |
+
+> Long press actions are unchanged — only short press behavior is reinterpreted in
+> Weather-Only mode. Switching context (weather ↔ solar) is only possible from the
+> default view: press Button 1 to return to default, then Button 2 or Button 3 to enter
+> the other context.
 
 ---
 
-## Weather-Only Day Browsing
+## Weather-Only Day Browse
 
 When the effective display mode is **Weather-Only** (`displayMode == DISPLAY_MODE_WEATHER_ONLY`),
-the three physical buttons are reinterpreted to browse the 7-day forecast instead of switching
+the three physical buttons are reinterpreted to **browse** the forecast instead of switching
 display modes. Long press actions (configure mode, application info, OTA) remain unchanged.
 
 ### Activation Condition
 
-Day browsing activates when **all** of these are true:
+Day browse activates when **all** of these are true:
 
 - Effective display mode is `DISPLAY_MODE_WEATHER_ONLY`
 - The resolved button mode is **not** `DISPLAY_MODE_APPLICATION_INFO` (long-press guard)
 
-This means day browsing works both when Weather-Only is the configured mode and when it's
+This means day browse works both when Weather-Only is the configured mode and when it's
 active as a temporary mode (e.g., outside transport active hours in Half & Half mode).
 
-### Button Mapping
+### Two Browse Contexts
+
+Day browse now has **two contexts**, tracked by the `RTC_DATA_ATTR` field
+`config.browseContext` (`enum BrowseContext { BROWSE_WEATHER = 0, BROWSE_SOLAR = 1 }`):
+
+| Context | Umbrella term | What it shows | Day range |
+|---------|---------------|---------------|-----------|
+| `BROWSE_WEATHER` | **weather browse** | Per-day temperature + rain graph | Days 1..max-1 (skips today) |
+| `BROWSE_SOLAR` | **solar browse** | Per-day solar radiation graph ("Sonnenstrom") | Days 0..max-1 (includes today) |
+
+Both are variants of the same **day browse** feature; only the rendered graph and the
+day range differ.
+
+### Enter vs. Step: the `wasBrowsing` Signal
+
+The meaning of Button 2 and Button 3 depends on whether the device was **already browsing**
+before the press. The signal is `config.inTemporaryMode` captured *before* the press into a
+local `wasBrowsing` flag:
+
+**Not browsing (in the default weather-today view):**
 
 ```
-Button 1 (Half & Half pin) → Back to today (day 0)
-Button 2 (Weather pin)     → Next day (+1)
-Button 3 (Transport pin)   → Previous day (-1)
+Button 1 (Half & Half pin) → stay on today (day 0), context = WEATHER
+Button 2 (Weather pin)     → ENTER weather browse (context = WEATHER, day = 1)
+Button 3 (Transport pin)   → ENTER solar browse   (context = SOLAR,   day = 0)
 ```
 
-### Wrapping Logic
-
-Day navigation is **circular** and **skips day 0** (today):
+**Already browsing (either context):**
 
 ```
-Forward (Button 2):   1 → 2 → 3 → 4 → 5 → 6 → 1  (wraps to 1, skips 0)
-Backward (Button 3):  1 → 6 → 5 → 4 → 3 → 2 → 1  (wraps to max-1, skips 0)
+Button 1 (Half & Half pin) → EXIT browsing → default weather-today view (day 0, context = WEATHER)
+Button 2 (Weather pin)     → next day (+1), staying in the current context
+Button 3 (Transport pin)   → previous day (-1), staying in the current context
 ```
 
-The upper bound is `availableForecastDays` (set from `weather.dailyForecastCount` after fetch).
+Because Button 2/Button 3 only step the day once you are browsing, **the only way to switch
+context is to press Button 1 first** (return to the default view), then press Button 2 (weather)
+or Button 3 (solar) to enter the other context.
+
+### Wrapping Logic (context-dependent)
+
+Day navigation is **circular** and the lower bound depends on the context — solar browse
+includes today (day 0), weather browse skips it:
+
+```
+Weather browse (skips day 0):
+  Forward  (B2):  1 → 2 → 3 → 4 → 5 → 6 → 1   (wraps to 1)
+  Backward (B3):  1 → 6 → 5 → 4 → 3 → 2 → 1   (wraps to max-1)
+
+Solar browse (includes day 0):
+  Forward  (B2):  0 → 1 → 2 → 3 → 4 → 5 → 6 → 0  (wraps to 0)
+  Backward (B3):  0 → 6 → 5 → 4 → 3 → 2 → 1 → 0  (wraps to max-1)
+```
+
+The step is computed by the `stepBrowseDay()` helper in `button_manager.cpp`: the lower
+bound is `0` for `BROWSE_SOLAR` and `1` for `BROWSE_WEATHER`; the upper bound is
+`availableForecastDays - 1` (set from `weather.dailyForecastCount` after fetch).
 Models with fewer forecast days have a smaller range:
 
-| Weather Model | Available Days | Browsable Range |
-|---------------|----------------|-----------------|
-| Auto / DWD ICON / ECMWF | 7 | Day 1-6 |
-| MeteoSwiss | 5 | Day 1-4 |
-| Meteo-France | 4 | Day 1-3 |
-| ItaliaMeteo | 3 | Day 1-2 |
+| Weather Model | Available Days | Weather browse range | Solar browse range |
+|---------------|----------------|----------------------|--------------------|
+| Auto / DWD ICON / ECMWF | 7 | Day 1-6 | Day 0-6 |
+| MeteoSwiss | 5 | Day 1-4 | Day 0-4 |
+| Meteo-France | 4 | Day 1-3 | Day 0-3 |
+| ItaliaMeteo | 3 | Day 1-2 | Day 0-2 |
 
-Button 1 always resets `selectedForecastDay` to 0, returning to the normal today view.
+Button 1 always resets `selectedForecastDay` to 0 and `browseContext` to `BROWSE_WEATHER`,
+returning to the normal today view.
 
 ### Implementation: Two Button Paths
 
 #### Deep Sleep Wakeup Path
 
 When a button wakes the device from deep sleep, `handleWakeupMode()` checks the effective
-display mode. If Weather-Only, it reinterprets the button press as a day navigation command
-instead of a display mode switch:
+display mode. If Weather-Only, it reinterprets the button press as a browse command instead
+of a display mode switch. `wasBrowsing` (the pre-press `inTemporaryMode`) decides enter vs. step:
 
 ```cpp
-// In handleWakeupMode():
-if (effectiveMode == DISPLAY_MODE_WEATHER_ONLY && buttonMode != DISPLAY_MODE_APPLICATION_INFO) {
-    // Reinterpret as day browsing
+// In handleWakeupMode() — bool wasBrowsing = config.inTemporaryMode;
+if (config.displayMode == DISPLAY_MODE_WEATHER_ONLY && buttonMode != DISPLAY_MODE_APPLICATION_INFO) {
     if (buttonMode == DISPLAY_MODE_HALF_AND_HALF) {
-        selectedForecastDay = 0;  // Button 1: back to today
-    } else if (buttonMode == DISPLAY_MODE_WEATHER_ONLY) {
-        selectedForecastDay = nextDay(+1);  // Button 2: forward
-    } else if (buttonMode == DISPLAY_MODE_DEPARTURE_ONLY) {
-        selectedForecastDay = nextDay(-1);  // Button 3: backward
+        config.selectedForecastDay = 0;              // Button 1: back to today
+        config.browseContext = BROWSE_WEATHER;
+    } else if (buttonMode == DISPLAY_MODE_WEATHER_ONLY) {          // Button 2
+        if (!wasBrowsing) { config.browseContext = BROWSE_WEATHER; config.selectedForecastDay = 1; }
+        else              { config.selectedForecastDay = stepBrowseDay(config, +1); }
+    } else if (buttonMode == DISPLAY_MODE_TRANSPORT_ONLY) {        // Button 3
+        if (!wasBrowsing) { config.browseContext = BROWSE_SOLAR;  config.selectedForecastDay = 0; }
+        else              { config.selectedForecastDay = stepBrowseDay(config, -1); }
     }
 }
 ```
@@ -235,18 +295,20 @@ if (effectiveMode == DISPLAY_MODE_WEATHER_ONLY && buttonMode != DISPLAY_MODE_APP
 #### Awake Press Path (ISR)
 
 When a button is pressed during an active wake cycle, the ISR fires and
-`checkAndRestartIfButtonPressed()` handles it. Since `esp_restart()` clears RTC state,
-the pending day value is saved to NVS under the key `pendingDay` before restarting:
+`checkAndRestartIfButtonPressed()` handles it with the same enter-vs-step logic. Since
+`esp_restart()` clears RTC state, both the pending day **and** the pending browse context
+are saved to NVS before restarting:
 
 ```
 ISR fires → checkAndRestartIfButtonPressed()
-  → Save selectedForecastDay to NVS key "pendingDay"
+  → Compute new selectedForecastDay + browseContext (using wasBrowsing)
+  → Save to NVS keys "pendingDay" and "pendingCtx"
   → esp_restart()
-  → On reboot: load "pendingDay" from NVS, delete key, apply to selectedForecastDay
+  → On reboot: handleWakeupMode() loads "pendingDay"/"pendingCtx", deletes them, applies to RTC
 ```
 
-The `pendingDay` NVS key is a transient value — it is read once and immediately deleted
-after loading. This avoids polluting NVS with persistent state for a runtime-only feature.
+The `pendingDay` and `pendingCtx` NVS keys are transient values — read once and immediately
+deleted after loading. This avoids polluting NVS with persistent state for a runtime-only feature.
 
 ### Temporary Mode Expiry
 
@@ -265,8 +327,11 @@ Temp mode expires → selectedForecastDay reset to 0 → display today
 | File | Purpose |
 |------|---------|
 | `src/util/button_monitor.cpp` | Long press detection (polling loop) |
-| `src/util/button_manager.cpp` | ISR handlers, wakeup mode, temp mode, day browsing reinterpretation |
+| `src/util/button_manager.cpp` | ISR handlers, wakeup mode, temp mode, day browse reinterpretation, `stepBrowseDay()`, browse context |
 | `src/util/system_init.cpp` | Long press action routing, wait-for-release |
 | `include/config/pins.h` | GPIO pin assignments per board |
-| `src/display/weather_general_full.cpp` | Day browse layout rendering (`drawDayBrowseLayout()`) |
-| `src/api/dwd_weather_api.cpp` | Multi-day hourly fetch for the RTC cache (`getWeatherHourlyMultiDay()`) |
+| `include/config/config_manager.h` | `BrowseContext` enum, `browseContext` / `selectedForecastDay` RTC fields |
+| `src/display/weather_general_full.cpp` | Day browse layouts (`drawDayBrowseLayout()` weather, `drawSolarBrowseLayout()` solar) |
+| `src/display/weather_graph.cpp` | Solar radiation curve (`drawSolarRadiationGraph()`) |
+| `src/display/solar_math.cpp` | `calculateSolarAxisMax()`, `findSolarPeak()`, `hasValidSolarData()` |
+| `src/api/dwd_weather_api.cpp` | Multi-day hourly fetch for the RTC cache (`getWeatherHourlyMultiDay()`), solar radiation fetch |
