@@ -649,6 +649,10 @@ bool WeatherGraph::drawSolarRadiationGraph(const WeatherHourlyForecast hourlyDat
     ESP_LOGI(TAG, "Solar graph at (%d,%d) %dx%d, %d pts, peak %.1f W/m2",
              x, y, w, h, hourlyCount, maxRadiation);
 
+    // Dynamic axis ceiling: round the day's peak up to a clean value (nearest 100),
+    // so the curve auto-fits each day while keeping real W/m² labels.
+    float axisMax = calculateSolarAxisMax(maxRadiation);
+
     // Adaptive margins (mirror drawGraphInternal's layout logic).
     int16_t marginLeft = (h < 120) ? 25 : MARGIN_LEFT;
     int16_t marginRight = (h < 120) ? 25 : MARGIN_RIGHT;
@@ -664,7 +668,7 @@ bool WeatherGraph::drawSolarRadiationGraph(const WeatherHourlyForecast hourlyDat
 
     // Frame + time axis (reuse existing helpers).
     drawGraphFrame(graphX, graphY, graphW, graphH, dataPoints);
-    drawSolarAxis(x, graphY, marginLeft, graphH);
+    drawSolarAxis(x, graphY, marginLeft, graphH, axisMax);
 
     // Time axis labels (same approach as drawGraphInternal).
     {
@@ -687,29 +691,38 @@ bool WeatherGraph::drawSolarRadiationGraph(const WeatherHourlyForecast hourlyDat
         }
     }
 
-    drawSolarCurve(hourlyData, dataPoints, graphX, graphY, graphW, graphH, maxRadiation);
+    drawSolarCurve(hourlyData, dataPoints, graphX, graphY, graphW, graphH, axisMax);
     return true;
 }
 
-// Y-axis for the solar graph: 0..100 % of the day's peak radiation.
-void WeatherGraph::drawSolarAxis(int16_t x, int16_t y, int16_t w, int16_t h) {
+// Round a peak W/m² value up to a clean axis ceiling: nearest 100 above the peak,
+// with a 100 floor so near-dark days still get a sane axis (and never divide by 0).
+float WeatherGraph::calculateSolarAxisMax(float peakRadiation) {
+    if (peakRadiation < 100.0f) return 100.0f;
+    return ceilf(peakRadiation / 100.0f) * 100.0f;
+}
+
+// Y-axis for the solar graph: 0..axisMax in real W/m² (dynamic per day).
+void WeatherGraph::drawSolarAxis(int16_t x, int16_t y, int16_t w, int16_t h, float maxRadiation) {
     TextUtils::setFont10px_margin12px();
     int labelCount = (w < 30) ? 3 : 5;
     for (int i = 0; i < labelCount; i++) {
-        int percent = (i * 100) / (labelCount - 1);
+        int value = (int)(maxRadiation * i / (labelCount - 1) + 0.5f);
         int16_t labelY = y + h - (h * i / (labelCount - 1));
-        String label = String(percent) + "%";
+        String label = String(value);
         int16_t textWidth = TextUtils::getTextWidth(label);
         u8g2.setCursor(x + w - textWidth - 3, labelY + 4);
         u8g2.print(label);
     }
     // Axis title above the Y axis (skip for very compact mode).
+    // "²" is byte 0xB2 (Latin-1); the helvB10_tf font renders it, same mechanism
+    // as the "°" used on the temperature axis.
     if (w >= 30) {
-        TextUtils::printTextAtWithMargin(x, y - 25, "Sonne %");
+        TextUtils::printTextAtWithMargin(x, y - 25, "W/m²");
     }
 }
 
-// Smooth solar radiation curve, normalized to maxRadiation (0..100%).
+// Smooth solar radiation curve, mapped against the dynamic axis max (W/m²).
 // Unavailable points (solarRadiation < 0) break the curve so it does not
 // interpolate through a gap as if it were zero.
 void WeatherGraph::drawSolarCurve(const WeatherHourlyForecast hourlyData[], int dataCount,
@@ -725,9 +738,9 @@ void WeatherGraph::drawSolarCurve(const WeatherHourlyForecast hourlyData[], int 
         solarX[i] = mapToPixel(i, 0, dataCount - 1, graphX, graphX + graphW);
         float r = hourlyData[i].solarRadiation;
         valid[i] = (r >= 0.0f);
-        // Normalize to % of daily peak; map onto the graph height.
-        float pct = valid[i] ? (r / maxRadiation) * 100.0f : 0.0f;
-        solarY[i] = mapToPixel(pct, 0.0f, 100.0f, graphY + graphH, graphY);
+        // Map absolute W/m² onto the graph height against the dynamic axis max.
+        float plotVal = valid[i] ? r : 0.0f;
+        solarY[i] = mapToPixel(plotVal, 0.0f, maxRadiation, graphY + graphH, graphY);
     }
 
     // Draw smooth curve segment-by-segment, but only between adjacent valid points.

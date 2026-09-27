@@ -67,10 +67,12 @@ private:
     static void drawGraphLegend(int16_t x, int16_t y, int16_t w, int16_t h);
 
     // Solar radiation drawing helpers
-    static void drawSolarAxis(int16_t x, int16_t y, int16_t w, int16_t h);
+    static void drawSolarAxis(int16_t x, int16_t y, int16_t w, int16_t h, float maxRadiation);
     static void drawSolarCurve(const WeatherHourlyForecast hourlyData[], int dataCount,
                                int16_t graphX, int16_t graphY, int16_t graphW, int16_t graphH,
                                float maxRadiation);
+    // Round a peak W/m² value up to a clean axis ceiling (nearest 100, min 100).
+    static float calculateSolarAxisMax(float peakRadiation);
 
     // Humidity drawing functions
     static void drawHumidityLine(const WeatherInfo& weather,
