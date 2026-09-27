@@ -1,0 +1,298 @@
+// Real Open-Meteo response captured for the solar radiation feature (#436).
+// Source: getGeneralWeatherFull() URL shape — current + 13h hourly + 7-day daily.
+// Includes the new hourly variable: shortwave_radiation (W/m2).
+// Location: Frankfurt (lat 50.11, lon 8.68). Fetched: 2026-09-27T11:00:09Z
+// Model: Auto (no &models= param).
+{
+    "latitude": 50.12,
+    "longitude": 8.68,
+    "generationtime_ms": 0.9684562683105469,
+    "utc_offset_seconds": 7200,
+    "timezone": "Europe/Berlin",
+    "timezone_abbreviation": "GMT+2",
+    "elevation": 105.0,
+    "current_units": {
+        "time": "iso8601",
+        "interval": "seconds",
+        "temperature_2m": "\u00b0C",
+        "precipitation": "mm",
+        "weather_code": "wmo code"
+    },
+    "current": {
+        "time": "2026-09-27T12:45",
+        "interval": 900,
+        "temperature_2m": 23.4,
+        "precipitation": 0.0,
+        "weather_code": 1
+    },
+    "hourly_units": {
+        "time": "iso8601",
+        "temperature_2m": "\u00b0C",
+        "weather_code": "wmo code",
+        "precipitation_probability": "%",
+        "precipitation": "mm",
+        "relative_humidity_2m": "%",
+        "shortwave_radiation": "W/m\u00b2"
+    },
+    "hourly": {
+        "time": [
+            "2026-09-27T12:00",
+            "2026-09-27T13:00",
+            "2026-09-27T14:00",
+            "2026-09-27T15:00",
+            "2026-09-27T16:00",
+            "2026-09-27T17:00",
+            "2026-09-27T18:00",
+            "2026-09-27T19:00",
+            "2026-09-27T20:00",
+            "2026-09-27T21:00",
+            "2026-09-27T22:00",
+            "2026-09-27T23:00",
+            "2026-09-28T00:00"
+        ],
+        "temperature_2m": [
+            21.7,
+            23.9,
+            25.3,
+            26.6,
+            27.6,
+            28.0,
+            27.3,
+            25.6,
+            22.9,
+            20.7,
+            19.3,
+            18.2,
+            17.5
+        ],
+        "weather_code": [
+            1,
+            1,
+            1,
+            1,
+            0,
+            2,
+            1,
+            1,
+            2,
+            1,
+            2,
+            3,
+            1
+        ],
+        "precipitation_probability": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+        ],
+        "precipitation": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ],
+        "relative_humidity_2m": [
+            42,
+            37,
+            36,
+            34,
+            31,
+            29,
+            31,
+            41,
+            52,
+            57,
+            51,
+            53,
+            57
+        ],
+        "shortwave_radiation": [
+            496.0,
+            566.5,
+            584.5,
+            544.5,
+            461.8,
+            343.0,
+            189.8,
+            63.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+        ]
+    },
+    "daily_units": {
+        "time": "iso8601",
+        "sunset": "iso8601",
+        "sunrise": "iso8601",
+        "uv_index_max": "",
+        "sunshine_duration": "s",
+        "precipitation_sum": "mm",
+        "precipitation_hours": "h",
+        "weather_code": "wmo code",
+        "temperature_2m_max": "\u00b0C",
+        "temperature_2m_min": "\u00b0C",
+        "apparent_temperature_min": "\u00b0C",
+        "apparent_temperature_max": "\u00b0C",
+        "wind_speed_10m_max": "km/h",
+        "wind_gusts_10m_max": "km/h",
+        "wind_direction_10m_dominant": "\u00b0"
+    },
+    "daily": {
+        "time": [
+            "2026-09-27",
+            "2026-09-28",
+            "2026-09-29",
+            "2026-09-30",
+            "2026-10-01",
+            "2026-10-02",
+            "2026-10-03"
+        ],
+        "sunset": [
+            "2026-09-27T19:12",
+            "2026-09-28T19:10",
+            "2026-09-29T19:08",
+            "2026-09-30T19:05",
+            "2026-10-01T19:03",
+            "2026-10-02T19:01",
+            "2026-10-03T18:59"
+        ],
+        "sunrise": [
+            "2026-09-27T07:19",
+            "2026-09-28T07:20",
+            "2026-09-29T07:22",
+            "2026-09-30T07:23",
+            "2026-10-01T07:25",
+            "2026-10-02T07:26",
+            "2026-10-03T07:28"
+        ],
+        "uv_index_max": [
+            4.25,
+            4.05,
+            3.95,
+            3.85,
+            1.2,
+            3.45,
+            3.25
+        ],
+        "sunshine_duration": [
+            39600.0,
+            29739.68,
+            31662.48,
+            30985.74,
+            0.0,
+            36064.08,
+            36188.38
+        ],
+        "precipitation_sum": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            12.9,
+            1.8,
+            0.0
+        ],
+        "precipitation_hours": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            18.0,
+            3.0,
+            0.0
+        ],
+        "weather_code": [
+            3,
+            3,
+            3,
+            3,
+            61,
+            3,
+            3
+        ],
+        "temperature_2m_max": [
+            28.0,
+            27.2,
+            26.7,
+            26.0,
+            21.1,
+            21.8,
+            24.0
+        ],
+        "temperature_2m_min": [
+            12.6,
+            14.0,
+            16.3,
+            12.6,
+            16.8,
+            13.9,
+            13.1
+        ],
+        "apparent_temperature_min": [
+            11.1,
+            13.3,
+            16.3,
+            12.2,
+            17.9,
+            12.7,
+            12.1
+        ],
+        "apparent_temperature_max": [
+            26.6,
+            27.6,
+            25.9,
+            25.9,
+            22.8,
+            21.7,
+            23.7
+        ],
+        "wind_speed_10m_max": [
+            9.4,
+            6.4,
+            7.5,
+            7.9,
+            7.5,
+            6.2,
+            8.3
+        ],
+        "wind_gusts_10m_max": [
+            24.1,
+            14.8,
+            22.7,
+            23.0,
+            20.9,
+            19.1,
+            24.8
+        ],
+        "wind_direction_10m_dominant": [
+            97,
+            55,
+            69,
+            79,
+            303,
+            331,
+            52
+        ]
+    }
+}
