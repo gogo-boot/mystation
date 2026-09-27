@@ -22,11 +22,16 @@ consistent. See issue #439 for the discussion that produced these terms.
 
 ## German on-screen label
 
-The solar view title uses **"Sonneneinstrahlung"** (solar irradiance). Verified to fit the
-weather-full layout title area (800 px wide, title fonts ≤ 24 px). It is Latin-1 safe for the
-u8g2 renderer (the umlaut is within 0x00–0xFF).
+The solar view title uses **"Sonnenstrom"** ("sun electricity") — a warm, product-marketing
+term chosen for a Balkonkraftwerk/PV audience: energy-framed and relatable without falsely
+implying the graph reads an actual inverter (it shows the solar *resource*, `shortwave_radiation`).
+The day's total energy is appended as `Sonnenstrom - X.X kWh/m2`.
 
-Short fallback **"Sonne"** is reserved only if a future, narrower layout cannot fit the full word.
+Rejected alternatives: `Sonneneinstrahlung` (accurate but clinical/long), `PV-Ertrag` (strong
+keyword recognition but implies measured yield), `Balkonkraftwerk` (too narrow — excludes
+rooftop/ground PV), bare `Sonne` (ambiguous with weather).
+
+Latin-1 safe for the u8g2 renderer; fits the weather-full title area (800 px wide).
 
 ## Button-behavior phrasing (for consistent docs)
 

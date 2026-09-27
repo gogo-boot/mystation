@@ -339,20 +339,19 @@ void WeatherFullDisplay::drawSolarBrowseLayout(const WeatherInfo& weather,
         TextUtils::printTextAtWithMargin(colX, currentY, dayLabel);
         icon_name icon = WeatherUtil::getWeatherIcon(weather.dailyForecast[i].weatherCode);
         display.drawInvertedBitmap(colX, currentY + 15, getBitmap(icon, 48), 48, 48, GxEPD_BLACK);
-        // Daily solar total (kWh/m²), bare number — unit implied by the graph
-        // title. "-" when the model provides no daily sum. Replaces temp min/max
-        // so the row matches the solar view.
+        // Daily solar total with unit (kWh/m2) per column — the bare number left
+        // too much empty space in the column. "-" when the model gives no sum.
         float mj = weather.dailyForecast[i].solarRadiationSum;
-        String solarLabel = (mj >= 0.0f) ? String(mj / 3.6f, 1) : "-";
+        String solarLabel = (mj >= 0.0f) ? (String(mj / 3.6f, 1) + " kWh/m2") : "-";
         TextUtils::printTextAtWithMargin(colX, currentY + 70, solarLabel);
     }
     currentY += FORECAST_ROW_HEIGHT;
 
-    // ── Graph title: "Sonneneinstrahlung" + daily total in kWh/m² ──
+    // ── Graph title: "Sonnenstrom" + daily total in kWh/m² ──
     // shortwave_radiation_sum is MJ/m²; convert to kWh/m² (÷3.6) for a
     // solar-audience-friendly figure. -1.0f means the model gave no daily sum.
     TextUtils::setFont12px_margin15px();
-    String title = "Sonneneinstrahlung";
+    String title = "Sonnenstrom";
     if (dayForecast.solarRadiationSum >= 0.0f) {
         float kwh = dayForecast.solarRadiationSum / 3.6f;
         title += " - " + String(kwh, 1) + " kWh/m2";
