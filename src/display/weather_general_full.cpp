@@ -334,10 +334,11 @@ void WeatherFullDisplay::drawSolarBrowseLayout(const WeatherInfo& weather,
         TextUtils::printTextAtWithMargin(colX, currentY, dayLabel);
         icon_name icon = WeatherUtil::getWeatherIcon(weather.dailyForecast[i].weatherCode);
         display.drawInvertedBitmap(colX, currentY + 15, getBitmap(icon, 48), 48, 48, GxEPD_BLACK);
-        // Daily solar total with unit (kWh/m2) per column — the bare number left
+        // Daily solar total with unit (kWh/m²) per column — the bare number left
         // too much empty space in the column. "-" when the model gives no sum.
+        // "²" is byte 0xB2 (Latin-1), rendered by helvB12 like the "°" glyph.
         float mj = weather.dailyForecast[i].solarRadiationSum;
-        String solarLabel = (mj >= 0.0f) ? (String(mj / 3.6f, 1) + " kWh/m2") : "-";
+        String solarLabel = (mj >= 0.0f) ? (String(mj / 3.6f, 1) + " kWh/m²") : "-";
         TextUtils::printTextAtWithMargin(colX, currentY + 70, solarLabel);
     }
     currentY += FORECAST_ROW_HEIGHT;
