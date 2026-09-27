@@ -302,7 +302,7 @@ void WeatherFullDisplay::drawSolarBrowseLayout(const WeatherInfo& weather,
 
     // ── Top section: Date left-aligned + city name right-aligned ──
     TextUtils::setFont24px_margin28px();
-    String headerDate = DateUtil::formatFullDateString(dayForecast.time);
+    String headerDate = "Sonnenstrom";
     TextUtils::printTextAtWithMargin(leftMargin, currentY, headerDate);
 
     RTCConfigData& config = ConfigManager::getConfig();
@@ -347,17 +347,6 @@ void WeatherFullDisplay::drawSolarBrowseLayout(const WeatherInfo& weather,
     }
     currentY += FORECAST_ROW_HEIGHT;
 
-    // ── Graph title: "Sonnenstrom" + daily total in kWh/m² ──
-    // shortwave_radiation_sum is MJ/m²; convert to kWh/m² (÷3.6) for a
-    // solar-audience-friendly figure. -1.0f means the model gave no daily sum.
-    TextUtils::setFont12px_margin15px();
-    String title = "Sonnenstrom";
-    if (dayForecast.solarRadiationSum >= 0.0f) {
-        float kwh = dayForecast.solarRadiationSum / 3.6f;
-        title += " - " + String(kwh, 1) + " kWh/m2";
-    }
-    TextUtils::printTextAtWithMargin(leftMargin, currentY, title);
-    currentY += GRAPH_TITLE_HEIGHT;
     currentY += 10;
 
     // ── Full-width solar graph (remaining space minus footer) ──
