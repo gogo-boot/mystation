@@ -67,8 +67,17 @@ struct RTCConfigData {
     // Day browsing in weather-only mode (transient RTC state, not persisted to NVS)
     int8_t selectedForecastDay;    // 0 = today (default), 1-6 = future days
     int8_t availableForecastDays;  // number of daily forecasts from last fetch (1-7, depends on model)
+    uint8_t browseContext;         // 0 = WEATHER browse, 1 = SOLAR browse (see BrowseContext)
 
-    // Total: ~537 bytes (well under 8KB RTC limit)
+    // Total: ~538 bytes (well under 8KB RTC limit)
+};
+
+// Browse context: which per-day graph the buttons are browsing.
+// WEATHER = existing temp+rain day browse (skips day 0; day 0 is the normal view).
+// SOLAR   = solar radiation day browse (includes day 0 = today's solar graph).
+enum BrowseContext : uint8_t {
+    BROWSE_WEATHER = 0,
+    BROWSE_SOLAR   = 1,
 };
 
 /*

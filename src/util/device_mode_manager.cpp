@@ -13,6 +13,7 @@
 #include "config/config_struct.h"
 #include "display/display_manager.h"
 #include "display/trip_display.h"
+#include "display/solar_math.h"
 #include "util/battery_manager.h"
 #include "util/transport_print.h"
 #include "global_instances.h"
@@ -125,22 +126,20 @@ void DeviceModeManager::showWeatherDeparture() {
         DisplayManager::displayHalfNHalf(weather, depart);
     }
 }
-
-// Render a cached forecast day (06:00–23:00, up to 18 points) from the RTC
-// day cache. Returns true if rendered; false if the day is not available in
-// the cache (caller should fall back to the normal weather view).
-static bool renderDayBrowseFromCache(int day) {
-    if (day <= 0 || day >= dayCacheValidDays) {
-        return false;
+// Slice hours 06:00–23:00 (+ optional 24:00) from a cached day into the display
+// struct. Works for any cached day including day 0. Returns the point count, or
+// 0 if the day is not available in the cache. Copies solarRadiation too so the
+// same slice serves both the weather and solar browse renderers.
+static int sliceDayFromCache(int day, WeatherHourlyForecast dayHourly[]) {
+    if (day < 0 || day >= dayCacheValidDays) {
+        return 0;
     }
 
-    // Slice hours 06:00–23:00 from the cached day into the display struct.
     // The graph derives x-axis labels from an ISO timestamp via substring(11,16),
     // so build a full "YYYY-MM-DDTHH:00" string using the day's date prefix.
     char datePrefix[11] = {0};  // "YYYY-MM-DD"
     strncpy(datePrefix, weather.dailyForecast[day].time, 10);
 
-    WeatherHourlyForecast dayHourly[DAY_BROWSE_HOURLY_COUNT];
     int count = 0;
     for (int h = DAY_BROWSE_START_HOUR; h < DAY_CACHE_HOURS; ++h) {
         const DayBrowsePoint& p = dayCache[day][h];
@@ -151,6 +150,9 @@ static bool renderDayBrowseFromCache(int day) {
         out.rainChance  = p.rainChance;
         out.rainfall    = p.rainfall;
         out.humidity    = p.humidity;
+        // Convert cached uint16 solar back to float W/m²; SOLAR_UNAVAILABLE -> -1.0f
+        out.solarRadiation = (p.solarRadiation == SOLAR_UNAVAILABLE)
+                                 ? -1.0f : (float)p.solarRadiation;
         count++;
     }
 
@@ -160,18 +162,42 @@ static bool renderDayBrowseFromCache(int day) {
     if (day + 1 < dayCacheValidDays) {
         const DayBrowsePoint& p = dayCache[day + 1][0];
         WeatherHourlyForecast& out = dayHourly[count];
-        // Label as "24:00" rather than the next day's 00:00 for a clear single-day
-        // axis. This string is only string-sliced for display, never date-parsed.
         snprintf(out.time, TIME_STRING_LENGTH, "%sT24:00", datePrefix);
         out.temperature = p.temperature;
         out.weatherCode = p.weatherCode;
         out.rainChance  = p.rainChance;
         out.rainfall    = p.rainfall;
         out.humidity    = p.humidity;
+        out.solarRadiation = (p.solarRadiation == SOLAR_UNAVAILABLE)
+                                 ? -1.0f : (float)p.solarRadiation;
         count++;
     }
+    return count;
+}
 
+// Render a cached WEATHER day browse (temp+rain). Returns false if unavailable.
+// Weather browse never renders day 0 (that is the normal weather view).
+static bool renderDayBrowseFromCache(int day) {
+    if (day <= 0) return false;
+    WeatherHourlyForecast dayHourly[DAY_BROWSE_HOURLY_COUNT];
+    int count = sliceDayFromCache(day, dayHourly);
+    if (count == 0) return false;
     DisplayManager::displayWeatherDayBrowse(weather, dayHourly, count, day);
+    return true;
+}
+
+// Render a cached SOLAR day browse (solar radiation curve) for any day incl. 0.
+// Returns false if the day is not cached OR has no valid solar data, so the
+// caller can fall back to the normal weather view.
+static bool renderSolarBrowseFromCache(int day) {
+    WeatherHourlyForecast dayHourly[DAY_BROWSE_HOURLY_COUNT];
+    int count = sliceDayFromCache(day, dayHourly);
+    if (count == 0) return false;
+    if (!SolarMath::hasValidSolarData(dayHourly, count)) {
+        ESP_LOGW(TAG, "Solar browse: day %d has no valid solar data", day);
+        return false;
+    }
+    DisplayManager::displaySolarDayBrowse(weather, dayHourly, count, day);
     return true;
 }
 
@@ -218,10 +244,19 @@ void DeviceModeManager::updateWeatherFull() {
     // WiFi is no longer needed — day browsing renders from the RTC cache.
     shutdownWiFiBeforeRender();
 
-    // Day browsing: render the selected future day from cache. Falls back to the
-    // normal today view if the day is not cached (cold boot before first fetch,
-    // prefetch failure, or a model with fewer days).
-    if (config.selectedForecastDay > 0) {
+    // Day browsing: render the selected day from cache.
+    //  - SOLAR context: render the solar curve (includes day 0 = today's solar).
+    //  - WEATHER context: render the temp+rain day browse for day > 0.
+    // Both fall back to the normal weather-full view if the day/solar data is
+    // unavailable (cold boot before first fetch, prefetch failure, fewer-day
+    // model, or a model that returned no solar for that day).
+    if (config.browseContext == BROWSE_SOLAR) {
+        if (renderSolarBrowseFromCache(config.selectedForecastDay)) {
+            return;
+        }
+        ESP_LOGW(TAG, "Solar browse day %d unavailable (valid=%d), falling back to today",
+                 config.selectedForecastDay, dayCacheValidDays);
+    } else if (config.selectedForecastDay > 0) {
         if (renderDayBrowseFromCache(config.selectedForecastDay)) {
             return;
         }
