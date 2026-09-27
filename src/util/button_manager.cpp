@@ -23,6 +23,26 @@ void ButtonManager::setSyntheticButtonMode(int8_t mode) {
     ESP_LOGI(TAG, "Synthetic button mode set: %d", mode);
 }
 
+// Step the browsed day by +1/-1, wrapping circularly within the active browse
+// context. WEATHER browse skips day 0 (range 1..max-1); SOLAR browse includes
+// day 0 (range 0..max-1). maxDays = availableForecastDays (>=2), fallback 7.
+static int8_t stepBrowseDay(RTCConfigData& config, int delta) {
+    int8_t maxDays = config.availableForecastDays > 1 ? config.availableForecastDays : 7;
+    int8_t lower = (config.browseContext == BROWSE_SOLAR) ? 0 : 1;
+    int8_t upper = maxDays - 1;                 // last browsable future day
+    if (upper < lower) upper = lower;           // degenerate (few-day models)
+
+    int span = upper - lower + 1;               // number of days in the cycle
+    int8_t cur = config.selectedForecastDay;
+    if (cur < lower) cur = lower;
+    if (cur > upper) cur = upper;
+
+    // Circular step within [lower, upper].
+    int idx = (cur - lower + delta) % span;
+    if (idx < 0) idx += span;
+    return (int8_t)(lower + idx);
+}
+
 void ButtonManager::setWakupableButtons() {
     if (HAS_BUTTON) {
         ESP_LOGI(TAG, "Initializing button manager...");
@@ -128,12 +148,15 @@ void ButtonManager::handleWakeupMode() {
                 buttonMode = (int8_t)prefs.getUChar("pendingTempMode", 0xFF);
                 // Restore selectedForecastDay if persisted (day browsing via awake-press)
                 config.selectedForecastDay = prefs.getChar("pendingDay", 0);
+                config.browseContext = prefs.getUChar("pendingCtx", BROWSE_WEATHER);
                 dayAlreadySet = true; // awake-press already computed the day
                 // Clear the pending flags
                 prefs.putBool("pendingTemp", false);
                 prefs.remove("pendingTempMode");
                 prefs.remove("pendingDay");
-                ESP_LOGI(TAG, "Consumed pending temp mode from NVS: %d, day: %d", buttonMode, config.selectedForecastDay);
+                prefs.remove("pendingCtx");
+                ESP_LOGI(TAG, "Consumed pending temp mode from NVS: %d, day: %d, ctx: %d",
+                         buttonMode, config.selectedForecastDay, config.browseContext);
                 if (buttonMode == (int8_t)0xFF) buttonMode = -1;
             }
             prefs.end();
@@ -147,23 +170,33 @@ void ButtonManager::handleWakeupMode() {
         if (config.displayMode == DISPLAY_MODE_WEATHER_ONLY
             && buttonMode != DISPLAY_MODE_APPLICATION_INFO) {
             if (!dayAlreadySet) {
-                // Day browsing: reinterpret button presses (EXT1 / synthetic path)
+                // Day browsing: reinterpret button presses (EXT1 / synthetic path).
+                // B1 -> weather today; B2 -> weather browse next; B3 -> solar browse prev/enter.
+                // The active browse context (weather vs solar) controls day-wrap bounds.
                 if (buttonMode == DISPLAY_MODE_HALF_AND_HALF) {
-                    // Button 1: reset to today
+                    // Button 1: back to today, reset to weather context
                     config.selectedForecastDay = 0;
-                    ESP_LOGI(TAG, "Day browse: reset to today (day 0)");
+                    config.browseContext = BROWSE_WEATHER;
+                    ESP_LOGI(TAG, "Day browse: B1 -> weather today (day 0)");
                 } else if (buttonMode == DISPLAY_MODE_WEATHER_ONLY) {
-                    // Button 2: forward (+1 day, circular 1→2→...→max-1→1, skip day 0)
-                    int8_t maxDays = config.availableForecastDays > 1 ? config.availableForecastDays : 7;
-                    int8_t next = config.selectedForecastDay + 1;
-                    config.selectedForecastDay = (next >= maxDays) ? 1 : next;
-                    ESP_LOGI(TAG, "Day browse: forward to day %d (max %d)", config.selectedForecastDay, maxDays);
+                    // Button 2: WEATHER browse. Enter it if not already; then next day (+1).
+                    if (config.browseContext != BROWSE_WEATHER) {
+                        config.browseContext = BROWSE_WEATHER;
+                        config.selectedForecastDay = 1; // weather browse starts at day 1 (skips 0)
+                    } else {
+                        config.selectedForecastDay = stepBrowseDay(config, +1);
+                    }
+                    ESP_LOGI(TAG, "Day browse: B2 -> weather day %d", config.selectedForecastDay);
                 } else if (buttonMode == DISPLAY_MODE_TRANSPORT_ONLY) {
-                    // Button 3: backward (-1 day, circular max-1→...→2→1→max-1, skip day 0)
-                    int8_t maxDays = config.availableForecastDays > 1 ? config.availableForecastDays : 7;
-                    int8_t prev = config.selectedForecastDay - 1;
-                    config.selectedForecastDay = (prev < 1) ? (maxDays - 1) : prev;
-                    ESP_LOGI(TAG, "Day browse: backward to day %d (max %d)", config.selectedForecastDay, maxDays);
+                    // Button 3: SOLAR browse. Enter it if not already (start at day 0 = today);
+                    // then previous day (-1) within solar context.
+                    if (config.browseContext != BROWSE_SOLAR) {
+                        config.browseContext = BROWSE_SOLAR;
+                        config.selectedForecastDay = 0; // solar browse starts at today
+                    } else {
+                        config.selectedForecastDay = stepBrowseDay(config, -1);
+                    }
+                    ESP_LOGI(TAG, "Day browse: B3 -> solar day %d", config.selectedForecastDay);
                 }
             }
             // Stay in weather-only mode with temp mode active
@@ -196,6 +229,7 @@ void ButtonManager::handleWakeupMode() {
             config.temporaryDisplayMode = 0xFF;
             config.temporaryModeActivationTime = 0;
             config.selectedForecastDay = 0;
+            config.browseContext = BROWSE_WEATHER;
             ESP_LOGI(TAG, "Temp mode expired — reverting to configured mode");
         }
     }
@@ -260,19 +294,27 @@ bool ButtonManager::checkAndRestartIfButtonPressed() {
     uint8_t persistMode = (uint8_t)mode;
     if (config.displayMode == DISPLAY_MODE_WEATHER_ONLY
         && mode != DISPLAY_MODE_APPLICATION_INFO) {
-        // Day browsing: update selectedForecastDay and keep weather-only mode
-        int8_t maxDays = config.availableForecastDays > 1 ? config.availableForecastDays : 7;
+        // Day browsing: update selectedForecastDay + browseContext, keep weather-only mode.
         if (mode == DISPLAY_MODE_HALF_AND_HALF) {
             config.selectedForecastDay = 0;
+            config.browseContext = BROWSE_WEATHER;
         } else if (mode == DISPLAY_MODE_WEATHER_ONLY) {
-            int8_t next = config.selectedForecastDay + 1;
-            config.selectedForecastDay = (next >= maxDays) ? 1 : next;
+            if (config.browseContext != BROWSE_WEATHER) {
+                config.browseContext = BROWSE_WEATHER;
+                config.selectedForecastDay = 1;
+            } else {
+                config.selectedForecastDay = stepBrowseDay(config, +1);
+            }
         } else if (mode == DISPLAY_MODE_TRANSPORT_ONLY) {
-            int8_t prev = config.selectedForecastDay - 1;
-            config.selectedForecastDay = (prev < 1) ? (maxDays - 1) : prev;
+            if (config.browseContext != BROWSE_SOLAR) {
+                config.browseContext = BROWSE_SOLAR;
+                config.selectedForecastDay = 0;
+            } else {
+                config.selectedForecastDay = stepBrowseDay(config, -1);
+            }
         }
         persistMode = DISPLAY_MODE_WEATHER_ONLY;
-        ESP_LOGI(TAG, "Day browse (awake): selected day %d (max %d)", config.selectedForecastDay, maxDays);
+        ESP_LOGI(TAG, "Day browse (awake): ctx %d, day %d", config.browseContext, config.selectedForecastDay);
     }
 
     // Persist pending temp mode to NVS so it survives esp_restart()
@@ -282,8 +324,10 @@ bool ButtonManager::checkAndRestartIfButtonPressed() {
         prefs.putBool("pendingTemp", true);
         prefs.putUChar("pendingTempMode", persistMode);
         prefs.putChar("pendingDay", config.selectedForecastDay);
+        prefs.putUChar("pendingCtx", config.browseContext);
         prefs.end();
-        ESP_LOGI(TAG, "Saved pending temp mode %d, day %d to NVS", persistMode, config.selectedForecastDay);
+        ESP_LOGI(TAG, "Saved pending temp mode %d, day %d, ctx %d to NVS",
+                 persistMode, config.selectedForecastDay, config.browseContext);
     } else {
         ESP_LOGE(TAG, "Failed to save pending temp mode to NVS");
     }

@@ -31,6 +31,11 @@ public:
                                          const WeatherHourlyForecast dayHourly[],
                                          int hourlyCount, int selectedDay);
 
+    // Solar radiation day browse (single-metric solar curve for a selected day)
+    static void displaySolarDayBrowse(const WeatherInfo& weather,
+                                       const WeatherHourlyForecast dayHourly[],
+                                       int hourlyCount, int selectedDay);
+
     // === Configuration Mode Display ===
     // Display setup instructions for configuration phases (in German)
     static void displayPhase1WifiSetup(); // Phase 1: WiFi configuration

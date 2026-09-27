@@ -313,15 +313,18 @@ void WeatherFullDisplay::drawSolarBrowseLayout(const WeatherInfo& weather,
     TextUtils::printTextAtWithMargin(cityNameX, currentY, fittedCityName);
     currentY += 35;
 
-    // ── 6-day forecast row with highlight on selected (same as day browse) ──
+    // ── 7-day forecast row incl. today (day 0) with highlight on selected ──
+    // Solar browse includes day 0, so the row shows today too and the highlight
+    // can land on it (unlike weather browse, which starts at day 1).
     TextUtils::setFont12px_margin15px();
     int forecastCount = weather.dailyForecastCount;
     int16_t availableWidth = rightMargin - leftMargin;
-    int displayDays = forecastCount > 1 ? forecastCount - 1 : 1;
+    int displayDays = forecastCount > 0 ? forecastCount : 1; // days 0..N-1
+    if (displayDays > 7) displayDays = 7;
     int16_t colWidth = availableWidth / displayDays;
 
-    for (int i = 1; i < forecastCount && i <= 6; i++) {
-        int16_t colX = leftMargin + (i - 1) * colWidth;
+    for (int i = 0; i < forecastCount && i <= 6; i++) {
+        int16_t colX = leftMargin + i * colWidth;
         if (i == selectedDay) {
             int16_t rectX = colX - 3;
             int16_t rectY = currentY - 3;
@@ -330,7 +333,9 @@ void WeatherFullDisplay::drawSolarBrowseLayout(const WeatherInfo& weather,
             display.drawRect(rectX, rectY, rectW, rectH, GxEPD_BLACK);
             display.drawRect(rectX + 1, rectY + 1, rectW - 2, rectH - 2, GxEPD_BLACK);
         }
-        String dayLabel = WeatherUtil::getDayOfWeekFromDateString(weather.dailyForecast[i].time, 2);
+        // "Heute" for today, 2-char weekday otherwise
+        String dayLabel = (i == 0) ? "Heute"
+                                   : WeatherUtil::getDayOfWeekFromDateString(weather.dailyForecast[i].time, 2);
         TextUtils::printTextAtWithMargin(colX, currentY, dayLabel);
         icon_name icon = WeatherUtil::getWeatherIcon(weather.dailyForecast[i].weatherCode);
         display.drawInvertedBitmap(colX, currentY + 15, getBitmap(icon, 48), 48, 48, GxEPD_BLACK);
