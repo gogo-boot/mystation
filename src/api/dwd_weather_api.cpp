@@ -55,7 +55,7 @@ String getCityFromLatLon(float lat, float lon) {
 bool getGeneralWeatherFull(float lat, float lon, WeatherInfo& weather) {
     String url = "https://api.open-meteo.com/v1/forecast?latitude=" + String(lat, 6) +
         "&longitude=" + String(lon, 6) +
-        "&daily=sunset,sunrise,uv_index_max,sunshine_duration,precipitation_sum,precipitation_hours,weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_min,apparent_temperature_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant"
+        "&daily=sunset,sunrise,uv_index_max,shortwave_radiation_sum,sunshine_duration,precipitation_sum,precipitation_hours,weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_min,apparent_temperature_max,wind_speed_10m_max,wind_gusts_10m_max,wind_direction_10m_dominant"
         +
         "&hourly=temperature_2m,weather_code,precipitation_probability,precipitation,relative_humidity_2m,shortwave_radiation" +
         "&current=temperature_2m,precipitation,weather_code" +
@@ -123,6 +123,7 @@ bool getGeneralWeatherFull(float lat, float lon, WeatherInfo& weather) {
                 JsonArray sunrise = daily["sunrise"];
 
                 JsonArray uv_index = daily["uv_index_max"];
+                JsonArray solar_sum = daily["shortwave_radiation_sum"];
                 JsonArray sunshine = daily["sunshine_duration"];
                 JsonArray precipitation_sum = daily["precipitation_sum"];
                 JsonArray precipitation_hours = daily["precipitation_hours"];
@@ -156,6 +157,9 @@ bool getGeneralWeatherFull(float lat, float lon, WeatherInfo& weather) {
                                        TIME_SHORT_LENGTH);
 
                     weather.dailyForecast[count].uvIndex = uv_index[i].as<float>();
+                    // Daily solar energy total (MJ/m²): -1.0f marks unavailable
+                    weather.dailyForecast[count].solarRadiationSum =
+                        (solar_sum.isNull() || solar_sum[i].isNull()) ? -1.0f : solar_sum[i].as<float>();
 
                     weather.dailyForecast[count].sunshineDuration = sunshine[i].as<float>();
                     weather.dailyForecast[count].precipitationSum = precipitation_sum[i].as<float>();

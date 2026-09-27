@@ -22,6 +22,7 @@ struct WeatherDailyForecast {
     float tempMax;
     float tempMin;
     float uvIndex;
+    float solarRadiationSum;   // shortwave_radiation_sum (MJ/m²); -1.0f = unavailable
     float precipitationSum;
     int precipitationHours;
     float sunshineDuration;

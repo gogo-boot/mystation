@@ -1,12 +1,12 @@
-// Real Open-Meteo response captured for the solar radiation feature (#436).
+// Real Open-Meteo response captured for the solar radiation feature (#436, #445).
 // Source: getGeneralWeatherFull() URL shape — current + 13h hourly + 7-day daily.
-// Includes the new hourly variable: shortwave_radiation (W/m2).
-// Location: Frankfurt (lat 50.11, lon 8.68). Fetched: 2026-09-27T11:00:09Z
+// Includes hourly shortwave_radiation (W/m2) AND daily shortwave_radiation_sum (MJ/m2).
+// Location: Frankfurt (lat 50.11, lon 8.68). Fetched: 2026-09-27T11:11:34Z
 // Model: Auto (no &models= param).
 {
     "latitude": 50.12,
     "longitude": 8.68,
-    "generationtime_ms": 0.9684562683105469,
+    "generationtime_ms": 1.075148582458496,
     "utc_offset_seconds": 7200,
     "timezone": "Europe/Berlin",
     "timezone_abbreviation": "GMT+2",
@@ -19,9 +19,9 @@
         "weather_code": "wmo code"
     },
     "current": {
-        "time": "2026-09-27T12:45",
+        "time": "2026-09-27T13:00",
         "interval": 900,
-        "temperature_2m": 23.4,
+        "temperature_2m": 23.9,
         "precipitation": 0.0,
         "weather_code": 1
     },
@@ -36,7 +36,6 @@
     },
     "hourly": {
         "time": [
-            "2026-09-27T12:00",
             "2026-09-27T13:00",
             "2026-09-27T14:00",
             "2026-09-27T15:00",
@@ -48,10 +47,10 @@
             "2026-09-27T21:00",
             "2026-09-27T22:00",
             "2026-09-27T23:00",
-            "2026-09-28T00:00"
+            "2026-09-28T00:00",
+            "2026-09-28T01:00"
         ],
         "temperature_2m": [
-            21.7,
             23.9,
             25.3,
             26.6,
@@ -63,10 +62,10 @@
             20.7,
             19.3,
             18.2,
-            17.5
+            17.5,
+            16.8
         ],
         "weather_code": [
-            1,
             1,
             1,
             1,
@@ -78,6 +77,7 @@
             1,
             2,
             3,
+            1,
             1
         ],
         "precipitation_probability": [
@@ -111,7 +111,6 @@
             0.0
         ],
         "relative_humidity_2m": [
-            42,
             37,
             36,
             34,
@@ -123,10 +122,10 @@
             57,
             51,
             53,
-            57
+            57,
+            60
         ],
         "shortwave_radiation": [
-            496.0,
             566.5,
             584.5,
             544.5,
@@ -138,6 +137,7 @@
             0.0,
             0.0,
             0.0,
+            0.0,
             0.0
         ]
     },
@@ -146,6 +146,7 @@
         "sunset": "iso8601",
         "sunrise": "iso8601",
         "uv_index_max": "",
+        "shortwave_radiation_sum": "MJ/m\u00b2",
         "sunshine_duration": "s",
         "precipitation_sum": "mm",
         "precipitation_hours": "h",
@@ -194,6 +195,15 @@
             1.2,
             3.45,
             3.25
+        ],
+        "shortwave_radiation_sum": [
+            14.45,
+            11.3,
+            11.07,
+            10.8,
+            4.19,
+            10.32,
+            11.27
         ],
         "sunshine_duration": [
             39600.0,
