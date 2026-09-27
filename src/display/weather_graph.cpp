@@ -730,6 +730,17 @@ void WeatherGraph::drawSolarCurve(const WeatherHourlyForecast hourlyData[], int 
     }
 
     // Draw smooth curve segment-by-segment, but only between adjacent valid points.
+    // Catmull-Rom can overshoot where a flat run (e.g. zeros at dawn/dusk) meets a
+    // rise, dipping a couple px below the baseline. Clamp every interpolated point
+    // to the graph's vertical bounds so the curve never renders below 0 or above top.
+    const int16_t yTop = graphY;
+    const int16_t yBottom = graphY + graphH;
+    auto clampY = [yTop, yBottom](int16_t y) -> int16_t {
+        if (y < yTop) return yTop;
+        if (y > yBottom) return yBottom;
+        return y;
+    };
+
     for (int i = 0; i < dataCount - 1 && i + 1 < HOURS_TO_SHOW_DAY_BROWSE; i++) {
         if (!valid[i] || !valid[i + 1]) continue; // skip gaps
 
@@ -750,9 +761,9 @@ void WeatherGraph::drawSolarCurve(const WeatherHourlyForecast hourlyData[], int 
                     (-p0 + 3.0f * p1 - 3.0f * p2 + p3) * t3));
             };
             int16_t cx1 = catmullRom(t1, p0x, p1x, p2x, p3x);
-            int16_t cy1 = catmullRom(t1, p0y, p1y, p2y, p3y);
+            int16_t cy1 = clampY(catmullRom(t1, p0y, p1y, p2y, p3y));
             int16_t cx2 = catmullRom(t2, p0x, p1x, p2x, p3x);
-            int16_t cy2 = catmullRom(t2, p0y, p1y, p2y, p3y);
+            int16_t cy2 = clampY(catmullRom(t2, p0y, p1y, p2y, p3y));
             display.drawLine(cx1, cy1, cx2, cy2, GxEPD_BLACK);
         }
     }
