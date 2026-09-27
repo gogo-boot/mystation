@@ -71,8 +71,6 @@ private:
     static void drawSolarCurve(const WeatherHourlyForecast hourlyData[], int dataCount,
                                int16_t graphX, int16_t graphY, int16_t graphW, int16_t graphH,
                                float maxRadiation);
-    // Round a peak W/m² value up to a clean axis ceiling (nearest 100, min 100).
-    static float calculateSolarAxisMax(float peakRadiation);
 
     // Humidity drawing functions
     static void drawHumidityLine(const WeatherInfo& weather,

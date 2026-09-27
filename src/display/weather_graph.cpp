@@ -1,5 +1,6 @@
 #include "display/weather_graph.h"
 #include "display/text_utils.h"
+#include "display/solar_math.h"
 #include <esp_log.h>
 #include <math.h>
 #include "global_instances.h"
@@ -629,16 +630,8 @@ bool WeatherGraph::drawSolarRadiationGraph(const WeatherHourlyForecast hourlyDat
     }
 
     // Find the peak radiation among available (non-negative) points.
-    float maxRadiation = 0.0f;
     int validCount = 0;
-    for (int i = 0; i < hourlyCount; i++) {
-        if (hourlyData[i].solarRadiation >= 0.0f) {
-            validCount++;
-            if (hourlyData[i].solarRadiation > maxRadiation) {
-                maxRadiation = hourlyData[i].solarRadiation;
-            }
-        }
-    }
+    float maxRadiation = SolarMath::findSolarPeak(hourlyData, hourlyCount, validCount);
 
     if (validCount < 2 || maxRadiation <= 0.0f) {
         ESP_LOGW(TAG, "Solar graph: insufficient valid solar data (valid=%d, max=%.1f)",
@@ -651,7 +644,7 @@ bool WeatherGraph::drawSolarRadiationGraph(const WeatherHourlyForecast hourlyDat
 
     // Dynamic axis ceiling: round the day's peak up to a clean value (nearest 100),
     // so the curve auto-fits each day while keeping real W/m² labels.
-    float axisMax = calculateSolarAxisMax(maxRadiation);
+    float axisMax = SolarMath::calculateSolarAxisMax(maxRadiation);
 
     // Adaptive margins (mirror drawGraphInternal's layout logic).
     int16_t marginLeft = (h < 120) ? 25 : MARGIN_LEFT;
@@ -693,13 +686,6 @@ bool WeatherGraph::drawSolarRadiationGraph(const WeatherHourlyForecast hourlyDat
 
     drawSolarCurve(hourlyData, dataPoints, graphX, graphY, graphW, graphH, axisMax);
     return true;
-}
-
-// Round a peak W/m² value up to a clean axis ceiling: nearest 100 above the peak,
-// with a 100 floor so near-dark days still get a sane axis (and never divide by 0).
-float WeatherGraph::calculateSolarAxisMax(float peakRadiation) {
-    if (peakRadiation < 100.0f) return 100.0f;
-    return ceilf(peakRadiation / 100.0f) * 100.0f;
 }
 
 // Y-axis for the solar graph: 0..axisMax in real W/m² (dynamic per day).
