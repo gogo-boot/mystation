@@ -258,12 +258,11 @@ void WeatherFullDisplay::drawDayBrowseLayout(const WeatherInfo& weather,
         icon_name icon = WeatherUtil::getWeatherIcon(weather.dailyForecast[i].weatherCode);
         display.drawInvertedBitmap(colX, currentY + 15, getBitmap(icon, 48), 48, 48, GxEPD_BLACK);
 
-        // Daily solar total (kWh/m²), bare number — unit is implied by the
-        // graph title. "-" when the model provides no daily sum. This replaces
-        // the temp min/max shown in weather browse so the row matches the view.
-        float mj = weather.dailyForecast[i].solarRadiationSum;
-        String solarLabel = (mj >= 0.0f) ? String(mj / 3.6f, 1) : "-";
-        TextUtils::printTextAtWithMargin(colX, currentY + 70, solarLabel);
+        // Temp range (weather browse shows temperature)
+        int tempMinInt = (int)weather.dailyForecast[i].tempMin;
+        int tempMaxInt = (int)weather.dailyForecast[i].tempMax;
+        TextUtils::printTextAtWithMargin(colX, currentY + 70,
+                                         String(tempMinInt) + " / " + String(tempMaxInt) + "°");
     }
     currentY += FORECAST_ROW_HEIGHT;
 
@@ -340,10 +339,12 @@ void WeatherFullDisplay::drawSolarBrowseLayout(const WeatherInfo& weather,
         TextUtils::printTextAtWithMargin(colX, currentY, dayLabel);
         icon_name icon = WeatherUtil::getWeatherIcon(weather.dailyForecast[i].weatherCode);
         display.drawInvertedBitmap(colX, currentY + 15, getBitmap(icon, 48), 48, 48, GxEPD_BLACK);
-        int tempMinInt = (int)weather.dailyForecast[i].tempMin;
-        int tempMaxInt = (int)weather.dailyForecast[i].tempMax;
-        TextUtils::printTextAtWithMargin(colX, currentY + 70,
-                                         String(tempMinInt) + " / " + String(tempMaxInt) + "°");
+        // Daily solar total (kWh/m²), bare number — unit implied by the graph
+        // title. "-" when the model provides no daily sum. Replaces temp min/max
+        // so the row matches the solar view.
+        float mj = weather.dailyForecast[i].solarRadiationSum;
+        String solarLabel = (mj >= 0.0f) ? String(mj / 3.6f, 1) : "-";
+        TextUtils::printTextAtWithMargin(colX, currentY + 70, solarLabel);
     }
     currentY += FORECAST_ROW_HEIGHT;
 
