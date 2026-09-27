@@ -25,7 +25,9 @@ consistent. See issue #439 for the discussion that produced these terms.
 The solar view title uses **"Sonnenstrom"** ("sun electricity") — a warm, product-marketing
 term chosen for a Balkonkraftwerk/PV audience: energy-framed and relatable without falsely
 implying the graph reads an actual inverter (it shows the solar *resource*, `shortwave_radiation`).
-The day's total energy is appended as `Sonnenstrom - X.X kWh/m2`.
+In the final layout, **`Sonnenstrom` is the literal header title** (the per-day date was
+intentionally removed), and each day's total energy is shown **in the forecast row** as
+`X.X kWh/m²` (proper superscript `²`, byte `0xB2`).
 
 Rejected alternatives: `Sonneneinstrahlung` (accurate but clinical/long), `PV-Ertrag` (strong
 keyword recognition but implies measured yield), `Balkonkraftwerk` (too narrow — excludes
@@ -35,9 +37,13 @@ Latin-1 safe for the u8g2 renderer; fits the weather-full title area (800 px wid
 
 ## Button-behavior phrasing (for consistent docs)
 
-- "Button 2 enters/continues **weather browse**; Button 3 enters/continues **solar browse**."
-- "Within a browse context, Button 2 = next day (+1), Button 3 = previous day (-1)."
-- "Button 1 = back to weather today (resets browse context to `WEATHER`)."
+- "From the default weather-today view: Button 2 **enters weather browse** (day 1); Button 3
+  **enters solar browse** (day 0 = today)."
+- "While already browsing (either context): Button 2 = next day (+1), Button 3 = previous
+  day (-1), staying in the current context."
+- "Button 1 = exit browsing → back to weather today (resets browse context to `WEATHER`).
+  This is the only way to switch context: press Button 1 first, then Button 2 or Button 3
+  to enter the other context."
 
 ## Rationale for keeping "day browse" as the umbrella
 

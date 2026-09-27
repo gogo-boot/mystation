@@ -142,6 +142,30 @@ return `null` for `uv_index_max`. The display hides the UV section when data is 
 The JSON response format is identical regardless of model selection — only the data
 coverage and resolution differ.
 
+#### Solar Radiation (Sonnenstrom)
+
+Two solar variables are now fetched from Open-Meteo to power the **solar browse** view:
+
+| Open-Meteo variable | Scope | Unit fetched | Struct field | Display |
+|---------------------|-------|--------------|--------------|---------|
+| `shortwave_radiation` | hourly | W/m² | `WeatherHourlyForecast::solarRadiation` / `DayBrowsePoint::solarRadiation` | Solar radiation curve |
+| `shortwave_radiation_sum` | daily | MJ/m² | `WeatherDailyForecast::solarRadiationSum` | Per-day total shown as `X.X kWh/m²` (MJ/m² ÷ 3.6) |
+
+**Not Auto-only** — unlike UV index, solar radiation is returned by specific models too.
+Availability was verified for German locations: **Auto**, **DWD ICON** (`icon_seamless`),
+**ECMWF** (`ecmwf_ifs025`), and **Meteo-France** (`meteofrance_seamless`) all return non-null
+solar data.
+
+**Graceful fallback for null/missing values** — sentinels mark "no data" so the graph can
+skip unavailable hours instead of drawing them as zero:
+
+- `DayBrowsePoint::solarRadiation` uses `SOLAR_UNAVAILABLE` = `0xFFFF` (compact 2-byte field).
+- `WeatherHourlyForecast::solarRadiation` and `WeatherDailyForecast::solarRadiationSum` use
+  `-1.0f`.
+
+The display treats these sentinels as gaps (curve breaks) and, for a day with no valid solar
+data at all, falls back to the temperature+rain day-browse view.
+
 #### Day Browsing (RTC-Cached Multi-Day Fetch)
 
 Day browsing (day 1–6 in Weather-Only mode) does **not** make a per-day API call. Instead,

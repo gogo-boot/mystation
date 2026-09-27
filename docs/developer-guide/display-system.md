@@ -150,6 +150,82 @@ RTC data. The user sees today's weather instead of a blank or error screen.
 
 ---
 
+## Solar Browse Layout ("Sonnenstrom")
+
+Solar browse is the second **day browse** context (see
+[Button System](button-system.md#two-browse-contexts)). When the active browse context is
+`BROWSE_SOLAR`, the display renders `drawSolarBrowseLayout()` (in
+`weather_general_full.cpp`) instead of the temperature+rain day-browse layout. It shows a
+single-metric solar radiation curve for the selected day.
+
+### Layout (800x480, full width)
+
+```
+┌──────────────────────────────────────────────────────────────────────────────┐
+│  Sonnenstrom                                                    City   (24px)  │
+│  ↑ literal header text (NOT the date — date was intentionally removed)         │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  7-Day Forecast Row — INCLUDES day 0 ("Heute")                          (95px) │
+│  ┌══════╗ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐                     │
+│  ║Heute▪║ │ Di  │ │ Mi  │ │ Do  │ │ Fr  │ │ Sa  │ │ So  │  ← highlight box    │
+│  ║ ☀  ▪ ║ │ ⛅  │ │ 🌧 │ │ ☀  │ │ ⛅  │ │ ☀  │ │ ⛅  │    on selected day  │
+│  ║6.1  ▪║ │5.8  │ │3.2  │ │6.4  │ │5.5  │ │6.6  │ │4.1  │  ← X.X kWh/m² total │
+│  ╚══════╝ └─────┘ └─────┘ └─────┘ └─────┘ └─────┘ └─────┘                     │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  Full-Width Solar Radiation Curve (W/m², dynamic Y-axis)               (~300px)│
+│                                                                                │
+│  W/m²                                                                          │
+│  600─┐          ╱───╲                                                          │
+│      │        ╱       ╲                                                        │
+│  400─┤      ╱           ╲                                                      │
+│      │    ╱               ╲                                                    │
+│  200─┤  ╱                   ╲                                                  │
+│      └──┬────┬────┬────┬────┬────┬──┤                                          │
+│       06   09   12   15   18   21                                              │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  Footer: battery, WiFi, last update, version                            (15px) │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Header
+
+The top-left title is the **literal text `Sonnenstrom`** — the per-day date shown in the
+weather day-browse header was intentionally removed here. The city name is right-aligned on
+the same row (shortened to fit).
+
+### 7-Day Forecast Row (includes today)
+
+Unlike weather browse (which skips day 0), the solar forecast row **includes day 0**, labeled
+`Heute`; other columns use the 2-character weekday. A highlight box (double `drawRect`) frames
+the selected day, which can be day 0. Each column shows that day's **solar total** as
+`X.X kWh/m²`, derived from the daily `shortwave_radiation_sum` (MJ/m²) divided by 3.6. Columns
+whose model provides no sum show `-`. The `²` glyph is byte `0xB2` (Latin-1), rendered by the
+u8g2 font like the `°` glyph.
+
+### Solar Radiation Curve
+
+The curve is drawn by `WeatherGraph::drawSolarRadiationGraph()` (`weather_graph.cpp`):
+
+- **Dynamic W/m² Y-axis**: the day's peak radiation is rounded up to a clean ceiling
+  (nearest 100, minimum 100) by `SolarMath::calculateSolarAxisMax()`, so the curve auto-fits
+  each day and never clips. The axis title is `W/m²`.
+- **Real units**: Y-axis labels are actual W/m² values (0..axisMax), not a percentage.
+- **Unavailable hours skipped**: points with `solarRadiation < 0` (no data) are treated as
+  gaps — the curve is not interpolated through them as if they were zero.
+- **Catmull-Rom smoothing, clamped**: the curve is Catmull-Rom smoothed for a natural shape,
+  but every interpolated point is **clamped to the graph's vertical bounds** so spline
+  overshoot (where a flat dawn/dusk run meets a rise) never dips below the baseline or above
+  the top.
+
+### Fallback
+
+If the selected day has no valid solar data (`drawSolarRadiationGraph()` returns `false` —
+fewer than 2 valid points or a peak of 0), `drawSolarBrowseLayout()` falls back to the weather
+day-browse layout (`drawDayBrowseLayout()`) for that day, so the user sees the temperature+rain
+graph rather than an empty solar graph.
+
+---
+
 ## Partial Display Update — Not Feasible with Deep Sleep
 
 Partial display update would allow refreshing only the transport section while keeping the weather section untouched:
