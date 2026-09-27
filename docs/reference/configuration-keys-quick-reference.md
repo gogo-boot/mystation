@@ -41,8 +41,19 @@ For developers who need to quickly find the right key name for a specific layer:
 | **Day Browsing (RTC only)** |
 | Selected Forecast Day | — | — | — | `selectedForecastDay` |
 | Available Forecast Days | — | — | — | `availableForecastDays` |
+| Browse Context | — | — | — | `browseContext` |
 | **System** |
 | Config Version | — | — | `cfgVersion` | — |
+
+> **RTC-only day-browse fields (zero new persisted config):** `selectedForecastDay`,
+> `availableForecastDays`, and `browseContext` live only in RTC memory — they have no HTML,
+> JSON, or NVS key because they are runtime-only browse state, not user configuration.
+> `browseContext` is a `BrowseContext` enum with values `WEATHER` (0) and `SOLAR` (1).
+>
+> **Transient NVS keys (day browse across `esp_restart()`):** an awake button press restarts
+> the device, which clears RTC memory, so the pending browse state is briefly written to NVS
+> under `pendingDay` (the selected day) and `pendingCtx` (the browse context). Both are read
+> once on the next boot and immediately deleted — they are not persistent config.
 
 ## 🔧 Common Operations
 
