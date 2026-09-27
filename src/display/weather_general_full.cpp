@@ -281,6 +281,94 @@ void WeatherFullDisplay::drawDayBrowseLayout(const WeatherInfo& weather,
                                               leftMargin, currentY, graphW, graphH);
 }
 
+void WeatherFullDisplay::drawSolarBrowseLayout(const WeatherInfo& weather,
+                                               const WeatherHourlyForecast dayHourly[],
+                                               int hourlyCount,
+                                               int selectedDay) {
+    ESP_LOGI(TAG, "drawSolarBrowseLayout: day %d, %d hourly entries", selectedDay, hourlyCount);
+
+    int16_t screenWidth = display.width();
+    int16_t screenHeight = display.height();
+    int16_t leftMargin = SIDE_MARGIN;
+    int16_t rightMargin = screenWidth - SIDE_MARGIN;
+    int16_t currentY = 0;
+
+    if (selectedDay < 0 || selectedDay >= weather.dailyForecastCount) {
+        ESP_LOGE(TAG, "Invalid selectedDay %d (count=%d)", selectedDay, weather.dailyForecastCount);
+        return;
+    }
+
+    const WeatherDailyForecast& dayForecast = weather.dailyForecast[selectedDay];
+
+    // ── Top section: Date left-aligned + city name right-aligned ──
+    TextUtils::setFont24px_margin28px();
+    String headerDate = DateUtil::formatFullDateString(dayForecast.time);
+    TextUtils::printTextAtWithMargin(leftMargin, currentY, headerDate);
+
+    RTCConfigData& config = ConfigManager::getConfig();
+    int cityMaxWidth = rightMargin - (screenWidth / 2);
+    String fittedCityName = TextUtils::shortenTextToFit(config.cityName, cityMaxWidth);
+    int cityNameWidth = TextUtils::getTextWidth(fittedCityName);
+    int cityNameX = rightMargin - cityNameWidth;
+    TextUtils::printTextAtWithMargin(cityNameX, currentY, fittedCityName);
+    currentY += 35;
+
+    // ── 6-day forecast row with highlight on selected (same as day browse) ──
+    TextUtils::setFont12px_margin15px();
+    int forecastCount = weather.dailyForecastCount;
+    int16_t availableWidth = rightMargin - leftMargin;
+    int displayDays = forecastCount > 1 ? forecastCount - 1 : 1;
+    int16_t colWidth = availableWidth / displayDays;
+
+    for (int i = 1; i < forecastCount && i <= 6; i++) {
+        int16_t colX = leftMargin + (i - 1) * colWidth;
+        if (i == selectedDay) {
+            int16_t rectX = colX - 3;
+            int16_t rectY = currentY - 3;
+            int16_t rectW = colWidth + 2;
+            int16_t rectH = 95 + 6;
+            display.drawRect(rectX, rectY, rectW, rectH, GxEPD_BLACK);
+            display.drawRect(rectX + 1, rectY + 1, rectW - 2, rectH - 2, GxEPD_BLACK);
+        }
+        String dayLabel = WeatherUtil::getDayOfWeekFromDateString(weather.dailyForecast[i].time, 2);
+        TextUtils::printTextAtWithMargin(colX, currentY, dayLabel);
+        icon_name icon = WeatherUtil::getWeatherIcon(weather.dailyForecast[i].weatherCode);
+        display.drawInvertedBitmap(colX, currentY + 15, getBitmap(icon, 48), 48, 48, GxEPD_BLACK);
+        int tempMinInt = (int)weather.dailyForecast[i].tempMin;
+        int tempMaxInt = (int)weather.dailyForecast[i].tempMax;
+        TextUtils::printTextAtWithMargin(colX, currentY + 70,
+                                         String(tempMinInt) + " / " + String(tempMaxInt) + "°");
+    }
+    currentY += FORECAST_ROW_HEIGHT;
+
+    // ── Graph title: "Sonneneinstrahlung" + daily total in kWh/m² ──
+    // shortwave_radiation_sum is MJ/m²; convert to kWh/m² (÷3.6) for a
+    // solar-audience-friendly figure. -1.0f means the model gave no daily sum.
+    TextUtils::setFont12px_margin15px();
+    String title = "Sonneneinstrahlung";
+    if (dayForecast.solarRadiationSum >= 0.0f) {
+        float kwh = dayForecast.solarRadiationSum / 3.6f;
+        title += " - " + String(kwh, 1) + " kWh/m2";
+    }
+    TextUtils::printTextAtWithMargin(leftMargin, currentY, title);
+    currentY += GRAPH_TITLE_HEIGHT;
+    currentY += 10;
+
+    // ── Full-width solar graph (remaining space minus footer) ──
+    int16_t footerY = screenHeight - DisplayConstants::FOOTER_HEIGHT;
+    int16_t graphH = footerY - currentY - 5;
+    int16_t graphW = rightMargin - leftMargin;
+
+    bool drawn = WeatherGraph::drawSolarRadiationGraph(dayHourly, hourlyCount,
+                                                       leftMargin, currentY, graphW, graphH);
+    if (!drawn) {
+        // No valid solar data for this day — fall back to the temp+rain day view so
+        // the user sees something useful rather than an empty graph.
+        ESP_LOGW(TAG, "Solar data unavailable for day %d; falling back to weather day browse", selectedDay);
+        drawDayBrowseLayout(weather, dayHourly, hourlyCount, selectedDay);
+    }
+}
+
 void WeatherFullDisplay::drawWeatherFooter(int16_t x, int16_t y, int16_t h) {
     // Use common footer with time and refresh icon
     CommonFooter::drawFooter(x, y, h, FOOTER_TIME | FOOTER_REFRESH | FOOTER_WIFI | FOOTER_BATTERY);
