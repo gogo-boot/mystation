@@ -10,6 +10,7 @@ struct WeatherHourlyForecast {
     int rainChance;
     float rainfall;
     int humidity;
+    float solarRadiation;   // shortwave_radiation (W/m²); -1.0f = unavailable
 };
 
 struct WeatherDailyForecast {
@@ -63,7 +64,12 @@ struct DayBrowsePoint {
     int16_t rainChance;    // 2 bytes (%)
     uint8_t weatherCode;   // 1 byte
     uint8_t humidity;      // 1 byte (%)
-};                         // 12 bytes
+    uint16_t solarRadiation; // 2 bytes (W/m²); SOLAR_UNAVAILABLE (0xFFFF) = no data
+};                         // 14 bytes
+
+// Sentinel for DayBrowsePoint::solarRadiation when the model provides no
+// shortwave_radiation for that hour (valid values are 0..~1500 W/m²).
+static constexpr uint16_t SOLAR_UNAVAILABLE = 0xFFFF;
 
 static constexpr int DAY_CACHE_MAX_DAYS = 7;   // days 0..6 (index 0 = today)
 static constexpr int DAY_CACHE_HOURS    = 24;  // 00:00–23:00 per day
