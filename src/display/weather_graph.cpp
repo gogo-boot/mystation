@@ -611,3 +611,150 @@ String WeatherGraph::formatHourFromTime(const String& timeStr) {
     }
     return "??h";
 }
+
+// =============================================================================
+// Solar radiation graph — clean single-metric, normalized-% Y-axis
+// =============================================================================
+// The curve is normalized to the day's own peak radiation, so the Y-axis is
+// "% of today's maximum sun". This auto-fits every day (German values ~500 W/m²,
+// summer higher) and never clips. The peak of the curve = max-generation hour,
+// which is the whole point of the view. Hours flagged unavailable
+// (solarRadiation < 0) are skipped so a partial-data model doesn't draw a false
+// zero. Returns false if no valid data at all (caller falls back to weather view).
+bool WeatherGraph::drawSolarRadiationGraph(const WeatherHourlyForecast hourlyData[], int hourlyCount,
+                                           int16_t x, int16_t y, int16_t w, int16_t h) {
+    if (hourlyCount < 2) {
+        ESP_LOGW(TAG, "Solar graph: not enough hourly points (%d)", hourlyCount);
+        return false;
+    }
+
+    // Find the peak radiation among available (non-negative) points.
+    float maxRadiation = 0.0f;
+    int validCount = 0;
+    for (int i = 0; i < hourlyCount; i++) {
+        if (hourlyData[i].solarRadiation >= 0.0f) {
+            validCount++;
+            if (hourlyData[i].solarRadiation > maxRadiation) {
+                maxRadiation = hourlyData[i].solarRadiation;
+            }
+        }
+    }
+
+    if (validCount < 2 || maxRadiation <= 0.0f) {
+        ESP_LOGW(TAG, "Solar graph: insufficient valid solar data (valid=%d, max=%.1f)",
+                 validCount, maxRadiation);
+        return false;
+    }
+
+    ESP_LOGI(TAG, "Solar graph at (%d,%d) %dx%d, %d pts, peak %.1f W/m2",
+             x, y, w, h, hourlyCount, maxRadiation);
+
+    // Adaptive margins (mirror drawGraphInternal's layout logic).
+    int16_t marginLeft = (h < 120) ? 25 : MARGIN_LEFT;
+    int16_t marginRight = (h < 120) ? 25 : MARGIN_RIGHT;
+    int16_t marginTop = (h < 120) ? 10 : MARGIN_TOP;
+    int16_t marginBottom = (h < 120) ? 20 : MARGIN_BOTTOM;
+
+    int16_t graphX = x + marginLeft;
+    int16_t graphY = y + marginTop;
+    int16_t graphW = w - marginLeft - marginRight;
+    int16_t graphH = h - marginTop - marginBottom;
+
+    int dataPoints = hourlyCount;
+
+    // Frame + time axis (reuse existing helpers).
+    drawGraphFrame(graphX, graphY, graphW, graphH, dataPoints);
+    drawSolarAxis(x, graphY, marginLeft, graphH);
+
+    // Time axis labels (same approach as drawGraphInternal).
+    {
+        TextUtils::setFont10px_margin12px();
+        int16_t timeAxisX = graphX;
+        int16_t timeAxisY = y + h - marginBottom;
+        int16_t timeAxisW = graphW;
+        if (dataPoints >= 2) {
+            int labelCount = constrain((dataPoints + 2) / 3, 2, dataPoints);
+            for (int l = 0; l < labelCount; l++) {
+                int i = (l * (dataPoints - 1)) / (labelCount - 1);
+                String timeStr = hourlyData[i].time;
+                String actualTime = (timeStr.length() >= 16) ? timeStr.substring(11, 16)
+                                                              : (String(i) + "h");
+                int16_t labelX = timeAxisX + (timeAxisW * i) / (dataPoints - 1);
+                int16_t textWidth = TextUtils::getTextWidth(actualTime);
+                u8g2.setCursor(labelX - textWidth / 2, timeAxisY + 20);
+                u8g2.print(actualTime);
+            }
+        }
+    }
+
+    drawSolarCurve(hourlyData, dataPoints, graphX, graphY, graphW, graphH, maxRadiation);
+    return true;
+}
+
+// Y-axis for the solar graph: 0..100 % of the day's peak radiation.
+void WeatherGraph::drawSolarAxis(int16_t x, int16_t y, int16_t w, int16_t h) {
+    TextUtils::setFont10px_margin12px();
+    int labelCount = (w < 30) ? 3 : 5;
+    for (int i = 0; i < labelCount; i++) {
+        int percent = (i * 100) / (labelCount - 1);
+        int16_t labelY = y + h - (h * i / (labelCount - 1));
+        String label = String(percent) + "%";
+        int16_t textWidth = TextUtils::getTextWidth(label);
+        u8g2.setCursor(x + w - textWidth - 3, labelY + 4);
+        u8g2.print(label);
+    }
+    // Axis title above the Y axis (skip for very compact mode).
+    if (w >= 30) {
+        TextUtils::printTextAtWithMargin(x, y - 25, "Sonne %");
+    }
+}
+
+// Smooth solar radiation curve, normalized to maxRadiation (0..100%).
+// Unavailable points (solarRadiation < 0) break the curve so it does not
+// interpolate through a gap as if it were zero.
+void WeatherGraph::drawSolarCurve(const WeatherHourlyForecast hourlyData[], int dataCount,
+                                  int16_t graphX, int16_t graphY, int16_t graphW, int16_t graphH,
+                                  float maxRadiation) {
+    if (dataCount < 2 || maxRadiation <= 0.0f) return;
+
+    int16_t solarX[HOURS_TO_SHOW_DAY_BROWSE];
+    int16_t solarY[HOURS_TO_SHOW_DAY_BROWSE];
+    bool valid[HOURS_TO_SHOW_DAY_BROWSE];
+
+    for (int i = 0; i < dataCount && i < HOURS_TO_SHOW_DAY_BROWSE; i++) {
+        solarX[i] = mapToPixel(i, 0, dataCount - 1, graphX, graphX + graphW);
+        float r = hourlyData[i].solarRadiation;
+        valid[i] = (r >= 0.0f);
+        // Normalize to % of daily peak; map onto the graph height.
+        float pct = valid[i] ? (r / maxRadiation) * 100.0f : 0.0f;
+        solarY[i] = mapToPixel(pct, 0.0f, 100.0f, graphY + graphH, graphY);
+    }
+
+    // Draw smooth curve segment-by-segment, but only between adjacent valid points.
+    for (int i = 0; i < dataCount - 1 && i + 1 < HOURS_TO_SHOW_DAY_BROWSE; i++) {
+        if (!valid[i] || !valid[i + 1]) continue; // skip gaps
+
+        int16_t p0x = (i > 0 && valid[i - 1]) ? solarX[i - 1] : solarX[i];
+        int16_t p0y = (i > 0 && valid[i - 1]) ? solarY[i - 1] : solarY[i];
+        int16_t p1x = solarX[i];     int16_t p1y = solarY[i];
+        int16_t p2x = solarX[i + 1]; int16_t p2y = solarY[i + 1];
+        int16_t p3x = (i < dataCount - 2 && valid[i + 2]) ? solarX[i + 2] : solarX[i + 1];
+        int16_t p3y = (i < dataCount - 2 && valid[i + 2]) ? solarY[i + 2] : solarY[i + 1];
+
+        for (int step = 0; step < 8; step++) {
+            float t1 = (float)step / 8;
+            float t2 = (float)(step + 1) / 8;
+            auto catmullRom = [](float t, int16_t p0, int16_t p1, int16_t p2, int16_t p3) -> int16_t {
+                float t2 = t * t; float t3 = t2 * t;
+                return (int16_t)(0.5f * ((2.0f * p1) + (-p0 + p2) * t +
+                    (2.0f * p0 - 5.0f * p1 + 4.0f * p2 - p3) * t2 +
+                    (-p0 + 3.0f * p1 - 3.0f * p2 + p3) * t3));
+            };
+            int16_t cx1 = catmullRom(t1, p0x, p1x, p2x, p3x);
+            int16_t cy1 = catmullRom(t1, p0y, p1y, p2y, p3y);
+            int16_t cx2 = catmullRom(t2, p0x, p1x, p2x, p3x);
+            int16_t cy2 = catmullRom(t2, p0y, p1y, p2y, p3y);
+            display.drawLine(cx1, cy1, cx2, cy2, GxEPD_BLACK);
+        }
+    }
+}

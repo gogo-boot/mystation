@@ -14,6 +14,14 @@ public:
                                      int hourlyCount,
                                      int selectedDay);
 
+    // Solar browse layout: full-width solar radiation graph for a selected day,
+    // with the day's total solar energy shown in the title. Mirrors the day-browse
+    // layout but renders the normalized solar curve instead of temp+rain.
+    static void drawSolarBrowseLayout(const WeatherInfo& weather,
+                                      const WeatherHourlyForecast dayHourly[],
+                                      int hourlyCount,
+                                      int selectedDay);
+
     static void drawWeatherFooter(int16_t x, int16_t y, int16_t h);
 
 private:
