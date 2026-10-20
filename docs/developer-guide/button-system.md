@@ -157,16 +157,15 @@ This cleanly separates "what woke the device" from "what action to take."
 > again** while that Weather Full view is showing **enters weather browse** (day 1) — the
 > same browse the Weather-Only mode offers. Stepping then works as in the browse tables
 > below (Button 2 = +1 day, Button 3 = -1 day). **Button 1 exits browsing straight back to
-> Half & Half.** Solar browse (Button 3 *entry*) is **not** offered from this temporary
-> Weather Full — Button 3 there keeps its normal meaning (Transport Full). Solar browse
-> entry remains exclusive to configured Weather-Only mode.
+> the Half & Half split view.** Solar browse (Button 3 *entry*) is **not** offered from this
+> temporary Weather Full — Button 3 there keeps its normal meaning (Transport Full). Solar
+> browse entry remains exclusive to configured Weather-Only mode.
 >
-> **Button 1 always forces the split view.** In configured Half & Half, a Button 1 short
-> press (when not browsing) always shows the temporary **Half & Half split** — even
-> *outside* transport-active hours, where Half & Half would otherwise fall back to a
+> **Button 1 always shows Half & Half (forces the split view).** When configured mode is
+> Half & Half, Button 1 *always* shows the **Half & Half split** — whether browsing or not,
+> and even *outside* transport-active hours where Half & Half would otherwise fall back to a
 > weather-full view. It does this by setting a *temporary* Half & Half mode, which bypasses
-> the transport-hours fallback. (While browsing, Button 1 instead **exits** back to the
-> configured Half & Half.)
+> the transport-hours fallback.
 >
 > **Outside transport hours**, configured Half & Half already renders as weather-full (the
 > documented fallback — no departures to show). In that state the Weather Full view is
@@ -314,10 +313,10 @@ Models with fewer forecast days have a smaller range:
 | Meteo-France | 4 | Day 1-3 | Day 0-3 |
 | ItaliaMeteo | 3 | Day 1-2 | Day 0-2 |
 
-Button 1 resets `selectedForecastDay` to 0 and `browseContext` to `BROWSE_WEATHER` when it is
-consumed as a browse action (i.e. when already browsing, or in configured Weather-Only). In
-configured Half & Half while *not* browsing, Button 1 is instead a normal switch that forces
-the temporary Half & Half split view.
+Button 1 resets `selectedForecastDay` to 0 and `browseContext` to `BROWSE_WEATHER`. In
+configured **Weather-Only**, Button 1 then shows weather-today. In configured **Half & Half**,
+Button 1 *always* forces the temporary Half & Half split view — both when already browsing
+and when not — bypassing the transport-hours weather-full fallback.
 
 ### Implementation: Two Button Paths
 
@@ -346,9 +345,11 @@ if (browseAvailable) {
 }
 
 if (consumedAsBrowse) {
-    if (buttonMode == DISPLAY_MODE_HALF_AND_HALF) {              // Button 1: exit → configured mode
+    if (buttonMode == DISPLAY_MODE_HALF_AND_HALF) {              // Button 1
         config.selectedForecastDay = 0; config.browseContext = BROWSE_WEATHER;
-        config.inTemporaryMode = false;                         // revert to configured mode
+        if (configuredWeatherOnly) { config.inTemporaryMode = false; }   // → weather today
+        else { config.inTemporaryMode = true;                            // → force Half&Half split
+               config.temporaryDisplayMode = DISPLAY_MODE_HALF_AND_HALF; }
     } else if (buttonMode == DISPLAY_MODE_WEATHER_ONLY) {       // Button 2
         if (!wasBrowsing) { config.browseContext = BROWSE_WEATHER; config.selectedForecastDay = 1; }
         else              { config.selectedForecastDay = stepBrowseDay(config, +1); }

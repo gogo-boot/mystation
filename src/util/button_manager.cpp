@@ -244,18 +244,30 @@ void ButtonManager::handleWakeupMode() {
                              config.browseContext, config.selectedForecastDay);
                 }
             }
-            // Button 1 exits browsing: clear temporary mode so the view reverts to
-            // the configured mode (Half&Half returns straight to Half&Half, per spec).
-            // B2/B3 keep a temporary Weather-Full active while browsing.
+            // Button 1 resets the browse day. Then:
+            //  - Configured Half & Half: FORCE the temporary Half & Half split view
+            //    (bypasses the transport-hours weather-full fallback) — B1 always
+            //    shows Half & Half when that is the configured mode.
+            //  - Configured Weather-Only: exit browsing back to weather-today (day 0),
+            //    keeping the Weather-Only view.
             if (buttonMode == DISPLAY_MODE_HALF_AND_HALF) {
-                config.inTemporaryMode = false;
-                config.temporaryDisplayMode = 0xFF;
-                config.temporaryModeActivationTime = 0;
                 config.selectedForecastDay = 0;
                 config.browseContext = BROWSE_WEATHER;
-                ESP_LOGI(TAG, "Day browse: B1 exits browsing -> configured mode");
+                if (configuredWeatherOnly) {
+                    // Weather-Only: stay on weather-today (no temporary mode needed)
+                    config.inTemporaryMode = false;
+                    config.temporaryDisplayMode = 0xFF;
+                    config.temporaryModeActivationTime = 0;
+                    ESP_LOGI(TAG, "Day browse: B1 -> weather today (Weather-Only)");
+                } else {
+                    // Half & Half: force the split view via temporary mode
+                    config.inTemporaryMode = true;
+                    config.temporaryDisplayMode = DISPLAY_MODE_HALF_AND_HALF;
+                    config.temporaryModeActivationTime = (uint32_t)currentTime;
+                    ESP_LOGI(TAG, "Day browse: B1 -> force Half & Half split view");
+                }
             } else {
-                // Stay in weather-full with temp browse mode active
+                // B2/B3: keep a temporary Weather-Full active while browsing
                 config.inTemporaryMode = true;
                 config.temporaryDisplayMode = DISPLAY_MODE_WEATHER_ONLY;
                 config.temporaryModeActivationTime = (uint32_t)currentTime;
@@ -375,17 +387,23 @@ bool ButtonManager::checkAndRestartIfButtonPressed() {
     if (consumedAsBrowse) {
         // Day browsing: update selectedForecastDay + browseContext, keep weather-full.
         if (mode == DISPLAY_MODE_HALF_AND_HALF) {
-            // Button 1: exit browsing/temporary mode -> revert to the configured mode
-            // (e.g. straight back to Half & Half). esp_restart() does NOT clear
-            // RTC_DATA_ATTR, so we must explicitly clear the temporary-mode fields
-            // here; otherwise the reboot's fast path keeps inTemporaryMode=true and
-            // the device would show Weather-Full again.
-            config.inTemporaryMode = false;
-            config.temporaryDisplayMode = 0xFF;
-            config.temporaryModeActivationTime = 0;
+            // Button 1 resets the browse day, then:
+            //  - Configured Half & Half: FORCE the Half & Half split view by persisting
+            //    a temporary Half & Half mode (bypasses the transport-hours weather-full
+            //    fallback) — B1 always shows Half & Half when configured as Half & Half.
+            //  - Configured Weather-Only: exit to weather-today. esp_restart() does NOT
+            //    clear RTC_DATA_ATTR, so clear the temp fields explicitly and skip
+            //    persisting, so the reboot shows the configured Weather-Only view.
             config.selectedForecastDay = 0;
             config.browseContext = BROWSE_WEATHER;
-            skipPersist = true;
+            if (configuredWeatherOnly) {
+                config.inTemporaryMode = false;
+                config.temporaryDisplayMode = 0xFF;
+                config.temporaryModeActivationTime = 0;
+                skipPersist = true;
+            } else {
+                persistMode = DISPLAY_MODE_HALF_AND_HALF; // force split view on reboot
+            }
         } else if (mode == DISPLAY_MODE_WEATHER_ONLY) {
             // Button 2: enter weather browse if not browsing, else +1 day in current context
             if (!wasBrowsing) {
