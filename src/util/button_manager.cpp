@@ -190,13 +190,20 @@ void ButtonManager::handleWakeupMode() {
                                 && buttonMode != DISPLAY_MODE_APPLICATION_INFO);
 
         // Decide whether this press is consumed as a browse action.
-        //  B1 -> always (exit/stay on today)
-        //  B2 -> always (enter weather browse, or step +1)
+        //  B1 -> Configured Weather-Only: always consumed (stay on / return to today).
+        //        Configured Half&Half: consumed only when already browsing (to EXIT
+        //        back to Half&Half). When NOT browsing it is a normal mode switch,
+        //        forcing a temporary Half&Half split view — this preserves the
+        //        pre-existing B1 behavior, including outside transport hours where
+        //        Half&Half would otherwise fall back to weather-full.
+        //  B2 -> always (enter weather browse, or step +1).
         //  B3 -> only if already browsing (step -1), or configured Weather-Only
         //        (enter solar browse). Otherwise B3 is a normal mode switch.
         bool consumedAsBrowse = false;
         if (browseAvailable) {
-            if (buttonMode == DISPLAY_MODE_TRANSPORT_ONLY && !wasBrowsing && !configuredWeatherOnly) {
+            if (buttonMode == DISPLAY_MODE_HALF_AND_HALF && !wasBrowsing && !configuredWeatherOnly) {
+                consumedAsBrowse = false; // Half&Half, not browsing: B1 = normal switch (force split)
+            } else if (buttonMode == DISPLAY_MODE_TRANSPORT_ONLY && !wasBrowsing && !configuredWeatherOnly) {
                 consumedAsBrowse = false; // temp Weather-Full from Half&Half: B3 = normal switch
             } else {
                 consumedAsBrowse = true;
@@ -356,7 +363,9 @@ bool ButtonManager::checkAndRestartIfButtonPressed() {
 
     bool consumedAsBrowse = false;
     if (browseAvailable) {
-        if (mode == DISPLAY_MODE_TRANSPORT_ONLY && !wasBrowsing && !configuredWeatherOnly) {
+        if (mode == DISPLAY_MODE_HALF_AND_HALF && !wasBrowsing && !configuredWeatherOnly) {
+            consumedAsBrowse = false; // Half&Half, not browsing: B1 = normal switch (force split)
+        } else if (mode == DISPLAY_MODE_TRANSPORT_ONLY && !wasBrowsing && !configuredWeatherOnly) {
             consumedAsBrowse = false; // temp Weather-Full from Half&Half: B3 = normal switch
         } else {
             consumedAsBrowse = true;
