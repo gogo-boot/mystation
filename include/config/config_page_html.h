@@ -681,6 +681,16 @@ static const char CONFIG_PAGE_HTML[] PROGMEM = R"HTMLRAW(
       document.getElementById('trip-mode-on').classList.toggle('active', enabled);
       document.getElementById('trip-mode-off').classList.toggle('active', !enabled);
       document.getElementById('trip-dest-section').style.display = enabled ? 'block' : 'none';
+      // When switching back to Abfahrten (single stop), clear the destination so no
+      // stale Ziel-Haltestelle lingers in the UI or is sent in the saved config.
+      if (!enabled) {
+        var destInput = document.getElementById('trip-dest-input');
+        var destId = document.getElementById('trip-dest-id');
+        var destSug = document.getElementById('trip-dest-suggestions');
+        if (destInput) destInput.value = '';
+        if (destId) destId.value = '';
+        if (destSug) { destSug.innerHTML = ''; destSug.style.display = 'none'; }
+      }
     }
     // Initialize trip mode from template
     var savedTripMode = '{{TRIP_MODE}}';
