@@ -110,7 +110,12 @@ void CommonFooter::drawBatteryStatus(int16_t& currentX, int16_t y) {
 
     icon_name batteryIcon = getBatteryIcon();
     int16_t iconY = y - 7; // Center 24px icon with text baseline (adjust ±px if needed)
-    display.drawInvertedBitmap(currentX, iconY, getBitmap(batteryIcon, 24), 24, 24, GxEPD_BLACK);
+    const unsigned char* bmp = getBitmap(batteryIcon, 24);
+    if (bmp) {
+        display.drawInvertedBitmap(currentX, iconY, bmp, 24, 24, GxEPD_BLACK);
+    } else {
+        ESP_LOGW(TAG, "No 24px bitmap for battery icon %d — skipping", (int)batteryIcon);
+    }
     currentX += 28; // Move right
 }
 
@@ -137,10 +142,14 @@ icon_name CommonFooter::getBatteryIcon() {
         return Battery_3; // Default fallback
     }
 
-    // Check if charging first
-    if (BatteryManager::isCharging()) {
-        return battery_charging_full_90deg;
-    }
+    // NOTE: a dedicated charging icon (battery_charging_full_90deg) exists in the
+    // icon_name enum but has NO rasterized bitmap at any size, so getBitmap() would
+    // return nullptr and drawInvertedBitmap() would crash (LoadProhibited). Until a
+    // charging bitmap is added to the icon pipeline, fall through to the level-based
+    // icon, which still correctly reflects the (full) charge level.
+    // if (BatteryManager::isCharging()) {
+    //     return battery_charging_full_90deg;
+    // }
 
     // Map icon level to icon name
     icon_name batteryIcon;
@@ -164,6 +173,11 @@ icon_name CommonFooter::getBatteryIcon() {
 
 void CommonFooter::drawRefreshIcon(int16_t& currentX, int16_t y) {
     int16_t iconY = y - 7; // Center 24px icon with text baseline (adjust ±px if needed)
-    display.drawInvertedBitmap(currentX, iconY, getBitmap(refresh, 24), 24, 24, GxEPD_BLACK);
+    const unsigned char* bmp = getBitmap(refresh, 24);
+    if (bmp) {
+        display.drawInvertedBitmap(currentX, iconY, bmp, 24, 24, GxEPD_BLACK);
+    } else {
+        ESP_LOGW(TAG, "No 24px bitmap for refresh icon — skipping");
+    }
     currentX += 28; // Move right
 }
