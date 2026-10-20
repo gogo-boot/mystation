@@ -152,6 +152,27 @@ This cleanly separates "what woke the device" from "what action to take."
 | Button 3 | Transport Full mode (temp) | Trigger OTA Update |
 | Button 1+2 | — | Factory Reset (restarts) |
 
+> **Weather browse from Half & Half:** when configured mode is Half & Half, the first
+> Button 2 press shows the temporary **Weather Full** view (as above). Pressing **Button 2
+> again** while that Weather Full view is showing **enters weather browse** (day 1) — the
+> same browse the Weather-Only mode offers. Stepping then works as in the browse tables
+> below (Button 2 = +1 day, Button 3 = -1 day). **Button 1 exits browsing straight back to
+> the Half & Half split view.** Solar browse (Button 3 *entry*) is **not** offered from this
+> temporary Weather Full — Button 3 there keeps its normal meaning (Transport Full). Solar
+> browse entry remains exclusive to configured Weather-Only mode.
+>
+> **Button 1 always shows Half & Half (forces the split view).** When configured mode is
+> Half & Half, Button 1 *always* shows the **Half & Half split** — whether browsing or not,
+> and even *outside* transport-active hours where Half & Half would otherwise fall back to a
+> weather-full view. It does this by setting a *temporary* Half & Half mode, which bypasses
+> the transport-hours fallback.
+>
+> **Outside transport hours**, configured Half & Half already renders as weather-full (the
+> documented fallback — no departures to show). In that state the Weather Full view is
+> *already* showing, so the **first** Button 2 enters weather browse directly (there is no
+> intermediate "switch to Weather Full" step). During transport hours the two-step flow
+> above applies (first B2 → Weather Full, second B2 → browse).
+
 ### Weather-Only Mode (Day Browse)
 
 In Weather-Only mode the short-press behavior depends on **whether the device is already
@@ -185,19 +206,30 @@ browsing** (temporary browse mode active) and, if so, on the active **browse con
 
 ## Weather-Only Day Browse
 
-When the effective display mode is **Weather-Only** (`displayMode == DISPLAY_MODE_WEATHER_ONLY`),
-the three physical buttons are reinterpreted to **browse** the forecast instead of switching
-display modes. Long press actions (configure mode, application info, OTA) remain unchanged.
+When the effective display mode is **Weather-Only** (`getEffectiveDisplayMode() ==
+DISPLAY_MODE_WEATHER_ONLY`), the three physical buttons are reinterpreted to **browse** the
+forecast instead of switching display modes. Long press actions (configure mode, application
+info, OTA) remain unchanged.
 
 ### Activation Condition
 
 Day browse activates when **all** of these are true:
 
-- Effective display mode is `DISPLAY_MODE_WEATHER_ONLY`
+- **Effective** display mode is `DISPLAY_MODE_WEATHER_ONLY` (via
+  `TimingManager::getEffectiveDisplayMode()`) — not merely the *configured* mode
 - The resolved button mode is **not** `DISPLAY_MODE_APPLICATION_INFO` (long-press guard)
 
-This means day browse works both when Weather-Only is the configured mode and when it's
-active as a temporary mode (e.g., outside transport active hours in Half & Half mode).
+Because the guard uses the **effective** mode, day browse works when Weather-Only is the
+configured mode, when Half & Half falls back to weather outside transport hours, **and when
+a temporary Weather Full is active** (entered from Half & Half by a first Button 2 press —
+a second Button 2 then enters browse). The "already browsing" signal is
+`config.selectedForecastDay > 0` (not `inTemporaryMode`), so a temporary Weather Full
+at day 0 is correctly treated as "not browsing yet."
+
+**Solar browse exception:** entering **solar browse** (Button 3 from the non-browsing
+view) is gated on the *configured* mode being Weather-Only. In a temporary Weather Full
+reached from Half & Half, Button 3 keeps its normal meaning (switch to Transport Full) —
+no solar browse. Weather browse (Button 2) has no such restriction.
 
 ### Two Browse Contexts
 
@@ -214,22 +246,30 @@ day range differ.
 
 ### Enter vs. Step: the `wasBrowsing` Signal
 
-The meaning of Button 2 and Button 3 depends on whether the device was **already browsing**
-before the press. The signal is `config.inTemporaryMode` captured *before* the press into a
-local `wasBrowsing` flag:
+The meaning of the buttons depends on whether the device was **already browsing** before the
+press. The signal is `config.selectedForecastDay > 0` captured *before* the press into a
+local `wasBrowsing` flag. Using the selected day (not `inTemporaryMode`) lets a temporary
+Weather Full at day 0 — e.g. entered from Half & Half by a first Button 2 — be correctly
+treated as "not browsing yet", so the next Button 2 **enters** browse rather than stepping.
 
-**Not browsing (in the default weather-today view):**
+**Not browsing (weather-full today showing):**
 
 ```
-Button 1 (Half & Half pin) → stay on today (day 0), context = WEATHER
+Button 1 (Half & Half pin) → configured Weather-Only: stay on today (day 0).
+                             configured Half & Half:   normal switch → force the
+                             temporary Half & Half split view (bypasses the
+                             transport-hours fallback); NOT consumed as browse.
 Button 2 (Weather pin)     → ENTER weather browse (context = WEATHER, day = 1)
-Button 3 (Transport pin)   → ENTER solar browse   (context = SOLAR,   day = 0)
+Button 3 (Transport pin)   → configured Weather-Only: ENTER solar browse (SOLAR, day 0).
+                             temporary Weather Full (from Half & Half): normal switch
+                             → Transport Full (no solar browse).
 ```
 
 **Already browsing (either context):**
 
 ```
-Button 1 (Half & Half pin) → EXIT browsing → default weather-today view (day 0, context = WEATHER)
+Button 1 (Half & Half pin) → EXIT browsing → back to the configured mode
+                             (Weather-Only: weather today; Half & Half: the split view)
 Button 2 (Weather pin)     → next day (+1), staying in the current context
 Button 3 (Transport pin)   → previous day (-1), staying in the current context
 ```
@@ -237,6 +277,14 @@ Button 3 (Transport pin)   → previous day (-1), staying in the current context
 Because Button 2/Button 3 only step the day once you are browsing, **the only way to switch
 context is to press Button 1 first** (return to the default view), then press Button 2 (weather)
 or Button 3 (solar) to enter the other context.
+
+> **Implementation note — `consumedAsBrowse`:** a press is only reinterpreted as a browse
+> action when the effective mode is Weather-Only **and** the press isn't one of the two
+> "normal switch" exceptions: (1) Button 1 in configured Half & Half while *not* browsing
+> (→ force the split view), and (2) Button 3 in a temporary Weather Full reached from Half &
+> Half while *not* browsing (→ Transport Full). Otherwise the press steps/enters browse.
+> This logic is mirrored in both button paths (`handleWakeupMode` and
+> `checkAndRestartIfButtonPressed`).
 
 ### Wrapping Logic (context-dependent)
 
@@ -265,39 +313,64 @@ Models with fewer forecast days have a smaller range:
 | Meteo-France | 4 | Day 1-3 | Day 0-3 |
 | ItaliaMeteo | 3 | Day 1-2 | Day 0-2 |
 
-Button 1 always resets `selectedForecastDay` to 0 and `browseContext` to `BROWSE_WEATHER`,
-returning to the normal today view.
+Button 1 resets `selectedForecastDay` to 0 and `browseContext` to `BROWSE_WEATHER`. In
+configured **Weather-Only**, Button 1 then shows weather-today. In configured **Half & Half**,
+Button 1 *always* forces the temporary Half & Half split view — both when already browsing
+and when not — bypassing the transport-hours weather-full fallback.
 
 ### Implementation: Two Button Paths
 
 #### Deep Sleep Wakeup Path
 
-When a button wakes the device from deep sleep, `handleWakeupMode()` checks the effective
-display mode. If Weather-Only, it reinterprets the button press as a browse command instead
-of a display mode switch. `wasBrowsing` (the pre-press `inTemporaryMode`) decides enter vs. step:
+When a button wakes the device from deep sleep, `handleWakeupMode()` checks the **effective**
+display mode (`getEffectiveDisplayMode()`). If Weather-Only, the press may be reinterpreted as
+a browse command. `wasBrowsing` (the pre-press `selectedForecastDay > 0`) decides enter vs.
+step, and a `consumedAsBrowse` flag carves out the two "normal switch" exceptions:
 
 ```cpp
-// In handleWakeupMode() — bool wasBrowsing = config.inTemporaryMode;
-if (config.displayMode == DISPLAY_MODE_WEATHER_ONLY && buttonMode != DISPLAY_MODE_APPLICATION_INFO) {
-    if (buttonMode == DISPLAY_MODE_HALF_AND_HALF) {
-        config.selectedForecastDay = 0;              // Button 1: back to today
-        config.browseContext = BROWSE_WEATHER;
-    } else if (buttonMode == DISPLAY_MODE_WEATHER_ONLY) {          // Button 2
+// bool wasBrowsing = config.selectedForecastDay > 0;
+uint8_t eff = TimingManager::getEffectiveDisplayMode();
+bool configuredWeatherOnly = (config.displayMode == DISPLAY_MODE_WEATHER_ONLY);
+bool browseAvailable = (eff == DISPLAY_MODE_WEATHER_ONLY
+                        && buttonMode != DISPLAY_MODE_APPLICATION_INFO);
+
+bool consumedAsBrowse = false;
+if (browseAvailable) {
+    if (buttonMode == DISPLAY_MODE_HALF_AND_HALF && !wasBrowsing && !configuredWeatherOnly)
+        consumedAsBrowse = false;      // Half&Half, not browsing: B1 forces the split view
+    else if (buttonMode == DISPLAY_MODE_TRANSPORT_ONLY && !wasBrowsing && !configuredWeatherOnly)
+        consumedAsBrowse = false;      // temp Weather-Full from Half&Half: B3 → Transport Full
+    else
+        consumedAsBrowse = true;
+}
+
+if (consumedAsBrowse) {
+    if (buttonMode == DISPLAY_MODE_HALF_AND_HALF) {              // Button 1
+        config.selectedForecastDay = 0; config.browseContext = BROWSE_WEATHER;
+        if (configuredWeatherOnly) { config.inTemporaryMode = false; }   // → weather today
+        else { config.inTemporaryMode = true;                            // → force Half&Half split
+               config.temporaryDisplayMode = DISPLAY_MODE_HALF_AND_HALF; }
+    } else if (buttonMode == DISPLAY_MODE_WEATHER_ONLY) {       // Button 2
         if (!wasBrowsing) { config.browseContext = BROWSE_WEATHER; config.selectedForecastDay = 1; }
         else              { config.selectedForecastDay = stepBrowseDay(config, +1); }
-    } else if (buttonMode == DISPLAY_MODE_TRANSPORT_ONLY) {        // Button 3
+    } else if (buttonMode == DISPLAY_MODE_TRANSPORT_ONLY) {     // Button 3
         if (!wasBrowsing) { config.browseContext = BROWSE_SOLAR;  config.selectedForecastDay = 0; }
         else              { config.selectedForecastDay = stepBrowseDay(config, -1); }
     }
+} else {
+    // Normal mode switch → temporary mode of the pressed button (e.g. forces Half&Half split)
 }
 ```
 
 #### Awake Press Path (ISR)
 
 When a button is pressed during an active wake cycle, the ISR fires and
-`checkAndRestartIfButtonPressed()` handles it with the same enter-vs-step logic. Since
-`esp_restart()` clears RTC state, both the pending day **and** the pending browse context
-are saved to NVS before restarting:
+`checkAndRestartIfButtonPressed()` handles it with the **same** guard and enter-vs-step logic.
+Since `esp_restart()` does **not** clear RTC state (only deep-sleep wake preserves it — a
+software restart keeps `RTC_DATA_ATTR` intact via the `wakeupCount != 1` fast path), a Button 1
+exit explicitly clears the RTC temporary-mode fields before restarting so the device reboots
+into its configured mode. For enter/step presses, the pending day and browse context are saved
+to NVS before restarting:
 
 ```
 ISR fires → checkAndRestartIfButtonPressed()
