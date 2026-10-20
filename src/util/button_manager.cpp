@@ -366,7 +366,14 @@ bool ButtonManager::checkAndRestartIfButtonPressed() {
     if (consumedAsBrowse) {
         // Day browsing: update selectedForecastDay + browseContext, keep weather-full.
         if (mode == DISPLAY_MODE_HALF_AND_HALF) {
-            // Button 1: exit browsing -> revert to configured mode (no pending temp).
+            // Button 1: exit browsing/temporary mode -> revert to the configured mode
+            // (e.g. straight back to Half & Half). esp_restart() does NOT clear
+            // RTC_DATA_ATTR, so we must explicitly clear the temporary-mode fields
+            // here; otherwise the reboot's fast path keeps inTemporaryMode=true and
+            // the device would show Weather-Full again.
+            config.inTemporaryMode = false;
+            config.temporaryDisplayMode = 0xFF;
+            config.temporaryModeActivationTime = 0;
             config.selectedForecastDay = 0;
             config.browseContext = BROWSE_WEATHER;
             skipPersist = true;
