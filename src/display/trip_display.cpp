@@ -191,11 +191,6 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
     TextUtils::printTextAtTopMargin(leftX, row2Y, inStr.c_str());
     int16_t transferColX = leftX + COL_LINES; // Align with line boxes above
 
-    // Duration (right-aligned on row 2, always shown)
-    String durStr = String(conn.durationMinutes) + " min";
-    int16_t durW = TextUtils::getTextWidth(durStr);
-    TextUtils::printTextAtTopMargin(rightEdge - durW, row2Y, durStr.c_str());
-
     // Transfer 1 (if exists)
     if (conn.legCount > 1) {
         int arrMin = atoi(conn.legs[0].arrivalTime) * 60 + atoi(conn.legs[0].arrivalTime + 3);
@@ -204,6 +199,7 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
         if (transferTime < 0) transferTime += 24 * 60;
 
         String station = Util::shortenDestination(originFull, String(conn.legs[0].arrivalStation));
+        station = Util::shortenStationName(station);
         String transferStr = "Umst: " + station + " (" + String(transferTime) + " min)";
         int16_t maxTransferW = (x + w) - transferColX - MARGIN;
         transferStr = TextUtils::shortenTextToFit(transferStr, maxTransferW);
@@ -223,6 +219,7 @@ int16_t TripDisplay::drawSingleConnection(const TripConnection& conn, int16_t x,
             if (transferTime < 0) transferTime += 24 * 60;
 
             String station = Util::shortenDestination(originFull, String(conn.legs[leg].arrivalStation));
+            station = Util::shortenStationName(station);
             if (combined.length() > 0) combined += ", ";
             combined += station + " (" + String(transferTime) + " min)";
         }

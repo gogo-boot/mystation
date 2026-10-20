@@ -679,6 +679,21 @@
     var savedTripMode = '{{TRIP_MODE}}';
     if (savedTripMode === '1' || savedTripMode === 'true') setTripMode(true);
 
+    // --- Shared station-search helpers ---
+    // Debounce: only fire after the user pauses typing (avoids one blocking
+    // RMV HTTPS call per keystroke on the single-threaded ESP32 web server).
+    function debounce(fn, wait) {
+      var t;
+      return function() {
+        var ctx = this, args = arguments;
+        clearTimeout(t);
+        t = setTimeout(function() { fn.apply(ctx, args); }, wait);
+      };
+    }
+    // Monotonic sequence so a slower earlier response can't overwrite the
+    // newest query's results (stale-response guard). Shared by both stop fields.
+    var stopSearchSeq = 0;
+
     // --- Trip destination autocomplete ---
     (function() {
       var input = document.getElementById('trip-dest-input');
@@ -686,12 +701,14 @@
       var hiddenId = document.getElementById('trip-dest-id');
       if (hiddenId.value) input.value = hiddenId.value.replace(/.*@O=([^@]*)@.*/, '$1');
 
-      input.addEventListener('input', function() {
+      input.addEventListener('input', debounce(function() {
         var q = input.value.trim();
-        if (q.length < 5) { suggestions.style.display = 'none'; return; }
+        if (q.length < 3) { suggestions.style.display = 'none'; return; }
+        var seq = ++stopSearchSeq;
         fetch('/api/stop?q=' + encodeURIComponent(q))
           .then(function(r) { return r.json(); })
           .then(function(data) {
+            if (seq !== stopSearchSeq) return; // stale response, ignore
             suggestions.innerHTML = '';
             data.forEach(function(stop) {
               var div = document.createElement('div');
@@ -710,7 +727,7 @@
             });
             suggestions.style.display = data.length > 0 ? 'block' : 'none';
           });
-      });
+      }, 300));
     })();
 
     // --- Haltestelle bearbeiten ---
@@ -834,15 +851,17 @@
     });
 
     // Handle stop input suggestions
-    stopInput.addEventListener('input', function() {
+    stopInput.addEventListener('input', debounce(function() {
       var q = stopInput.value.trim();
-      if (q.length < 5) {
+      if (q.length < 3) {
         stopSuggestions.style.display = 'none';
         return;
       }
+      var seq = ++stopSearchSeq;
       fetch('/api/stop?q=' + encodeURIComponent(q))
         .then(r => r.json())
         .then(suggestions => {
+          if (seq !== stopSearchSeq) return; // stale response, ignore
           stopSuggestions.innerHTML = '';
           suggestions.forEach(function(stopData) {
             var div = document.createElement('div');
@@ -871,7 +890,7 @@
           console.error('Stop search error:', err);
           stopSuggestions.style.display = 'none';
         });
-    });
+    }, 300));
 
     // --- Overlap detection: transport window vs sleep window ---
     function timeToMinutes(str) {

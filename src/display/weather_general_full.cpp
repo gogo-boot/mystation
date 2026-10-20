@@ -332,7 +332,10 @@ void WeatherFullDisplay::drawSolarBrowseLayout(const WeatherInfo& weather,
         String dayLabel = (i == 0) ? "Heute"
                                    : WeatherUtil::getDayOfWeekFromDateString(weather.dailyForecast[i].time, 2);
         TextUtils::printTextAtWithMargin(colX, currentY, dayLabel);
-        icon_name icon = WeatherUtil::getWeatherIcon(weather.dailyForecast[i].weatherCode);
+        // Day 0 ("Heute") uses the current weather code so this icon matches the
+        // large current-condition icon in Weather-Full; other days use the daily code.
+        icon_name icon = WeatherUtil::getWeatherIcon(
+            (i == 0) ? weather.weatherCode : weather.dailyForecast[i].weatherCode);
         display.drawInvertedBitmap(colX, currentY + 15, getBitmap(icon, 48), 48, 48, GxEPD_BLACK);
         // Daily solar total with unit (kWh/m²) per column — the bare number left
         // too much empty space in the column. "-" when the model gives no sum.
