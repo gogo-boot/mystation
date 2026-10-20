@@ -86,15 +86,20 @@ void ActivityManager::onStart() {
 
     // Start Wifi connection. If gets failed, show Wifi Error Screen
     //
-    // Performance optimization: a day-browse button wake in Weather-Only mode
-    // renders entirely from the RTC cache (weather + day hourly data), so WiFi
-    // is unnecessary unless a weather refresh is actually due. Skipping the
-    // connect saves ~1-2s of radio-on time and its power per button press.
+    // Performance optimization: a day-browse button wake renders entirely from the
+    // RTC cache (weather + day hourly data), so WiFi is unnecessary unless a weather
+    // refresh is actually due. Skipping the connect saves ~1-2s of radio-on time and
+    // its power per button press.
+    //
+    // Use the EFFECTIVE display mode (not config.displayMode) so this also applies
+    // when browsing from a temporary Weather-Full entered in Half&Half mode — there
+    // the configured mode is Half&Half but the effective mode is Weather-Only.
     RTCConfigData& cfg = ConfigManager::getConfig();
+    (void)cfg; // (kept for clarity; effective-mode check below drives the decision)
     int8_t wakeButtonMode = ButtonManager::getWakeupButtonMode();
     bool isDayBrowseButtonWake =
         (wakeButtonMode >= 0) &&
-        (cfg.displayMode == DISPLAY_MODE_WEATHER_ONLY) &&
+        (TimingManager::getEffectiveDisplayMode() == DISPLAY_MODE_WEATHER_ONLY) &&
         (wakeButtonMode != DISPLAY_MODE_APPLICATION_INFO);
     bool skipWifi = isDayBrowseButtonWake
         && !TimingManager::isTimeForWeatherUpdate()
