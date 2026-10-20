@@ -568,6 +568,7 @@
   <script>
     // Lazy-load location and stops from /api/init after page loads
     (function() {
+     try {
       var stopSelect = document.getElementById('stop-select');
       var cityDisplay = document.getElementById('city-display');
       var latInput = document.getElementById('city-lat');
@@ -618,6 +619,10 @@
             stopSelect.innerHTML = '<option>Fehler beim Laden</option>';
           });
       }
+     } catch (e) {
+      // Never let init errors abort the rest of the script (e.g. Save handler wiring).
+      console.error('init block error:', e);
+     }
     })();
 
     // OTA toggle functionality
@@ -923,7 +928,7 @@
       if (el) el.addEventListener('change', updateOverlapWarning);
     });
     // Initial check on page load
-    updateOverlapWarning();
+    try { updateOverlapWarning(); } catch (e) { console.error('overlap init error:', e); }
 
     // --- Save config handler ---
     document.getElementById('save-btn').onclick = function() {
@@ -972,8 +977,13 @@
           return;
       }
 
-      var filterChips = document.querySelectorAll('.chip.active');
-      var filters = Array.from(filterChips).map(function(chip) { return chip.getAttribute('data-type'); });
+      // Only the transport-filter chips (scoped to #filter-chips); the mode chips
+      // (trip-mode-on/off) also carry .chip.active but have no data-type, so a global
+      // '.chip.active' query would inject a stray null into the filters array.
+      var filterChips = document.querySelectorAll('#filter-chips .chip.active');
+      var filters = Array.from(filterChips)
+        .map(function(chip) { return chip.getAttribute('data-type'); })
+        .filter(function(t) { return t; });
 
       var weatherInterval = document.getElementById('weather-interval').value;
       var weatherModel = document.getElementById('weather-model').value;
