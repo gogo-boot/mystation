@@ -2,6 +2,7 @@
 #include "build_config.h"
 #include "config/pins.h"
 #include "config/config_manager.h"
+#include "util/timing_manager.h"
 #include <driver/rtc_io.h>
 #include <esp_system.h>
 #include <Preferences.h>
@@ -130,9 +131,12 @@ void ButtonManager::handleWakeupMode() {
     time_t currentTime;
     time(&currentTime);
 
-    // Whether we were already browsing (temp mode active) BEFORE this press.
-    // Determines B2/B3 meaning: not browsing -> select context; browsing -> step day.
-    bool wasBrowsing = config.inTemporaryMode;
+    // Whether we were already browsing BEFORE this press. Browsing is signalled by
+    // selectedForecastDay > 0 (solar-from-here is disabled, so day 0 always means
+    // "not browsing / weather-full today"). Using the day — not inTemporaryMode —
+    // lets a temporary Weather-Full (entered from Half&Half) be distinguished from
+    // an active browse session.
+    bool wasBrowsing = config.selectedForecastDay > 0;
 
     // Determine if a new button press occurred (from EXT1, synthetic mode, or NVS pending)
     int8_t buttonMode = syntheticButtonMode;
@@ -168,18 +172,39 @@ void ButtonManager::handleWakeupMode() {
     }
 
     if (buttonMode >= 0) {
-        // New button press — activate/reset temp mode
-        // Check if we're in weather-only mode for day browsing
-        // (but don't intercept special modes like Application Info)
-        if (config.displayMode == DISPLAY_MODE_WEATHER_ONLY
-            && buttonMode != DISPLAY_MODE_APPLICATION_INFO) {
+        // New button press — activate/reset temp mode.
+        //
+        // Day browsing is available whenever the Weather-Full view is *effectively*
+        // showing — configured Weather-Only, OR a temporary Weather-Full entered
+        // from Half&Half (or Half&Half outside transport hours). We key off the
+        // effective mode (not config.displayMode) so a second B2 while a temporary
+        // Weather-Full is showing enters weather browsing.
+        //
+        // Exception: SOLAR browse (B3 entry) is only offered in *configured*
+        // Weather-Only mode. In a temporary Weather-Full (entered from Half&Half),
+        // B3 keeps its normal meaning (switch to Transport-Full) — no solar browse.
+        // (Special modes like Application Info are never intercepted.)
+        uint8_t effectiveMode = TimingManager::getEffectiveDisplayMode();
+        bool configuredWeatherOnly = (config.displayMode == DISPLAY_MODE_WEATHER_ONLY);
+        bool browseAvailable = (effectiveMode == DISPLAY_MODE_WEATHER_ONLY
+                                && buttonMode != DISPLAY_MODE_APPLICATION_INFO);
+
+        // Decide whether this press is consumed as a browse action.
+        //  B1 -> always (exit/stay on today)
+        //  B2 -> always (enter weather browse, or step +1)
+        //  B3 -> only if already browsing (step -1), or configured Weather-Only
+        //        (enter solar browse). Otherwise B3 is a normal mode switch.
+        bool consumedAsBrowse = false;
+        if (browseAvailable) {
+            if (buttonMode == DISPLAY_MODE_TRANSPORT_ONLY && !wasBrowsing && !configuredWeatherOnly) {
+                consumedAsBrowse = false; // temp Weather-Full from Half&Half: B3 = normal switch
+            } else {
+                consumedAsBrowse = true;
+            }
+        }
+
+        if (consumedAsBrowse) {
             if (!dayAlreadySet) {
-                // Button semantics depend on whether we were already browsing:
-                //  - Not browsing (in default weather-today view):
-                //      B1 -> stay today; B2 -> ENTER weather browse; B3 -> ENTER solar browse.
-                //  - Already browsing: B1 -> back to today; B2 -> +1 day; B3 -> -1 day,
-                //      staying in the current context. Context is only changed from the
-                //      default view (via B1 first), never mid-browse.
                 if (buttonMode == DISPLAY_MODE_HALF_AND_HALF) {
                     // Button 1: back to today, reset to weather context (exits browsing)
                     config.selectedForecastDay = 0;
@@ -200,7 +225,8 @@ void ButtonManager::handleWakeupMode() {
                 } else if (buttonMode == DISPLAY_MODE_TRANSPORT_ONLY) {
                     // Button 3
                     if (!wasBrowsing) {
-                        // Enter solar browse at day 0 (today's solar)
+                        // Enter solar browse at day 0 (today's solar) — configured
+                        // Weather-Only only (guarded above).
                         config.browseContext = BROWSE_SOLAR;
                         config.selectedForecastDay = 0;
                     } else {
@@ -211,19 +237,18 @@ void ButtonManager::handleWakeupMode() {
                              config.browseContext, config.selectedForecastDay);
                 }
             }
-            // Button 1 exits browsing entirely and returns to the default view
-            // (weather today), so the NEXT B2/B3 is treated as a fresh context
-            // selection (this is the only way to switch context). B2/B3 keep
-            // temp browse mode active.
+            // Button 1 exits browsing: clear temporary mode so the view reverts to
+            // the configured mode (Half&Half returns straight to Half&Half, per spec).
+            // B2/B3 keep a temporary Weather-Full active while browsing.
             if (buttonMode == DISPLAY_MODE_HALF_AND_HALF) {
                 config.inTemporaryMode = false;
                 config.temporaryDisplayMode = 0xFF;
                 config.temporaryModeActivationTime = 0;
                 config.selectedForecastDay = 0;
                 config.browseContext = BROWSE_WEATHER;
-                ESP_LOGI(TAG, "Day browse: B1 exits browsing -> default weather-today view");
+                ESP_LOGI(TAG, "Day browse: B1 exits browsing -> configured mode");
             } else {
-                // Stay in weather-only mode with temp browse mode active
+                // Stay in weather-full with temp browse mode active
                 config.inTemporaryMode = true;
                 config.temporaryDisplayMode = DISPLAY_MODE_WEATHER_ONLY;
                 config.temporaryModeActivationTime = (uint32_t)currentTime;
@@ -313,20 +338,38 @@ bool ButtonManager::checkAndRestartIfButtonPressed() {
 
     ESP_LOGI(TAG, "Button pressed while awake (mode %d) — activating temp mode, restarting", mode);
 
-    // In weather-only mode, reinterpret button as day browsing before persisting
-    // (but don't intercept special modes like Application Info)
+    // Reinterpret button as day browsing when the Weather-Full view is effectively
+    // showing (configured Weather-Only OR a temporary Weather-Full entered from
+    // Half&Half). B3 solar-browse entry is restricted to configured Weather-Only.
+    // (Special modes like Application Info are never intercepted.)
     RTCConfigData& config = ConfigManager::getConfig();
     uint8_t persistMode = (uint8_t)mode;
-    // Whether we were already browsing before this press (same rule as
-    // handleWakeupMode): not browsing -> B2/B3 select context; browsing -> step day.
-    bool wasBrowsing = config.inTemporaryMode;
-    if (config.displayMode == DISPLAY_MODE_WEATHER_ONLY
-        && mode != DISPLAY_MODE_APPLICATION_INFO) {
-        // Day browsing: update selectedForecastDay + browseContext, keep weather-only mode.
+    bool skipPersist = false; // B1-exit: don't persist a temp mode -> revert to configured mode
+    // Already browsing is signalled by selectedForecastDay > 0 (not inTemporaryMode),
+    // so a temporary Weather-Full (day 0) is correctly treated as "not browsing yet".
+    bool wasBrowsing = config.selectedForecastDay > 0;
+
+    uint8_t effectiveMode = TimingManager::getEffectiveDisplayMode();
+    bool configuredWeatherOnly = (config.displayMode == DISPLAY_MODE_WEATHER_ONLY);
+    bool browseAvailable = (effectiveMode == DISPLAY_MODE_WEATHER_ONLY
+                            && mode != DISPLAY_MODE_APPLICATION_INFO);
+
+    bool consumedAsBrowse = false;
+    if (browseAvailable) {
+        if (mode == DISPLAY_MODE_TRANSPORT_ONLY && !wasBrowsing && !configuredWeatherOnly) {
+            consumedAsBrowse = false; // temp Weather-Full from Half&Half: B3 = normal switch
+        } else {
+            consumedAsBrowse = true;
+        }
+    }
+
+    if (consumedAsBrowse) {
+        // Day browsing: update selectedForecastDay + browseContext, keep weather-full.
         if (mode == DISPLAY_MODE_HALF_AND_HALF) {
-            // Button 1: back to today (exits browsing), weather context
+            // Button 1: exit browsing -> revert to configured mode (no pending temp).
             config.selectedForecastDay = 0;
             config.browseContext = BROWSE_WEATHER;
+            skipPersist = true;
         } else if (mode == DISPLAY_MODE_WEATHER_ONLY) {
             // Button 2: enter weather browse if not browsing, else +1 day in current context
             if (!wasBrowsing) {
@@ -335,32 +378,49 @@ bool ButtonManager::checkAndRestartIfButtonPressed() {
             } else {
                 config.selectedForecastDay = stepBrowseDay(config, +1);
             }
+            persistMode = DISPLAY_MODE_WEATHER_ONLY;
         } else if (mode == DISPLAY_MODE_TRANSPORT_ONLY) {
-            // Button 3: enter solar browse if not browsing, else -1 day in current context
+            // Button 3: enter solar browse if not browsing (configured Weather-Only only,
+            // guarded above), else -1 day in current context
             if (!wasBrowsing) {
                 config.browseContext = BROWSE_SOLAR;
                 config.selectedForecastDay = 0;
             } else {
                 config.selectedForecastDay = stepBrowseDay(config, -1);
             }
+            persistMode = DISPLAY_MODE_WEATHER_ONLY;
         }
-        persistMode = DISPLAY_MODE_WEATHER_ONLY;
-        ESP_LOGI(TAG, "Day browse (awake): ctx %d, day %d", config.browseContext, config.selectedForecastDay);
+        ESP_LOGI(TAG, "Day browse (awake): ctx %d, day %d, skipPersist %d",
+                 config.browseContext, config.selectedForecastDay, skipPersist);
     }
 
-    // Persist pending temp mode to NVS so it survives esp_restart()
-    // (RTC_DATA_ATTR is lost on software reset, only preserved across deep sleep)
-    Preferences prefs;
-    if (prefs.begin("mystation", false)) {
-        prefs.putBool("pendingTemp", true);
-        prefs.putUChar("pendingTempMode", persistMode);
-        prefs.putChar("pendingDay", config.selectedForecastDay);
-        prefs.putUChar("pendingCtx", config.browseContext);
-        prefs.end();
-        ESP_LOGI(TAG, "Saved pending temp mode %d, day %d, ctx %d to NVS",
-                 persistMode, config.selectedForecastDay, config.browseContext);
+    if (skipPersist) {
+        // B1 exit: clear any pending temp mode so the device reboots into its
+        // configured mode (e.g. straight back to Half&Half).
+        Preferences prefs;
+        if (prefs.begin("mystation", false)) {
+            prefs.putBool("pendingTemp", false);
+            prefs.remove("pendingTempMode");
+            prefs.remove("pendingDay");
+            prefs.remove("pendingCtx");
+            prefs.end();
+        }
+        ESP_LOGI(TAG, "B1 exit — cleared pending temp mode, reverting to configured mode");
     } else {
-        ESP_LOGE(TAG, "Failed to save pending temp mode to NVS");
+        // Persist pending temp mode to NVS so it survives esp_restart()
+        // (RTC_DATA_ATTR is lost on software reset, only preserved across deep sleep)
+        Preferences prefs;
+        if (prefs.begin("mystation", false)) {
+            prefs.putBool("pendingTemp", true);
+            prefs.putUChar("pendingTempMode", persistMode);
+            prefs.putChar("pendingDay", config.selectedForecastDay);
+            prefs.putUChar("pendingCtx", config.browseContext);
+            prefs.end();
+            ESP_LOGI(TAG, "Saved pending temp mode %d, day %d, ctx %d to NVS",
+                     persistMode, config.selectedForecastDay, config.browseContext);
+        } else {
+            ESP_LOGE(TAG, "Failed to save pending temp mode to NVS");
+        }
     }
 
     detachInterrupt(digitalPinToInterrupt(Pins::BUTTON_HALF_AND_HALF));

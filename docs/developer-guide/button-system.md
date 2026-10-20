@@ -152,6 +152,15 @@ This cleanly separates "what woke the device" from "what action to take."
 | Button 3 | Transport Full mode (temp) | Trigger OTA Update |
 | Button 1+2 | — | Factory Reset (restarts) |
 
+> **Weather browse from Half & Half:** when configured mode is Half & Half, the first
+> Button 2 press shows the temporary **Weather Full** view (as above). Pressing **Button 2
+> again** while that Weather Full view is showing **enters weather browse** (day 1) — the
+> same browse the Weather-Only mode offers. Stepping then works as in the browse tables
+> below (Button 2 = +1 day, Button 3 = -1 day). **Button 1 exits browsing straight back to
+> Half & Half.** Solar browse (Button 3 *entry*) is **not** offered from this temporary
+> Weather Full — Button 3 there keeps its normal meaning (Transport Full). Solar browse
+> entry remains exclusive to configured Weather-Only mode.
+
 ### Weather-Only Mode (Day Browse)
 
 In Weather-Only mode the short-press behavior depends on **whether the device is already
@@ -193,11 +202,21 @@ display modes. Long press actions (configure mode, application info, OTA) remain
 
 Day browse activates when **all** of these are true:
 
-- Effective display mode is `DISPLAY_MODE_WEATHER_ONLY`
+- **Effective** display mode is `DISPLAY_MODE_WEATHER_ONLY` (via
+  `TimingManager::getEffectiveDisplayMode()`) — not merely the *configured* mode
 - The resolved button mode is **not** `DISPLAY_MODE_APPLICATION_INFO` (long-press guard)
 
-This means day browse works both when Weather-Only is the configured mode and when it's
-active as a temporary mode (e.g., outside transport active hours in Half & Half mode).
+Because the guard uses the **effective** mode, day browse works when Weather-Only is the
+configured mode, when Half & Half falls back to weather outside transport hours, **and when
+a temporary Weather Full is active** (entered from Half & Half by a first Button 2 press —
+a second Button 2 then enters browse). The "already browsing" signal is
+`config.selectedForecastDay > 0` (not `inTemporaryMode`), so a temporary Weather Full
+at day 0 is correctly treated as "not browsing yet."
+
+**Solar browse exception:** entering **solar browse** (Button 3 from the non-browsing
+view) is gated on the *configured* mode being Weather-Only. In a temporary Weather Full
+reached from Half & Half, Button 3 keeps its normal meaning (switch to Transport Full) —
+no solar browse. Weather browse (Button 2) has no such restriction.
 
 ### Two Browse Contexts
 
