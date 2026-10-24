@@ -86,26 +86,29 @@ void ActivityManager::onStart() {
 
     // Start Wifi connection. If gets failed, show Wifi Error Screen
     //
-    // Performance optimization: a weather-browse button wake renders entirely from
-    // the RTC cache (weather + day hourly data), so WiFi is unnecessary unless a
-    // weather refresh is actually due. Skipping the connect saves ~1-2s of radio-on
-    // time and its power per button press.
+    // Performance optimization: a button press that renders entirely from the RTC
+    // cache (weather + day hourly data) does not need WiFi, so skip the connect to
+    // save ~1-2s of radio-on time and power per press.
     //
-    // A wake is a browse press when the Weather-Full view is *effectively* showing
-    // (configured Weather-Only, or Half&Half rendering weather-full) and either we
-    // are already browsing (B2/B3 step) or it is a B2 that will enter browse. We use
-    // the effective mode (not config.displayMode) so this also applies to Half&Half.
+    // ONLY presses that stay in a cache-rendered weather view are skip-eligible:
+    //   B2 (enter/step weather browse)                         — always cache
+    //   B3 while already browsing (step day -1)                — always cache
+    //   B3 in configured Weather-Only (enter solar browse)     — always cache
+    // NOT skip-eligible (need a live fetch, must connect WiFi):
+    //   B1 (EXIT) — in Half & Half it switches to the split view, which needs a
+    //       transport fetch; skipping WiFi left the departures/trip list EMPTY.
+    //   B3 in configured Half & Half when not browsing — switches to Transport Full.
     RTCConfigData& cfg = ConfigManager::getConfig();
     int8_t wakeButtonMode = ButtonManager::getWakeupButtonMode();
     bool weatherFullShowing =
         (TimingManager::getEffectiveDisplayMode() == DISPLAY_MODE_WEATHER_ONLY);
-    bool isBrowsePress =
-        (wakeButtonMode >= 0) &&
-        (wakeButtonMode != DISPLAY_MODE_APPLICATION_INFO) &&
+    bool configuredWeatherOnly = (cfg.displayMode == DISPLAY_MODE_WEATHER_ONLY);
+    bool cacheRenderedPress =
         weatherFullShowing &&
-        (cfg.inWeatherBrowse ||                                   // stepping days
-         wakeButtonMode == DISPLAY_MODE_WEATHER_ONLY);            // B2 will enter browse
-    bool skipWifi = isBrowsePress
+        (wakeButtonMode == DISPLAY_MODE_WEATHER_ONLY ||   // B2: enter/step weather browse
+         (wakeButtonMode == DISPLAY_MODE_TRANSPORT_ONLY && // B3: step (browsing) or solar (W-O)
+          (cfg.inWeatherBrowse || configuredWeatherOnly)));
+    bool skipWifi = cacheRenderedPress
         && !TimingManager::isTimeForWeatherUpdate()
         && !OTAManager::shouldCheckForUpdate();
 
