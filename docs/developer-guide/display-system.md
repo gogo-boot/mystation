@@ -134,6 +134,12 @@ cached point is a compact `DayBrowsePoint` (12 bytes); the full cache is
 a day-browse button press renders **instantly** with no WiFi round-trip. See
 [Boot Process](boot-process.md) for the wake-time skip-WiFi optimization.
 
+> The prefetch runs in **both** weather-update paths — `updateWeatherFull()` (Weather-Only,
+> and Half & Half outside transport hours) **and** `showWeatherDeparture()` (Half & Half
+> split view during transport hours). Filling the cache in the Half & Half split path is
+> required so weather browse (reachable from Half & Half) has day data; otherwise the cache
+> would stay empty in Half & Half and browse would fall back to today.
+
 ### `drawGraphInternal()` — Shared Helper
 
 Both the 13h and 19h graphs are rendered by the same internal function `drawGraphInternal()`.
