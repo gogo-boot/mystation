@@ -249,13 +249,24 @@ void ButtonManager::handleWakeupMode() {
             config.temporaryDisplayMode = DISPLAY_MODE_WEATHER_ONLY;
             config.temporaryModeActivationTime = (uint32_t)currentTime;
         } else if (br == BROWSE_EXIT) {
-            // Exited browse — clear temporary mode so the device shows the CONFIGURED
-            // mode (getEffectiveDisplayMode resolves Half&Half to split or weather-full
-            // by transport time).
-            config.inTemporaryMode = false;
-            config.temporaryDisplayMode = 0xFF;
-            config.temporaryModeActivationTime = 0;
-            ESP_LOGI(TAG, "Weather browse exit -> configured mode");
+            // Exited browse. Honor the user's explicit press by showing the configured
+            // layout immediately:
+            //  - Configured Half & Half: FORCE the split view via a temporary mode so
+            //    the screen visibly changes (even outside transport hours, where the
+            //    time-based fallback would otherwise keep showing weather-full and look
+            //    like B1 did nothing). Reverts to the time-based default on next wake.
+            //  - Configured Weather-Only: clear temp mode -> weather-today.
+            if (config.displayMode == DISPLAY_MODE_HALF_AND_HALF) {
+                config.inTemporaryMode = true;
+                config.temporaryDisplayMode = DISPLAY_MODE_HALF_AND_HALF;
+                config.temporaryModeActivationTime = (uint32_t)currentTime;
+                ESP_LOGI(TAG, "Weather browse exit -> force Half & Half split");
+            } else {
+                config.inTemporaryMode = false;
+                config.temporaryDisplayMode = 0xFF;
+                config.temporaryModeActivationTime = 0;
+                ESP_LOGI(TAG, "Weather browse exit -> weather today (Weather-Only)");
+            }
         } else {
             // BROWSE_NONE — normal mode switching (B1/B2/B3 as a temporary mode).
             ESP_LOGI(TAG, "Button press! Activating temp mode: %d", buttonMode);
@@ -354,12 +365,18 @@ bool ButtonManager::checkAndRestartIfButtonPressed() {
     if (br == BROWSE_ENTER_OR_STEP) {
         persistMode = DISPLAY_MODE_WEATHER_ONLY; // keep Weather-Full while browsing
     } else if (br == BROWSE_EXIT) {
-        // Exit browse -> revert to the configured mode. esp_restart() keeps RTC, so
-        // clear the temp fields explicitly AND skip persisting a pending temp mode.
-        config.inTemporaryMode = false;
-        config.temporaryDisplayMode = 0xFF;
-        config.temporaryModeActivationTime = 0;
-        skipPersist = true;
+        // Exit browse. Honor the explicit press by showing the configured layout:
+        //  - Configured Half & Half: FORCE the split via a temporary Half & Half mode
+        //    so the screen visibly changes (persist it so it survives esp_restart()).
+        //  - Configured Weather-Only: revert to weather-today (clear temp, skip persist).
+        if (config.displayMode == DISPLAY_MODE_HALF_AND_HALF) {
+            persistMode = DISPLAY_MODE_HALF_AND_HALF; // reboot shows forced split
+        } else {
+            config.inTemporaryMode = false;
+            config.temporaryDisplayMode = 0xFF;
+            config.temporaryModeActivationTime = 0;
+            skipPersist = true;
+        }
     }
     // BROWSE_NONE: normal mode switch -> persist the pressed button as the temp mode.
 
