@@ -1,6 +1,15 @@
 #pragma once
 #include <Arduino.h>
 
+struct RTCConfigData; // fwd decl (full definition in config/config_manager.h)
+
+// Result of interpreting a button press through the weather-browse state machine.
+enum BrowseResult : uint8_t {
+    BROWSE_NONE = 0,       // not a browse action — caller does normal mode switch
+    BROWSE_ENTER_OR_STEP,  // entered browse or stepped a day — keep temp Weather-Full
+    BROWSE_EXIT,           // exited browse — caller reverts to configured mode
+};
+
 // Button manager for temporary display mode switching (ESP32-S3 only)
 class ButtonManager {
 public:
@@ -42,6 +51,11 @@ public:
 private:
     // Get GPIO mask for all three buttons
     static uint64_t getButtonMask();
+
+    // Shared weather-browse state machine used by both button paths
+    // (handleWakeupMode and checkAndRestartIfButtonPressed). Mutates browse state
+    // in config and returns how the caller should handle temp-mode bookkeeping.
+    static BrowseResult applyWeatherBrowsePress(RTCConfigData& config, int8_t buttonMode);
 };
 
 
