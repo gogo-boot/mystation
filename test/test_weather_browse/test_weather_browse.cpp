@@ -56,6 +56,7 @@ static BrowseResult applyWeatherBrowsePress(Cfg& c, int8_t buttonMode) {
         || buttonMode == DISPLAY_MODE_APPLICATION_INFO) {
         return BROWSE_NONE;
     }
+    bool configuredWeatherOnly = (c.displayMode == DISPLAY_MODE_WEATHER_ONLY);
     if (!c.inWeatherBrowse) {
         if (buttonMode == DISPLAY_MODE_WEATHER_ONLY) {
             c.inWeatherBrowse = true;
@@ -63,7 +64,20 @@ static BrowseResult applyWeatherBrowsePress(Cfg& c, int8_t buttonMode) {
             c.selectedForecastDay = 1;
             return BROWSE_ENTER_OR_STEP;
         }
-        return BROWSE_NONE;
+        if (configuredWeatherOnly) {
+            if (buttonMode == DISPLAY_MODE_TRANSPORT_ONLY) {
+                c.inWeatherBrowse = true;
+                c.browseContext = BROWSE_SOLAR;
+                c.selectedForecastDay = 0;
+                return BROWSE_ENTER_OR_STEP;
+            }
+            // B1 -> stay weather-today
+            c.inWeatherBrowse = false;
+            c.selectedForecastDay = 0;
+            c.browseContext = BROWSE_WEATHER;
+            return BROWSE_EXIT;
+        }
+        return BROWSE_NONE; // Half & Half: B1/B3 normal mode switch
     }
     if (buttonMode == DISPLAY_MODE_WEATHER_ONLY) {
         c.selectedForecastDay = stepBrowseDay(c, +1);
@@ -197,6 +211,53 @@ void test_half_and_half_two_step_enter() {
     TEST_ASSERT_EQUAL(1, c.selectedForecastDay);
 }
 
+// ── Configured Weather-Only: B3 = solar, B1 = stay-today, never a transport view ──
+void test_weatheronly_b3_enters_solar() {
+    Cfg c = makeCfg(DISPLAY_MODE_WEATHER_ONLY, DISPLAY_MODE_WEATHER_ONLY);
+    BrowseResult r = applyWeatherBrowsePress(c, DISPLAY_MODE_TRANSPORT_ONLY);
+    TEST_ASSERT_EQUAL(BROWSE_ENTER_OR_STEP, r);     // consumed, NOT a transport switch
+    TEST_ASSERT_TRUE(c.inWeatherBrowse);
+    TEST_ASSERT_EQUAL(BROWSE_SOLAR, c.browseContext);
+    TEST_ASSERT_EQUAL(0, c.selectedForecastDay);    // solar includes today
+}
+
+void test_weatheronly_b1_stays_today() {
+    Cfg c = makeCfg(DISPLAY_MODE_WEATHER_ONLY, DISPLAY_MODE_WEATHER_ONLY);
+    BrowseResult r = applyWeatherBrowsePress(c, DISPLAY_MODE_HALF_AND_HALF);
+    TEST_ASSERT_EQUAL(BROWSE_EXIT, r);              // consumed as "stay today", NOT a split switch
+    TEST_ASSERT_FALSE(c.inWeatherBrowse);
+    TEST_ASSERT_EQUAL(0, c.selectedForecastDay);
+}
+
+void test_weatheronly_never_returns_none() {
+    // The bug: in configured Weather-Only, B1/B3 fell through to transport views.
+    // No button press may return BROWSE_NONE (which triggers a mode switch).
+    for (int8_t b = 0; b <= 2; b++) {
+        Cfg c = makeCfg(DISPLAY_MODE_WEATHER_ONLY, DISPLAY_MODE_WEATHER_ONLY);
+        TEST_ASSERT_NOT_EQUAL(BROWSE_NONE, applyWeatherBrowsePress(c, b));
+    }
+}
+
+void test_weatheronly_solar_step_includes_day0() {
+    // In solar browse, backward from day 0 wraps to the last day; forward returns to 0.
+    Cfg c = makeCfg(DISPLAY_MODE_WEATHER_ONLY, DISPLAY_MODE_WEATHER_ONLY);
+    applyWeatherBrowsePress(c, DISPLAY_MODE_TRANSPORT_ONLY); // enter solar, day 0
+    applyWeatherBrowsePress(c, DISPLAY_MODE_WEATHER_ONLY);   // +1 -> day 1
+    TEST_ASSERT_EQUAL(1, c.selectedForecastDay);
+    c.selectedForecastDay = 0;
+    applyWeatherBrowsePress(c, DISPLAY_MODE_TRANSPORT_ONLY); // -1 from 0 -> wraps to 6
+    TEST_ASSERT_EQUAL(6, c.selectedForecastDay);
+}
+
+void test_halfhalf_b1_b3_still_normal_switch() {
+    // In configured Half & Half (weather-full showing, not browsing), B1/B3 remain
+    // normal mode switches (BROWSE_NONE) — unchanged by the Weather-Only fix.
+    Cfg c = makeCfg(DISPLAY_MODE_HALF_AND_HALF, DISPLAY_MODE_WEATHER_ONLY);
+    TEST_ASSERT_EQUAL(BROWSE_NONE, applyWeatherBrowsePress(c, DISPLAY_MODE_HALF_AND_HALF));
+    Cfg c2 = makeCfg(DISPLAY_MODE_HALF_AND_HALF, DISPLAY_MODE_WEATHER_ONLY);
+    TEST_ASSERT_EQUAL(BROWSE_NONE, applyWeatherBrowsePress(c2, DISPLAY_MODE_TRANSPORT_ONLY));
+}
+
 void setUp() {}
 void tearDown() {}
 
@@ -213,5 +274,10 @@ int main() {
     RUN_TEST(test_wrap_respects_limited_day_model);
     RUN_TEST(test_b1_exits_browse);
     RUN_TEST(test_half_and_half_two_step_enter);
+    RUN_TEST(test_weatheronly_b3_enters_solar);
+    RUN_TEST(test_weatheronly_b1_stays_today);
+    RUN_TEST(test_weatheronly_never_returns_none);
+    RUN_TEST(test_weatheronly_solar_step_includes_day0);
+    RUN_TEST(test_halfhalf_b1_b3_still_normal_switch);
     return UNITY_END();
 }

@@ -251,12 +251,23 @@ Both button paths funnel through one shared state machine,
 
 ```
 Button 2 (Weather pin)     → ENTER weather browse (context = WEATHER, day = 1)  [ENTER_OR_STEP]
-Button 1 / Button 3        → not a browse action                                [NONE]
-                             (configured Weather-Only: B3 enters solar browse instead;
-                              see the Weather-Only tables above)
+
+Configured Half & Half:
+  Button 1 / Button 3      → not a browse action                                [NONE]
+                             (caller does the normal temporary mode switch:
+                              B1 = split view, B3 = Transport Full)
+
+Configured Weather-Only (never a transport view — transport isn't configured):
+  Button 3 (Transport pin) → ENTER solar browse (context = SOLAR, day = 0)      [ENTER_OR_STEP]
+  Button 1 (Half & Half)   → stay on weather-today                              [EXIT]
 ```
 
-**Already browsing (`inWeatherBrowse == true`):**
+> In configured **Weather-Only**, *no* press returns `[NONE]`, so the caller can never
+> switch to a Half & Half or Transport Full view — which must not appear when transport
+> is not configured. In configured **Half & Half**, B1/B3 keep their normal mode-switch
+> meaning (and solar browse is not offered).
+
+**Already browsing (`inWeatherBrowse == true`, either context):**
 
 ```
 Button 2 (Weather pin)     → next day (+1), circular                            [ENTER_OR_STEP]
@@ -331,6 +342,12 @@ if (br == BROWSE_ENTER_OR_STEP) {
     config.temporaryDisplayMode = (uint8_t)buttonMode;
 }
 ```
+
+> `BROWSE_NONE` only occurs in configured **Half & Half** (where B1/B3 are legitimate
+> mode switches to the split / Transport Full views). In configured **Weather-Only** the
+> state machine consumes every press (weather browse / solar browse / stay-today), so this
+> branch never runs — guaranteeing a Transport Full or split view can't appear when
+> transport isn't configured.
 
 #### Awake Press Path (ISR)
 

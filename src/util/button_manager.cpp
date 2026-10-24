@@ -51,14 +51,22 @@ static int8_t stepBrowseDay(RTCConfigData& config, int delta) {
 // effectively showing (configured Weather-Only, OR Half&Half currently rendering
 // weather-full — temporary or the outside-transport-hours fallback).
 //
-// Rules (weather browse only; no solar):
+// Rules:
 //   Not browsing (config.inWeatherBrowse == false):
-//     B2 -> ENTER browse at day +1  (BROWSE_ENTER_OR_STEP)
-//     B1 / B3 -> not a browse action (BROWSE_NONE) — caller does normal switch
+//     B2 -> ENTER weather browse at day +1                  (BROWSE_ENTER_OR_STEP)
+//     Configured Weather-Only:
+//       B3 -> ENTER solar browse at day 0                   (BROWSE_ENTER_OR_STEP)
+//       B1 -> stay on weather-today (exit to configured)    (BROWSE_EXIT)
+//       => in configured Weather-Only NO press ever returns BROWSE_NONE, so the
+//          caller never switches to a transport view (Half&Half / Transport Full)
+//          — which must not appear when transport isn't configured.
+//     Configured Half & Half:
+//       B1 / B3 -> not a browse action                      (BROWSE_NONE)
+//          => caller does the normal temporary mode switch (split / transport).
 //   Browsing (config.inWeatherBrowse == true):
-//     B2 -> +1 day (wraps)          (BROWSE_ENTER_OR_STEP)
-//     B3 -> -1 day (wraps)          (BROWSE_ENTER_OR_STEP)
-//     B1 -> EXIT browse             (BROWSE_EXIT)
+//     B2 -> +1 day (wraps)                                  (BROWSE_ENTER_OR_STEP)
+//     B3 -> -1 day (wraps)                                  (BROWSE_ENTER_OR_STEP)
+//     B1 -> EXIT browse                                     (BROWSE_EXIT)
 //
 // Guard: only acts when getEffectiveDisplayMode() == WEATHER_ONLY and the press
 // isn't APPLICATION_INFO. Mutates config.selectedForecastDay / browseContext /
@@ -70,32 +78,55 @@ BrowseResult ButtonManager::applyWeatherBrowsePress(RTCConfigData& config, int8_
         return BROWSE_NONE;
     }
 
+    bool configuredWeatherOnly = (config.displayMode == DISPLAY_MODE_WEATHER_ONLY);
+
     if (!config.inWeatherBrowse) {
-        // Not browsing yet: only B2 enters browse.
+        // Not browsing yet.
         if (buttonMode == DISPLAY_MODE_WEATHER_ONLY) {
+            // B2 -> enter weather browse (day +1). Applies to both configured modes.
             config.inWeatherBrowse = true;
             config.browseContext = BROWSE_WEATHER;
             config.selectedForecastDay = 1; // day +1 (tomorrow)
             ESP_LOGI(TAG, "Weather browse: ENTER -> day %d", config.selectedForecastDay);
             return BROWSE_ENTER_OR_STEP;
         }
-        return BROWSE_NONE; // B1/B3 fall through to normal mode switching
+        if (configuredWeatherOnly) {
+            // In configured Weather-Only, B1/B3 must NOT fall through to a transport
+            // view. B3 enters solar browse (today); B1 stays on weather-today.
+            if (buttonMode == DISPLAY_MODE_TRANSPORT_ONLY) {
+                config.inWeatherBrowse = true;
+                config.browseContext = BROWSE_SOLAR;
+                config.selectedForecastDay = 0; // solar includes today (day 0)
+                ESP_LOGI(TAG, "Solar browse: ENTER -> day 0");
+                return BROWSE_ENTER_OR_STEP;
+            }
+            // B1 -> stay on weather-today: treat as exit to the configured view.
+            config.inWeatherBrowse = false;
+            config.selectedForecastDay = 0;
+            config.browseContext = BROWSE_WEATHER;
+            ESP_LOGI(TAG, "Weather-Only: B1 -> stay weather-today");
+            return BROWSE_EXIT;
+        }
+        // Configured Half & Half: B1/B3 are normal mode switches.
+        return BROWSE_NONE;
     }
 
-    // Already browsing.
+    // Already browsing (weather OR solar context).
     if (buttonMode == DISPLAY_MODE_WEATHER_ONLY) {        // B2: next day
         config.selectedForecastDay = stepBrowseDay(config, +1);
-        ESP_LOGI(TAG, "Weather browse: +1 -> day %d", config.selectedForecastDay);
+        ESP_LOGI(TAG, "Day browse: +1 -> day %d (ctx %d)",
+                 config.selectedForecastDay, config.browseContext);
         return BROWSE_ENTER_OR_STEP;
     } else if (buttonMode == DISPLAY_MODE_TRANSPORT_ONLY) { // B3: previous day
         config.selectedForecastDay = stepBrowseDay(config, -1);
-        ESP_LOGI(TAG, "Weather browse: -1 -> day %d", config.selectedForecastDay);
+        ESP_LOGI(TAG, "Day browse: -1 -> day %d (ctx %d)",
+                 config.selectedForecastDay, config.browseContext);
         return BROWSE_ENTER_OR_STEP;
     } else { // B1: exit browse
         config.inWeatherBrowse = false;
         config.selectedForecastDay = 0;
         config.browseContext = BROWSE_WEATHER;
-        ESP_LOGI(TAG, "Weather browse: EXIT -> configured mode");
+        ESP_LOGI(TAG, "Day browse: EXIT -> configured mode");
         return BROWSE_EXIT;
     }
 }
