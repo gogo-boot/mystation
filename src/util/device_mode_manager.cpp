@@ -107,6 +107,20 @@ void DeviceModeManager::showWeatherDeparture() {
     if (needsWeatherUpdate && getGeneralWeatherFull(config.latitude, config.longitude, weather)) {
         printWeatherInfo(weather);
         TimingManager::markWeatherUpdated();
+        // Update available forecast days for day-browse button wrapping.
+        config.availableForecastDays = weather.dailyForecastCount;
+        // Prefetch the per-day hourly data into the RTC cache while WiFi is up, so
+        // a subsequent weather-browse button press (reachable from Half & Half) can
+        // render days from cache. Without this, the cache stays empty in Half & Half
+        // mode and browse falls back to today. On failure the previous cache is kept.
+        int cached = getWeatherHourlyMultiDay(config.latitude, config.longitude,
+                                              weather.dailyForecastCount, dayCache);
+        if (cached > 0) {
+            dayCacheValidDays = (uint8_t)cached;
+        } else {
+            ESP_LOGW(TAG, "Day cache prefetch failed; keeping previous cache (%d days)",
+                     dayCacheValidDays);
+        }
     }
 
     if (config.tripMode) {

@@ -68,8 +68,11 @@ struct RTCConfigData {
     int8_t selectedForecastDay;    // 0 = today (default), 1-6 = future days
     int8_t availableForecastDays;  // number of daily forecasts from last fetch (1-7, depends on model)
     uint8_t browseContext;         // 0 = WEATHER browse, 1 = SOLAR browse (see BrowseContext)
+    bool inWeatherBrowse;          // true while actively browsing forecast days (explicit
+                                   // browse-active flag — distinguishes "weather-full showing"
+                                   // from "actively browsing days")
 
-    // Total: ~538 bytes (well under 8KB RTC limit)
+    // Total: ~539 bytes (well under 8KB RTC limit)
 };
 
 // Browse context: which per-day graph the buttons are browsing.
