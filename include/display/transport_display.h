@@ -40,9 +40,11 @@ private:
 
     /**
      * @brief Draw a single transport entry
+     * @param nowMinutes Current time as minutes-since-midnight, captured once per
+     *                   render by the caller so the clock is not re-read per row.
      */
     static void drawSingleTransport(const DepartureInfo& dep, int16_t x, int16_t width,
-                                    int16_t currentY);
+                                    int16_t currentY, int nowMinutes);
 };
 
 #endif // TRANSPORT_DISPLAY_H
