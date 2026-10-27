@@ -68,13 +68,28 @@ static int8_t stepBrowseDay(RTCConfigData& config, int delta) {
 //     B3 -> -1 day (wraps)                                  (BROWSE_ENTER_OR_STEP)
 //     B1 -> EXIT browse                                     (BROWSE_EXIT)
 //
-// Guard: only acts when getEffectiveDisplayMode() == WEATHER_ONLY and the press
-// isn't APPLICATION_INFO. Mutates config.selectedForecastDay / browseContext /
-// inWeatherBrowse. Returns how the caller should handle temp-mode bookkeeping.
+// Guard: only acts when the Weather-Full view is effectively the configured view.
+// Normally that is getEffectiveDisplayMode() == WEATHER_ONLY. One exception: while
+// Application Info (device info) is showing, the effective mode is APPLICATION_INFO —
+// a transient overlay. A button press then means "leave device info and go to the page
+// this button maps to in the CONFIGURED mode". So when effective == APPLICATION_INFO,
+// evaluate eligibility against the configured mode instead: configured Weather-Only runs
+// the browse state machine (B1 today / B2 weather browse / B3 solar browse), while
+// configured Half & Half returns BROWSE_NONE so the caller does the normal temp-mode
+// switch (B1 half&half / B2 weather / B3 transport).
 BrowseResult ButtonManager::applyWeatherBrowsePress(RTCConfigData& config, int8_t buttonMode) {
+    if (buttonMode == DISPLAY_MODE_APPLICATION_INFO) {
+        // The press that *enters* Application Info is never a browse action.
+        return BROWSE_NONE;
+    }
+
     uint8_t effectiveMode = TimingManager::getEffectiveDisplayMode();
-    if (effectiveMode != DISPLAY_MODE_WEATHER_ONLY
-        || buttonMode == DISPLAY_MODE_APPLICATION_INFO) {
+
+    // Exiting the Application Info overlay: route against the configured mode.
+    bool exitingAppInfo = (effectiveMode == DISPLAY_MODE_APPLICATION_INFO);
+    uint8_t routingMode = exitingAppInfo ? config.displayMode : effectiveMode;
+
+    if (routingMode != DISPLAY_MODE_WEATHER_ONLY) {
         return BROWSE_NONE;
     }
 
@@ -300,34 +315,19 @@ void ButtonManager::handleWakeupMode() {
             }
         } else {
             // BROWSE_NONE — normal mode switching (B1/B2/B3 as a temporary mode).
-            // Guard the Weather-Only invariant: a configured Weather-Only device must
-            // never switch to a transport-containing view (Half & Half / Transport
-            // Full). BROWSE_NONE can occur here even in Weather-Only when the browse
-            // state machine's guard short-circuits — e.g. B1 (Half & Half pin) or B3
-            // (Transport pin) pressed while Application Info is showing (effective mode
-            // != WEATHER_ONLY). In that case, return to the weather-today view instead
-            // of switching to a transport view.
-            //
-            // NOTE: only transport-containing modes are suppressed. APPLICATION_INFO
-            // (set synthetically by a long press) is a legitimate temporary mode and
-            // must pass through unchanged.
-            bool transportView = (buttonMode == DISPLAY_MODE_HALF_AND_HALF
-                                  || buttonMode == DISPLAY_MODE_TRANSPORT_ONLY);
-            if (config.displayMode == DISPLAY_MODE_WEATHER_ONLY && transportView) {
-                config.inTemporaryMode = false;
-                config.temporaryDisplayMode = 0xFF;
-                config.temporaryModeActivationTime = 0;
+            // In configured Half & Half this is the normal path (B1 half&half /
+            // B2 weather / B3 transport). For APPLICATION_INFO (entering device info),
+            // it sets that overlay as the temp mode. Reset any stale browse state so a
+            // later exit press starts fresh from the configured default view.
+            ESP_LOGI(TAG, "Button press! Activating temp mode: %d", buttonMode);
+            if (buttonMode == DISPLAY_MODE_APPLICATION_INFO) {
+                config.inWeatherBrowse = false;
                 config.selectedForecastDay = 0;
                 config.browseContext = BROWSE_WEATHER;
-                config.inWeatherBrowse = false;
-                ESP_LOGI(TAG, "Weather-Only: ignoring transport-view press %d -> weather-today",
-                         buttonMode);
-            } else {
-                ESP_LOGI(TAG, "Button press! Activating temp mode: %d", buttonMode);
-                config.inTemporaryMode = true;
-                config.temporaryDisplayMode = (uint8_t)buttonMode;
-                config.temporaryModeActivationTime = (uint32_t)currentTime;
             }
+            config.inTemporaryMode = true;
+            config.temporaryDisplayMode = (uint8_t)buttonMode;
+            config.temporaryModeActivationTime = (uint32_t)currentTime;
         }
 
     } else if (config.inTemporaryMode) {
@@ -432,24 +432,12 @@ bool ButtonManager::checkAndRestartIfButtonPressed() {
             config.temporaryModeActivationTime = 0;
             skipPersist = true;
         }
-    } else if (config.displayMode == DISPLAY_MODE_WEATHER_ONLY
-               && (mode == DISPLAY_MODE_HALF_AND_HALF || mode == DISPLAY_MODE_TRANSPORT_ONLY)) {
-        // BROWSE_NONE on a configured Weather-Only device for a transport-containing
-        // press: must never switch to a transport view. This covers the guard
-        // short-circuit case (e.g. B1/B3 pressed while Application Info is showing).
-        // Revert to weather-today. (APPLICATION_INFO never reaches the awake ISR path;
-        // it is only ever set synthetically via long press.)
-        config.inTemporaryMode = false;
-        config.temporaryDisplayMode = 0xFF;
-        config.temporaryModeActivationTime = 0;
-        config.selectedForecastDay = 0;
-        config.browseContext = BROWSE_WEATHER;
-        config.inWeatherBrowse = false;
-        skipPersist = true;
-        ESP_LOGI(TAG, "Weather-Only: ignoring transport-view press %d (awake) -> weather-today", mode);
     }
-    // BROWSE_NONE (configured Half & Half, or Weather-Only non-transport press): normal
-    // mode switch -> persist the pressed button as the temp mode.
+    // BROWSE_NONE: normal mode switch -> persist the pressed button as the temp mode.
+    // (Configured Half & Half: B1 half&half / B2 weather / B3 transport. Exiting
+    // Application Info in configured Weather-Only is handled inside
+    // applyWeatherBrowsePress via the configured-mode routing, so it returns
+    // ENTER_OR_STEP / EXIT rather than NONE here.)
 
     if (skipPersist) {
         Preferences prefs;
