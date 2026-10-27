@@ -300,7 +300,7 @@ void TransportDisplay::drawSingleTransport(const DepartureInfo& dep, int16_t x, 
 
     // Fixed column widths. "In" is sized for the widest token ("888'").
     int16_t zeitColWidth = TextUtils::getTextWidth("88:88 *");
-    int16_t inColWidth = TextUtils::getTextWidth("888'");
+    int16_t inColWidth = TextUtils::getTextWidth("88'");
 
     int16_t currentX = x;
 
