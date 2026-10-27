@@ -41,23 +41,28 @@ namespace {
     // Countdown threshold: departures further away than this (in minutes) show no countdown.
     constexpr int COUNTDOWN_THRESHOLD_MIN = 99;
 
-    // Compute minutes from "now" until an "HH:MM" departure time.
-    // Returns -1 if the time is invalid or the current time is unavailable.
+    // Compute minutes from "now" (minutes-since-midnight) until an "HH:MM" time.
+    // Returns -1 if the time string is invalid. "now" is captured once per render
+    // by the caller, so this helper never reads the clock itself (avoids dozens
+    // of redundant getCurrentLocalTime() calls during sort + draw).
     // Handles the midnight wrap (e.g. now 23:55, departure 00:10 -> 15 min).
-    int minutesUntil(const String& hhmm) {
+    int minutesUntil(const String& hhmm, int nowMinutes) {
         if (hhmm.length() < 5) return -1;
 
         int depHour = hhmm.substring(0, 2).toInt();
         int depMin = hhmm.substring(3, 5).toInt();
         int depTotal = depHour * 60 + depMin;
 
-        tm timeinfo;
-        if (!TimeManager::getCurrentLocalTime(timeinfo)) return -1;
-        int nowTotal = timeinfo.tm_hour * 60 + timeinfo.tm_min;
-
-        int diff = depTotal - nowTotal;
+        int diff = depTotal - nowMinutes;
         if (diff < 0) diff += 24 * 60; // wrap past midnight
         return diff;
+    }
+
+    // Read the clock once and return minutes-since-midnight, or -1 if unavailable.
+    int currentMinutesSinceMidnight() {
+        tm timeinfo;
+        if (!TimeManager::getCurrentLocalTime(timeinfo)) return -1;
+        return timeinfo.tm_hour * 60 + timeinfo.tm_min;
     }
 } // namespace
 
@@ -117,16 +122,20 @@ void TransportDisplay::drawHalfScreenTransports(const DepartureData& departures,
 
 void TransportDisplay::drawTransportList(std::vector<const DepartureInfo*> departure, int16_t x, int16_t y, int16_t w,
                                          int16_t h, bool printLabel, int maxPerDirection) {
+    // Capture "now" once for the whole list: it does not change during a render,
+    // so reading the clock per sort-comparison and per row is wasteful.
+    const int nowMinutes = currentMinutesSinceMidnight();
+
     // Sort by effective departure time (soonest first). RMV returns results in
     // scheduled-time order, so a heavily delayed train can be out of place
     // relative to its real-time departure. minutesUntil() handles midnight wrap;
     // invalid/unparseable times (-1) are pushed to the end.
     std::sort(departure.begin(), departure.end(),
-              [](const DepartureInfo* a, const DepartureInfo* b) {
+              [nowMinutes](const DepartureInfo* a, const DepartureInfo* b) {
                   String ta = (a->rtTime.length() > 0) ? a->rtTime : a->time;
                   String tb = (b->rtTime.length() > 0) ? b->rtTime : b->time;
-                  int ma = minutesUntil(ta);
-                  int mb = minutesUntil(tb);
+                  int ma = minutesUntil(ta, nowMinutes);
+                  int mb = minutesUntil(tb, nowMinutes);
                   if (ma < 0) ma = INT_MAX;
                   if (mb < 0) mb = INT_MAX;
                   return ma < mb;
@@ -154,7 +163,7 @@ void TransportDisplay::drawTransportList(std::vector<const DepartureInfo*> depar
     // Direction 1 transports
     for (int i = 0; i < min(maxPerDirection, (int)departure.size()); i++) {
         const auto& dep = *departure[i];
-        drawSingleTransport(dep, x, w, y);
+        drawSingleTransport(dep, x, w, y, nowMinutes);
         y += ENTRY_HEIGHT;
 
         if (y > display.height()) {
@@ -260,7 +269,7 @@ void TransportDisplay::drawFullScreenTransportSection(const DepartureData& depar
 }
 
 void TransportDisplay::drawSingleTransport(const DepartureInfo& dep, int16_t x, int16_t width,
-                                           int16_t currentY) {
+                                           int16_t currentY, int nowMinutes) {
     // Log the transport position and size
     ESP_LOGI(TAG, "Drawing single transport at Y=%d", currentY);
 
@@ -284,7 +293,7 @@ void TransportDisplay::drawSingleTransport(const DepartureInfo& dep, int16_t x, 
 
     // === In column: countdown in minutes, right-aligned, blank if > threshold ===
     String inText = "";
-    int minsLeft = minutesUntil(effectiveTime);
+    int minsLeft = minutesUntil(effectiveTime, nowMinutes);
     if (minsLeft >= 0 && minsLeft <= COUNTDOWN_THRESHOLD_MIN) {
         inText = String(minsLeft) + "'";
     }
