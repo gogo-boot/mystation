@@ -146,6 +146,25 @@ BrowseResult ButtonManager::applyWeatherBrowsePress(RTCConfigData& config, int8_
     }
 }
 
+// Map a pressed button to the temp display mode for the CONFIGURED mode. See the
+// header for the full mapping table. Keeps the invariant that a configured mode
+// never produces a view outside its vocabulary (e.g. Transport-Only never shows
+// Half & Half).
+uint8_t ButtonManager::mapButtonToTempMode(uint8_t configuredMode, int8_t buttonMode) {
+    if (configuredMode == DISPLAY_MODE_TRANSPORT_ONLY) {
+        // Transport-Only: B2 (weather pin) shows weather; B1 and B3 both show
+        // departures. Half & Half must never appear.
+        if (buttonMode == DISPLAY_MODE_WEATHER_ONLY) {
+            return DISPLAY_MODE_WEATHER_ONLY;
+        }
+        return DISPLAY_MODE_TRANSPORT_ONLY; // B1 (half&half pin) and B3 -> departures
+    }
+
+    // Configured Half & Half (and any other mode): the pressed pin maps directly.
+    //   B1 -> half&half, B2 -> weather, B3 -> transport.
+    return (uint8_t)buttonMode;
+}
+
 void ButtonManager::setWakupableButtons() {
     if (HAS_BUTTON) {
         ESP_LOGI(TAG, "Initializing button manager...");
@@ -315,19 +334,27 @@ void ButtonManager::handleWakeupMode() {
             }
         } else {
             // BROWSE_NONE — normal mode switching (B1/B2/B3 as a temporary mode).
-            // In configured Half & Half this is the normal path (B1 half&half /
-            // B2 weather / B3 transport). For APPLICATION_INFO (entering device info),
-            // it sets that overlay as the temp mode. Reset any stale browse state so a
+            // The target view is mapped from the CONFIGURED mode so a press can never
+            // produce a view outside that mode's vocabulary (e.g. Transport-Only must
+            // never show Half & Half). For APPLICATION_INFO (entering device info), it
+            // sets that overlay as the temp mode; reset any stale browse state so a
             // later exit press starts fresh from the configured default view.
-            ESP_LOGI(TAG, "Button press! Activating temp mode: %d", buttonMode);
             if (buttonMode == DISPLAY_MODE_APPLICATION_INFO) {
                 config.inWeatherBrowse = false;
                 config.selectedForecastDay = 0;
                 config.browseContext = BROWSE_WEATHER;
+                config.inTemporaryMode = true;
+                config.temporaryDisplayMode = DISPLAY_MODE_APPLICATION_INFO;
+                config.temporaryModeActivationTime = (uint32_t)currentTime;
+                ESP_LOGI(TAG, "Button press! Activating temp mode: %d (Application Info)", buttonMode);
+            } else {
+                uint8_t tempMode = mapButtonToTempMode(config.displayMode, buttonMode);
+                ESP_LOGI(TAG, "Button press! Activating temp mode: %d (pressed %d, configured %d)",
+                         tempMode, buttonMode, config.displayMode);
+                config.inTemporaryMode = true;
+                config.temporaryDisplayMode = tempMode;
+                config.temporaryModeActivationTime = (uint32_t)currentTime;
             }
-            config.inTemporaryMode = true;
-            config.temporaryDisplayMode = (uint8_t)buttonMode;
-            config.temporaryModeActivationTime = (uint32_t)currentTime;
         }
 
     } else if (config.inTemporaryMode) {
@@ -415,7 +442,10 @@ bool ButtonManager::checkAndRestartIfButtonPressed() {
     BrowseResult br = applyWeatherBrowsePress(config, mode);
 
     // Decide what temporary mode to show after the restart.
-    uint8_t persistMode = (uint8_t)mode;
+    // Default (BROWSE_NONE): map the pressed button to the configured mode's view so a
+    // press can never produce a view outside that mode (e.g. Transport-Only never shows
+    // Half & Half). The ENTER/EXIT branches below override this as needed.
+    uint8_t persistMode = mapButtonToTempMode(config.displayMode, mode);
     bool skipPersist = false;
     if (br == BROWSE_ENTER_OR_STEP) {
         persistMode = DISPLAY_MODE_WEATHER_ONLY; // keep Weather-Full while browsing

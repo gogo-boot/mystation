@@ -48,6 +48,16 @@ public:
     // Returns true if restart was triggered (caller won't reach next line).
     static bool checkAndRestartIfButtonPressed();
 
+    // Map a pressed button to the temporary display mode to show, given the
+    // CONFIGURED display mode. Enforces per-mode invariants so a press can never
+    // produce a view that doesn't belong to the configured mode:
+    //   Configured Half & Half:   B1 half&half, B2 weather,    B3 transport
+    //   Configured Transport-Only: B1 transport, B2 weather,   B3 transport
+    //   Configured Weather-Only:   (handled by the browse state machine; not used here)
+    // buttonMode is the pin value (HALF_AND_HALF / WEATHER_ONLY / TRANSPORT_ONLY).
+    // Pure function — no side effects — so it is unit-testable.
+    static uint8_t mapButtonToTempMode(uint8_t configuredMode, int8_t buttonMode);
+
 private:
     // Get GPIO mask for all three buttons
     static uint64_t getButtonMask();
