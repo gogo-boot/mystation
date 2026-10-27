@@ -68,13 +68,28 @@ static int8_t stepBrowseDay(RTCConfigData& config, int delta) {
 //     B3 -> -1 day (wraps)                                  (BROWSE_ENTER_OR_STEP)
 //     B1 -> EXIT browse                                     (BROWSE_EXIT)
 //
-// Guard: only acts when getEffectiveDisplayMode() == WEATHER_ONLY and the press
-// isn't APPLICATION_INFO. Mutates config.selectedForecastDay / browseContext /
-// inWeatherBrowse. Returns how the caller should handle temp-mode bookkeeping.
+// Guard: only acts when the Weather-Full view is effectively the configured view.
+// Normally that is getEffectiveDisplayMode() == WEATHER_ONLY. One exception: while
+// Application Info (device info) is showing, the effective mode is APPLICATION_INFO —
+// a transient overlay. A button press then means "leave device info and go to the page
+// this button maps to in the CONFIGURED mode". So when effective == APPLICATION_INFO,
+// evaluate eligibility against the configured mode instead: configured Weather-Only runs
+// the browse state machine (B1 today / B2 weather browse / B3 solar browse), while
+// configured Half & Half returns BROWSE_NONE so the caller does the normal temp-mode
+// switch (B1 half&half / B2 weather / B3 transport).
 BrowseResult ButtonManager::applyWeatherBrowsePress(RTCConfigData& config, int8_t buttonMode) {
+    if (buttonMode == DISPLAY_MODE_APPLICATION_INFO) {
+        // The press that *enters* Application Info is never a browse action.
+        return BROWSE_NONE;
+    }
+
     uint8_t effectiveMode = TimingManager::getEffectiveDisplayMode();
-    if (effectiveMode != DISPLAY_MODE_WEATHER_ONLY
-        || buttonMode == DISPLAY_MODE_APPLICATION_INFO) {
+
+    // Exiting the Application Info overlay: route against the configured mode.
+    bool exitingAppInfo = (effectiveMode == DISPLAY_MODE_APPLICATION_INFO);
+    uint8_t routingMode = exitingAppInfo ? config.displayMode : effectiveMode;
+
+    if (routingMode != DISPLAY_MODE_WEATHER_ONLY) {
         return BROWSE_NONE;
     }
 
@@ -300,7 +315,16 @@ void ButtonManager::handleWakeupMode() {
             }
         } else {
             // BROWSE_NONE — normal mode switching (B1/B2/B3 as a temporary mode).
+            // In configured Half & Half this is the normal path (B1 half&half /
+            // B2 weather / B3 transport). For APPLICATION_INFO (entering device info),
+            // it sets that overlay as the temp mode. Reset any stale browse state so a
+            // later exit press starts fresh from the configured default view.
             ESP_LOGI(TAG, "Button press! Activating temp mode: %d", buttonMode);
+            if (buttonMode == DISPLAY_MODE_APPLICATION_INFO) {
+                config.inWeatherBrowse = false;
+                config.selectedForecastDay = 0;
+                config.browseContext = BROWSE_WEATHER;
+            }
             config.inTemporaryMode = true;
             config.temporaryDisplayMode = (uint8_t)buttonMode;
             config.temporaryModeActivationTime = (uint32_t)currentTime;
@@ -410,6 +434,10 @@ bool ButtonManager::checkAndRestartIfButtonPressed() {
         }
     }
     // BROWSE_NONE: normal mode switch -> persist the pressed button as the temp mode.
+    // (Configured Half & Half: B1 half&half / B2 weather / B3 transport. Exiting
+    // Application Info in configured Weather-Only is handled inside
+    // applyWeatherBrowsePress via the configured-mode routing, so it returns
+    // ENTER_OR_STEP / EXIT rather than NONE here.)
 
     if (skipPersist) {
         Preferences prefs;
