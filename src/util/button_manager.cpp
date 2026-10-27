@@ -300,10 +300,27 @@ void ButtonManager::handleWakeupMode() {
             }
         } else {
             // BROWSE_NONE — normal mode switching (B1/B2/B3 as a temporary mode).
-            ESP_LOGI(TAG, "Button press! Activating temp mode: %d", buttonMode);
-            config.inTemporaryMode = true;
-            config.temporaryDisplayMode = (uint8_t)buttonMode;
-            config.temporaryModeActivationTime = (uint32_t)currentTime;
+            // Guard the Weather-Only invariant: a configured Weather-Only device must
+            // never switch to a transport-containing view (Half & Half / Transport
+            // Full). BROWSE_NONE can occur here even in Weather-Only when the browse
+            // state machine's guard short-circuits — e.g. B1 pressed while Application
+            // Info is showing (effective mode != WEATHER_ONLY). In that case, treat the
+            // press as "return to the configured weather-today view" instead.
+            if (config.displayMode == DISPLAY_MODE_WEATHER_ONLY) {
+                config.inTemporaryMode = false;
+                config.temporaryDisplayMode = 0xFF;
+                config.temporaryModeActivationTime = 0;
+                config.selectedForecastDay = 0;
+                config.browseContext = BROWSE_WEATHER;
+                config.inWeatherBrowse = false;
+                ESP_LOGI(TAG, "Weather-Only: ignoring mode-switch press %d -> weather-today",
+                         buttonMode);
+            } else {
+                ESP_LOGI(TAG, "Button press! Activating temp mode: %d", buttonMode);
+                config.inTemporaryMode = true;
+                config.temporaryDisplayMode = (uint8_t)buttonMode;
+                config.temporaryModeActivationTime = (uint32_t)currentTime;
+            }
         }
 
     } else if (config.inTemporaryMode) {
@@ -408,8 +425,21 @@ bool ButtonManager::checkAndRestartIfButtonPressed() {
             config.temporaryModeActivationTime = 0;
             skipPersist = true;
         }
+    } else if (config.displayMode == DISPLAY_MODE_WEATHER_ONLY) {
+        // BROWSE_NONE on a configured Weather-Only device: must never switch to a
+        // transport-containing view. This covers the guard short-circuit case (e.g.
+        // B1 pressed while Application Info is showing). Revert to weather-today.
+        config.inTemporaryMode = false;
+        config.temporaryDisplayMode = 0xFF;
+        config.temporaryModeActivationTime = 0;
+        config.selectedForecastDay = 0;
+        config.browseContext = BROWSE_WEATHER;
+        config.inWeatherBrowse = false;
+        skipPersist = true;
+        ESP_LOGI(TAG, "Weather-Only: ignoring mode-switch press %d (awake) -> weather-today", mode);
     }
-    // BROWSE_NONE: normal mode switch -> persist the pressed button as the temp mode.
+    // BROWSE_NONE (configured Half & Half): normal mode switch -> persist the pressed
+    // button as the temp mode.
 
     if (skipPersist) {
         Preferences prefs;
