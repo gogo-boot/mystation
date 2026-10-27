@@ -6,6 +6,8 @@
 #include "display/common_footer.h"
 #include <esp_log.h>
 #include <vector>
+#include <algorithm>
+#include <climits>
 #include <icons.h>
 #include <WiFi.h>
 
@@ -34,6 +36,30 @@ namespace TransportDisplayConstants {
 
 
 using namespace TransportDisplayConstants;
+
+namespace {
+    // Countdown threshold: departures further away than this (in minutes) show no countdown.
+    constexpr int COUNTDOWN_THRESHOLD_MIN = 99;
+
+    // Compute minutes from "now" until an "HH:MM" departure time.
+    // Returns -1 if the time is invalid or the current time is unavailable.
+    // Handles the midnight wrap (e.g. now 23:55, departure 00:10 -> 15 min).
+    int minutesUntil(const String& hhmm) {
+        if (hhmm.length() < 5) return -1;
+
+        int depHour = hhmm.substring(0, 2).toInt();
+        int depMin = hhmm.substring(3, 5).toInt();
+        int depTotal = depHour * 60 + depMin;
+
+        tm timeinfo;
+        if (!TimeManager::getCurrentLocalTime(timeinfo)) return -1;
+        int nowTotal = timeinfo.tm_hour * 60 + timeinfo.tm_min;
+
+        int diff = depTotal - nowTotal;
+        if (diff < 0) diff += 24 * 60; // wrap past midnight
+        return diff;
+    }
+} // namespace
 
 void TransportDisplay::drawHalfScreenTransportSection(const DepartureData& departures, int16_t x, int16_t y, int16_t w,
                                                       int16_t h) {
@@ -91,10 +117,25 @@ void TransportDisplay::drawHalfScreenTransports(const DepartureData& departures,
 
 void TransportDisplay::drawTransportList(std::vector<const DepartureInfo*> departure, int16_t x, int16_t y, int16_t w,
                                          int16_t h, bool printLabel, int maxPerDirection) {
+    // Sort by effective departure time (soonest first). RMV returns results in
+    // scheduled-time order, so a heavily delayed train can be out of place
+    // relative to its real-time departure. minutesUntil() handles midnight wrap;
+    // invalid/unparseable times (-1) are pushed to the end.
+    std::sort(departure.begin(), departure.end(),
+              [](const DepartureInfo* a, const DepartureInfo* b) {
+                  String ta = (a->rtTime.length() > 0) ? a->rtTime : a->time;
+                  String tb = (b->rtTime.length() > 0) ? b->rtTime : b->time;
+                  int ma = minutesUntil(ta);
+                  int mb = minutesUntil(tb);
+                  if (ma < 0) ma = INT_MAX;
+                  if (mb < 0) mb = INT_MAX;
+                  return ma < mb;
+              });
+
     if (printLabel) {
         // Column headers with TRUE 12px margin from current position
         TextUtils::setFont10px_margin12px(); // Small font for column headers
-        TextUtils::printTextAtTopMargin(x, y, "Soll    Ist      Linie     Ziel");
+        TextUtils::printTextAtTopMargin(x, y, "Zeit         In    Linie    Ziel");
 
         y += COLUMN_HEADER_HEIGHT;
         y += COLUMN_HEADER_SPACING;
@@ -227,55 +268,57 @@ void TransportDisplay::drawSingleTransport(const DepartureInfo& dep, int16_t x, 
     // Half screen format with proper text positioning
     TextUtils::setFont10px_margin12px(); // Small font for transport entries
 
-    // Calculate available space
-    int totalWidth = width - x;
-
-    // Check if times are different for highlighting
-    bool timesAreDifferent = (dep.rtTime.length() > 0 && dep.rtTime != dep.time);
-
     // Clean up destination (remove "Frankfurt (Main)" prefix)
     const String stopName = ConfigManager::getStopNameFromId();
     String dest = Util::shortenDestination(stopName, dep.direction);
 
-    // Prepare times
-    String sollTime = dep.time.substring(0, 5);
-    String istTime = "";
-
-    if (!timesAreDifferent) {
-        istTime = "  +00"; // Use "00" to indicate on-time
-    } else if (dep.rtTime.length() > 0) {
-        // Calculate minute difference between scheduled and real-time
-        int scheduledMinutes = dep.time.substring(3, 5).toInt() + dep.time.substring(0, 2).toInt() * 60;
-        int realTimeMinutes = dep.rtTime.substring(3, 5).toInt() + dep.rtTime.substring(0, 2).toInt() * 60;
-        int diffMinutes = realTimeMinutes - scheduledMinutes;
-
-        if (diffMinutes > 0) {
-            istTime = "  +" + String(diffMinutes);
-        }
+    // === Zeit column: effective departure time (+ plan-only marker) ===
+    // rtTime present  -> live data, show the real (prognosed) departure.
+    // rtTime empty    -> plan-only (no real-time feed), show scheduled time + "*".
+    bool hasRealtime = (dep.rtTime.length() > 0);
+    String effectiveTime = hasRealtime ? dep.rtTime : dep.time;
+    String zeitText = effectiveTime.substring(0, 5); // "HH:MM"
+    if (!hasRealtime) {
+        zeitText += " *"; // mark as timetable-only, not live
     }
 
-    // get max width for each column
-    int8_t timeWidth = TextUtils::getTextWidth("88:88");
-    int8_t lineWidth = TextUtils::getTextWidth("M888");
+    // === In column: countdown in minutes, right-aligned, blank if > threshold ===
+    String inText = "";
+    int minsLeft = minutesUntil(effectiveTime);
+    if (minsLeft >= 0 && minsLeft <= COUNTDOWN_THRESHOLD_MIN) {
+        inText = String(minsLeft) + "'";
+    }
+
+    // Fixed column widths. "In" is sized for the widest token ("888'").
+    int16_t zeitColWidth = TextUtils::getTextWidth("88:88 *");
+    int16_t inColWidth = TextUtils::getTextWidth("888'");
 
     int16_t currentX = x;
 
-    // Print times with strikethrough if cancelled
+    // --- Zeit (left-aligned) ---
     if (dep.cancelled) {
-        TextUtils::printStrikethroughTextAtTopMargin(currentX, currentY, sollTime.c_str());
+        TextUtils::printStrikethroughTextAtTopMargin(currentX, currentY, zeitText.c_str());
     } else {
-        TextUtils::printTextAtTopMargin(currentX, currentY, sollTime.c_str());
+        TextUtils::printTextAtTopMargin(currentX, currentY, zeitText.c_str());
     }
 
-    currentX += COLUMN_PADDING + timeWidth;
+    currentX += zeitColWidth + COLUMN_PADDING;
 
-    if (dep.cancelled) {
-        TextUtils::printStrikethroughTextAtTopMargin(currentX, currentY, istTime.c_str());
-    } else {
-        TextUtils::printTextAtTopMargin(currentX, currentY, istTime.c_str());
+    // --- In (right-aligned within its column) ---
+    if (inText.length() > 0) {
+        int16_t inTextWidth = TextUtils::getTextWidth(inText);
+        int16_t inX = currentX + inColWidth - inTextWidth; // right-align
+        if (dep.cancelled) {
+            TextUtils::printStrikethroughTextAtTopMargin(inX, currentY, inText.c_str());
+        } else {
+            TextUtils::printTextAtTopMargin(inX, currentY, inText.c_str());
+        }
     }
 
-    currentX += COLUMN_PADDING + timeWidth;
+    currentX += inColWidth + COLUMN_PADDING;
+
+    // --- Linie ---
+    int8_t lineWidth = TextUtils::getTextWidth("M888");
     TextUtils::printTextAtTopMargin(currentX, currentY, dep.line.c_str());
     currentX += COLUMN_PADDING + lineWidth;
     int16_t destMaxWidth = (x + width) - currentX;
