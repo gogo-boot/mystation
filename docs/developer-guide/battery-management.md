@@ -36,8 +36,8 @@ reading and immediately returned LOW to save power.
 
 | Threshold                 | Voltage   | Capacity | Notes                                               |
 |---------------------------|-----------|----------|-----------------------------------------------------|
-| Fully charged             | 4.120 V   | 100 %    | `BATTERY_VOLTAGE_MAX` constant                      |
-| Nominal                   | 3.643 V   | ~50 %    | `BATTERY_VOLTAGE_NOMINAL` constant                  |
+| Fully charged             | 4.111 V   | 100 %    | `BATTERY_VOLTAGE_MAX` constant (datasheet)          |
+| Nominal                   | 3.642 V   | ~50 %    | `BATTERY_VOLTAGE_NOMINAL` constant (datasheet)      |
 | ⚠️ Low battery warning    | ≈ 3.252 V | **5 %**  | Trigger warning UI; prompt user to recharge         |
 | ⚡ ESP32 instability zone  | < 3.0 V   | < 0 %    | WiFi & Bluetooth become unreliable below this point |
 | 🔒 Hardware power cut-off | 3.0 V     | 0 %      | `BATTERY_VOLTAGE_MIN`; onboard circuit cuts power   |
@@ -62,26 +62,31 @@ Running the chip at such low voltages is **not recommended** and may cause:
 
 ## Li-ion Discharge Curve
 
-The values below are measured from a typical Li-ion cell and are used internally for capacity estimation.
+The values below are from the manufacturer's datasheet for the E1001/E1002 2000 mAh cell
+(`docs/datasheet/reterminalE1001Battery curve.xlsx`) and are used internally for capacity
+estimation.
 
 | Capacity (%) | Voltage (V) | Notes                              |
 |--------------|-------------|------------------------------------|
-| 100          | 4.111       | Discharge curve top (measured)     |
-| 90           | 4.020       |                                    |
-| 80           | 3.950       |                                    |
-| 70           | 3.840       |                                    |
-| 60           | 3.750       |                                    |
-| **50**       | **3.643**   | Nominal voltage                    |
-| 40           | 3.580       |                                    |
-| 30           | 3.500       |                                    |
-| 20           | 3.420       |                                    |
-| 10           | 3.350       |                                    |
+| 100          | 4.111       | Discharge curve top (datasheet)    |
+| 90           | 3.927       |                                    |
+| 80           | 3.832       |                                    |
+| 70           | 3.759       |                                    |
+| 60           | 3.697       |                                    |
+| **50**       | **3.642**   | Nominal voltage                    |
+| 40           | 3.587       |                                    |
+| 30           | 3.528       |                                    |
+| 20           | 3.464       |                                    |
+| 10           | 3.378       |                                    |
 | **5**        | **3.252**   | **⚠️ Low battery warning trigger** |
-| 2            | 3.120       |                                    |
-| **1**        | **2.795**   | Discharge curve bottom (measured)  |
+| 2            | 2.990       |                                    |
+| **1**        | **2.795**   | Discharge curve bottom (datasheet) |
+
+> 📄 **Source:** [E1001/E1002 battery discharge curve (datasheet)](../datasheet/reterminalE1001Battery%20curve.xlsx)
+> — 2000 mAh cell. The full per-percent table (1–100 %) is in the spreadsheet.
 
 > 📝 **Current implementation** uses a linear interpolation between `BATTERY_VOLTAGE_MIN` (3.010 V) and
-> `BATTERY_VOLTAGE_MAX` (4.120 V). The table above documents the *real* non-linear Li-ion discharge curve and can be
+> `BATTERY_VOLTAGE_MAX` (4.111 V). The table above documents the *real* non-linear Li-ion discharge curve and can be
 > used to implement a look-up-table (LUT) approach in a future improvement.
 
 ---
@@ -104,20 +109,20 @@ A look-up table based on the measured discharge curve (1 % → 2.795 V, 100 % �
 more accurate readings:
 
 ```cpp
-// Example LUT approach (not yet implemented)
+// Example LUT approach (not yet implemented) — values from the E1001/E1002 datasheet
 static const float VOLTAGE_LUT[] = {
     2.795f, // 1%
-    3.120f, // 2%
+    2.990f, // 2%
     3.252f, // 5%  ← low-battery warning threshold
-    3.350f, // 10%
-    3.420f, // 20%
-    3.500f, // 30%
-    3.580f, // 40%
-    3.643f, // 50% ← nominal
-    3.750f, // 60%
-    3.840f, // 70%
-    3.950f, // 80%
-    4.020f, // 90%
+    3.378f, // 10%
+    3.464f, // 20%
+    3.528f, // 30%
+    3.587f, // 40%
+    3.642f, // 50% ← nominal
+    3.697f, // 60%
+    3.759f, // 70%
+    3.832f, // 80%
+    3.927f, // 90%
     4.111f, // 100%
 };
 ```
@@ -141,11 +146,11 @@ The icon level maps the percentage to one of five visual states:
 
 ## Charging Detection
 
-Charging is inferred by comparing voltage against `BATTERY_VOLTAGE_MAX + 0.1 V` (4.22 V).
+Charging is inferred by comparing voltage against `BATTERY_VOLTAGE_MAX + 0.1 V` (4.211 V).
 This is a heuristic — no dedicated charge-status pin is read.
 
 ```cpp
-return voltage > (BATTERY_VOLTAGE_MAX + 0.1f);  // > 4.22 V → likely charging
+return voltage > (BATTERY_VOLTAGE_MAX + 0.1f);  // > 4.211 V → likely charging
 ```
 
 ---
@@ -202,6 +207,7 @@ involvement.
 
 ## References
 
+- [E1001/E1002 battery discharge curve (datasheet)](../datasheet/reterminalE1001Battery%20curve.xlsx) — 2000 mAh cell, per-percent voltage table
 - [TRMNL OG DIY Kit — Arduino Wiki](https://wiki.seeedstudio.com/ogdiy_kit_works_with_arduino/)
 - [ESP32-S3 ADC Characteristics — Espressif Docs](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s3/api-reference/peripherals/adc_calibration.html)
 

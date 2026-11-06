@@ -16,7 +16,13 @@
  */
 
 // Battery voltage thresholds (for LiPo batteries)
-static const float BATTERY_VOLTAGE_MAX = 4.060f; // Fully charged
+// NOTE: MAX must be the real full-charge terminal voltage. Per the manufacturer's
+// discharge-curve datasheet, a rested/under-load full cell on this kit reads 4.111V
+// (the charger peak of ~4.2V only appears while actively charging). If MAX is set
+// below the real full, voltageToPercentage() clamps every healthy battery to 100%.
+// (Regression: MAX had drifted down to 4.06V, which made the E1001 report 100% almost
+// always.)
+static const float BATTERY_VOLTAGE_MAX = 4.111f; // Fully charged (datasheet, rested)
 static const float BATTERY_VOLTAGE_MIN = 3.010f; // Empty (safe cutoff)
 static const float BATTERY_VOLTAGE_NOMINAL = 3.7f; // Nominal voltage
 
